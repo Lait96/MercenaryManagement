@@ -5,6 +5,7 @@
   <Version value="v0.1.0" />
   <ModuleCategory value="Singleplayer" />
   <DependedModules>
+    <DependedModule Id="Bannerlord.UIExtenderEx" DependentVersion="v2.13.2" Optional="false" />
     <DependedModule Id="Native" DependentVersion="v1.4.7" Optional="false" />
     <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" Optional="false" />
     <DependedModule Id="Sandbox" DependentVersion="v1.4.7" Optional="false" />

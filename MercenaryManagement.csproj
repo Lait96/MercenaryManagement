@@ -10,7 +10,9 @@
 
     <GamePath>F:\SteamLibrary\steamapps\common\Mount &amp; Blade II Bannerlord</GamePath>
     <GameBinPath>$(GamePath)\bin\Win64_Shipping_Client</GameBinPath>
+    <UIExtenderPath>$(GamePath)\Modules\Bannerlord.UIExtenderEx\bin\Win64_Shipping_Client</UIExtenderPath>
     <ModuleRoot>$(MSBuildProjectDirectory)\_Module</ModuleRoot>
+    <ReleaseModuleRoot>$(MSBuildProjectDirectory)\artifacts\Release\$(AssemblyName)</ReleaseModuleRoot>
 
     <OutputPath>$(ModuleRoot)\bin\Win64_Shipping_Client\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -19,6 +21,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Bannerlord.UIExtenderEx">
+      <HintPath>$(UIExtenderPath)\Bannerlord.UIExtenderEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.CampaignSystem">
+      <HintPath>$(GameBinPath)\TaleWorlds.CampaignSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection">
+      <HintPath>$(GameBinPath)\TaleWorlds.CampaignSystem.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Core">
+      <HintPath>$(GameBinPath)\TaleWorlds.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Library">
+      <HintPath>$(GameBinPath)\TaleWorlds.Library.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Localization">
+      <HintPath>$(GameBinPath)\TaleWorlds.Localization.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>$(GameBinPath)\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>false</Private>
@@ -29,5 +55,26 @@
     <Error
       Condition="!Exists('$(GameBinPath)\TaleWorlds.MountAndBlade.dll')"
       Text="Bannerlord assemblies were not found at '$(GameBinPath)'. Update GamePath in MercenaryManagement.csproj." />
+    <Error
+      Condition="!Exists('$(UIExtenderPath)\Bannerlord.UIExtenderEx.dll')"
+      Text="Bannerlord.UIExtenderEx was not found at '$(UIExtenderPath)'. Install Bannerlord.UIExtenderEx or update GamePath in MercenaryManagement.csproj." />
+  </Target>
+
+  <Target Name="StageReleaseModule" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ReleaseBinPath>$(ReleaseModuleRoot)\bin\Win64_Shipping_Client</ReleaseBinPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <ReleaseModuleContent Include="$(ModuleRoot)\**\*" Exclude="$(ModuleRoot)\bin\**\*" />
+      <ReleaseBinaries Include="$(TargetPath);@(ReferenceCopyLocalPaths)" />
+    </ItemGroup>
+
+    <Message Importance="High" Text="Staging Bannerlord module at '$(ReleaseModuleRoot)'..." />
+    <RemoveDir Directories="$(ReleaseModuleRoot)" Condition="Exists('$(ReleaseModuleRoot)')" />
+    <MakeDir Directories="$(ReleaseModuleRoot);$(ReleaseBinPath)" />
+    <Copy
+      SourceFiles="@(ReleaseModuleContent)"
+      DestinationFolder="$(ReleaseModuleRoot)\%(ReleaseModuleContent.RecursiveDir)" />
+    <Copy SourceFiles="@(ReleaseBinaries)" DestinationFolder="$(ReleaseBinPath)" />
   </Target>
 </Project>

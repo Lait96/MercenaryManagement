@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base>
+  <tags>
+    <tag language="English" />
+  </tags>
+  <strings>
+    <string id="MercenaryManagement_Mercenaries" text="Mercenaries" />
+  </strings>
+</base>
