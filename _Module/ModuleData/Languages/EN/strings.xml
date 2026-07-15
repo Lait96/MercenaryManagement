@@ -10,6 +10,15 @@
     <string id="MercenaryManagement_Leader" text="Leader" />
     <string id="MercenaryManagement_Strength" text="Strength" />
     <string id="MercenaryManagement_ActiveParties" text="Active parties" />
+    <string id="MercenaryManagement_ClanLevel" text="Clan level" />
+    <string id="MercenaryManagement_ClanMembers" text="Clan members" />
+    <string id="MercenaryManagement_RelationToRuler" text="Leader's relation to the ruler" />
+    <string id="MercenaryManagement_InfluencePrice" text="Denars per influence" />
+    <string id="MercenaryManagement_AccumulatedInfluence" text="Accumulated influence" />
+    <string id="MercenaryManagement_ExpectedPayment" text="Expected payment (denars)" />
+    <string id="MercenaryManagement_ServiceStatus" text="Service status" />
+    <string id="MercenaryManagement_InService" text="In service" />
+    <string id="MercenaryManagement_NotInService" text="Not in service" />
     <string id="MercenaryManagement_NoMercenaryClans" text="No mercenary clans are currently serving this kingdom." />
   </strings>
 </base>

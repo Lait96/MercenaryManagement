@@ -53,6 +53,10 @@
       <HintPath>$(GameBinPath)\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.ObjectSystem">
+      <HintPath>$(GameBinPath)\TaleWorlds.ObjectSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="ValidateGamePath" BeforeTargets="ResolveReferences">

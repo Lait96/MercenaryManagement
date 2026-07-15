@@ -10,6 +10,15 @@
     <string id="MercenaryManagement_Leader" text="Лидер" />
     <string id="MercenaryManagement_Strength" text="Сила" />
     <string id="MercenaryManagement_ActiveParties" text="Активные отряды" />
+    <string id="MercenaryManagement_ClanLevel" text="Уровень клана" />
+    <string id="MercenaryManagement_ClanMembers" text="Члены клана" />
+    <string id="MercenaryManagement_RelationToRuler" text="Отношение лидера к правителю" />
+    <string id="MercenaryManagement_InfluencePrice" text="Денаров за единицу влияния" />
+    <string id="MercenaryManagement_AccumulatedInfluence" text="Накопленное влияние" />
+    <string id="MercenaryManagement_ExpectedPayment" text="Ожидаемая выплата (денары)" />
+    <string id="MercenaryManagement_ServiceStatus" text="Статус службы" />
+    <string id="MercenaryManagement_InService" text="На службе" />
+    <string id="MercenaryManagement_NotInService" text="Не на службе" />
     <string id="MercenaryManagement_NoMercenaryClans" text="Сейчас этому королевству не служит ни один наёмный клан." />
   </strings>
 </base>
