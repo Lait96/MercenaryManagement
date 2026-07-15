@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <AssemblyName>MercenaryManagement</AssemblyName>
+    <RootNamespace>MercenaryManagement</RootNamespace>
+
+    <GamePath>F:\SteamLibrary\steamapps\common\Mount &amp; Blade II Bannerlord</GamePath>
+    <GameBinPath>$(GamePath)\bin\Win64_Shipping_Client</GameBinPath>
+    <ModuleRoot>$(MSBuildProjectDirectory)\_Module</ModuleRoot>
+
+    <OutputPath>$(ModuleRoot)\bin\Win64_Shipping_Client\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="TaleWorlds.MountAndBlade">
+      <HintPath>$(GameBinPath)\TaleWorlds.MountAndBlade.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ValidateGamePath" BeforeTargets="ResolveReferences">
+    <Error
+      Condition="!Exists('$(GameBinPath)\TaleWorlds.MountAndBlade.dll')"
+      Text="Bannerlord assemblies were not found at '$(GameBinPath)'. Update GamePath in MercenaryManagement.csproj." />
+  </Target>
+</Project>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="MercenaryManagement" />
+  <Id value="MercenaryManagement" />
+  <Version value="v0.1.0" />
+  <ModuleCategory value="Singleplayer" />
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.4.7" Optional="false" />
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" Optional="false" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.4.7" Optional="false" />
+  </DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="MercenaryManagement" />
+      <DLLName value="MercenaryManagement.dll" />
+      <SubModuleClassType value="MercenaryManagement.SubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>
