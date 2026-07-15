@@ -48,6 +48,20 @@
     <string id="MercenaryManagement_HireFailedGold" text="У правителя недостаточно динаров, чтобы гарантировать клану первые выплаты." />
     <string id="MercenaryManagement_HireFailedDebt" text="У клана правителя слишком большой невыплаченный долг перед королевством." />
     <string id="MercenaryManagement_HireFailedUnknown" text="Клан не смог поступить на службу вашему королевству." />
+    <string id="MercenaryManagement_Poach" text="Переманить клан" />
+    <string id="MercenaryManagement_PoachConfirmationTitle" text="Переманивание наёмников" />
+    <string id="MercenaryManagement_PoachConfirmation" text="Убедить клан {CLAN} покинуть королевство {CURRENT_KINGDOM} и поступить на службу вашему королевству за {PRICE} динаров за единицу влияния?" />
+    <string id="MercenaryManagement_ConfirmPoach" text="Переманить" />
+    <string id="MercenaryManagement_PoachSucceeded" text="Клан {CLAN} покинул прежнего нанимателя и поступил на службу вашему королевству." />
+    <string id="MercenaryManagement_PoachFailedNoKingdom" text="Это королевство больше недоступно." />
+    <string id="MercenaryManagement_PoachFailedNotRuler" text="Переманивать наёмные кланы из других королевств может только правитель королевства." />
+    <string id="MercenaryManagement_PoachFailedNotServingOther" text="Этот клан больше не служит другому королевству в качестве наёмников." />
+    <string id="MercenaryManagement_PoachFailedEmployerChanged" text="Текущий наниматель клана изменился. Выберите клан снова, чтобы сделать новое предложение." />
+    <string id="MercenaryManagement_PoachFailedKingdomsAtWar" text="Клан не может сменить сторону, пока его текущее королевство воюет с вашим королевством." />
+    <string id="MercenaryManagement_PoachFailedConstantWar" text="Клан не может поступить на службу вашему королевству, потому что эти фракции являются непримиримыми врагами." />
+    <string id="MercenaryManagement_PoachFailedCommitment" text="Клан должен выполнить текущие обязательства по службе, прежде чем сможет сменить королевство." />
+    <string id="MercenaryManagement_PoachFailedInBattle" text="Клан не может сменить королевство, пока один из его отрядов участвует в сражении." />
+    <string id="MercenaryManagement_PoachFailedUnknown" text="Клан не смог перейти на службу вашему королевству." />
     <string id="MercenaryManagement_Dismiss" text="Исключить" />
     <string id="MercenaryManagement_DismissConfirmationTitle" text="Исключение наёмников" />
     <string id="MercenaryManagement_DismissConfirmation" text="Исключить клан {CLAN} со службы вашему королевству?" />

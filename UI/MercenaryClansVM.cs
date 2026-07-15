@@ -122,6 +122,11 @@ internal sealed class MercenaryClansVM : ViewModel
                                           && SelectedClan?.IsServingPlayerKingdom == true;
 
     [DataSourceProperty]
+    public bool CanPoachSelectedClan => _kingdom is not null
+                                        && MercenaryHiringService.IsPlayerRuler(_kingdom)
+                                        && SelectedClan?.IsServingOtherKingdom == true;
+
+    [DataSourceProperty]
     public MercenaryClanItemVM? SelectedClan
     {
         get => _selectedClan;
@@ -142,6 +147,7 @@ internal sealed class MercenaryClansVM : ViewModel
                 nameof(IsSelectedClanInfluencePriceVisible));
             OnPropertyChangedWithValue(CanHireSelectedClan, nameof(CanHireSelectedClan));
             OnPropertyChangedWithValue(CanDismissSelectedClan, nameof(CanDismissSelectedClan));
+            OnPropertyChangedWithValue(CanPoachSelectedClan, nameof(CanPoachSelectedClan));
         }
     }
 
@@ -217,6 +223,9 @@ internal sealed class MercenaryClansVM : ViewModel
     public string DismissText => new TextObject("{=MercenaryManagement_Dismiss}Dismiss clan").ToString();
 
     [DataSourceProperty]
+    public string PoachText => new TextObject("{=MercenaryManagement_Poach}Poach clan").ToString();
+
+    [DataSourceProperty]
     public string EmptyStateText => new TextObject(
         "{=MercenaryManagement_NoMercenaryClans}No mercenary clans are serving this kingdom or available for hire.").ToString();
 
@@ -256,6 +265,7 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(ServiceStatusText, nameof(ServiceStatusText));
         OnPropertyChangedWithValue(HireText, nameof(HireText));
         OnPropertyChangedWithValue(DismissText, nameof(DismissText));
+        OnPropertyChangedWithValue(PoachText, nameof(PoachText));
         OnPropertyChangedWithValue(EmptyStateText, nameof(EmptyStateText));
         OnPropertyChangedWithValue(NoHiredClansText, nameof(NoHiredClansText));
         OnPropertyChangedWithValue(NoAvailableClansText, nameof(NoAvailableClansText));
@@ -427,6 +437,49 @@ internal sealed class MercenaryClansVM : ViewModel
             true);
     }
 
+    [DataSourceMethod]
+    public void ExecutePoachSelectedClan()
+    {
+        MercenaryClanItemVM? selectedClan = SelectedClan;
+        Kingdom? targetKingdom = _kingdom;
+        if (selectedClan is null)
+        {
+            return;
+        }
+
+        if (MercenaryPoachingService.TryGetFailureReason(
+                selectedClan.Clan,
+                targetKingdom,
+                out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            return;
+        }
+
+        Kingdom currentKingdom = selectedClan.Clan.Kingdom!;
+        int influencePrice = MercenaryHiringService.CalculateHirePrice(
+            selectedClan.Clan,
+            targetKingdom!);
+        TextObject confirmation = new TextObject(
+            "{=MercenaryManagement_PoachConfirmation}Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} denars per influence point?");
+        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
+        confirmation.SetTextVariable("CURRENT_KINGDOM", currentKingdom.Name);
+        confirmation.SetTextVariable("PRICE", influencePrice);
+
+        InformationManager.ShowInquiry(
+            new InquiryData(
+                new TextObject(
+                    "{=MercenaryManagement_PoachConfirmationTitle}Recruit serving mercenaries").ToString(),
+                confirmation.ToString(),
+                true,
+                true,
+                new TextObject("{=MercenaryManagement_ConfirmPoach}Recruit").ToString(),
+                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
+                () => PoachClan(selectedClan.Clan, currentKingdom, targetKingdom!),
+                null),
+            true);
+    }
+
     public override void OnFinalize()
     {
         SelectedClan = null;
@@ -526,6 +579,45 @@ internal sealed class MercenaryClansVM : ViewModel
         }
 
         Refresh(kingdom);
+    }
+
+    private void PoachClan(Clan clan, Kingdom expectedCurrentKingdom, Kingdom targetKingdom)
+    {
+        if (clan.Kingdom != expectedCurrentKingdom)
+        {
+            InformationManager.DisplayMessage(new InformationMessage(
+                new TextObject(
+                    "{=MercenaryManagement_PoachFailedEmployerChanged}The clan's current employer has changed. Select the clan again to make a new offer.")
+                    .ToString()));
+            Refresh(targetKingdom);
+            return;
+        }
+
+        if (MercenaryPoachingService.TryGetFailureReason(clan, targetKingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            Refresh(targetKingdom);
+            return;
+        }
+
+        MercenaryPoachingService.Poach(clan, targetKingdom);
+
+        if (clan.IsUnderMercenaryService && clan.Kingdom == targetKingdom)
+        {
+            TextObject success = new TextObject(
+                "{=MercenaryManagement_PoachSucceeded}The {CLAN} clan has left its former employer and entered your kingdom's service.");
+            success.SetTextVariable("CLAN", clan.Name);
+            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
+        }
+        else
+        {
+            InformationManager.DisplayMessage(new InformationMessage(
+                new TextObject(
+                    "{=MercenaryManagement_PoachFailedUnknown}The clan could not switch to your kingdom's service.")
+                    .ToString()));
+        }
+
+        Refresh(targetKingdom);
     }
 }
 
@@ -646,6 +738,9 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
     [DataSourceProperty]
     public bool IsFreeMercenaryClan => MercenaryHiringService.IsFreeMercenaryClan(_clan);
+
+    [DataSourceProperty]
+    public bool IsServingOtherKingdom => MercenaryPoachingService.IsServingAnotherKingdom(_clan, _kingdom);
 
     [DataSourceProperty]
     public bool ShouldShowInfluencePrice => IsServingPlayerKingdom || IsFreeMercenaryClan;

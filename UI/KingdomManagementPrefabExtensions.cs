@@ -420,6 +420,25 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                               MarginTop="12"
                                               HorizontalAlignment="Center"
                                               Brush="ButtonBrush2"
+                                              Command.Click="ExecutePoachSelectedClan"
+                                              IsVisible="@CanPoachSelectedClan"
+                                              UpdateChildrenStates="true"
+                                              DoNotPassEventsToChildren="true">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="StretchToParent"
+                                                Brush="Kingdom.GeneralButtons.Text"
+                                                Text="@PoachText" />
+                                  </Children>
+                                </ButtonWidget>
+
+                                <ButtonWidget WidthSizePolicy="Fixed"
+                                              HeightSizePolicy="Fixed"
+                                              SuggestedWidth="227"
+                                              SuggestedHeight="40"
+                                              MarginTop="12"
+                                              HorizontalAlignment="Center"
+                                              Brush="ButtonBrush2"
                                               Command.Click="ExecuteDismissSelectedClan"
                                               IsVisible="@CanDismissSelectedClan"
                                               UpdateChildrenStates="true"

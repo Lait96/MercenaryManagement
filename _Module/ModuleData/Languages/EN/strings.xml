@@ -48,6 +48,20 @@
     <string id="MercenaryManagement_HireFailedGold" text="The ruler does not have enough denars to guarantee the clan's initial wages." />
     <string id="MercenaryManagement_HireFailedDebt" text="The ruler's clan has too much unpaid debt to the kingdom." />
     <string id="MercenaryManagement_HireFailedUnknown" text="The clan could not enter your kingdom's service." />
+    <string id="MercenaryManagement_Poach" text="Poach clan" />
+    <string id="MercenaryManagement_PoachConfirmationTitle" text="Recruit serving mercenaries" />
+    <string id="MercenaryManagement_PoachConfirmation" text="Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} denars per influence point?" />
+    <string id="MercenaryManagement_ConfirmPoach" text="Recruit" />
+    <string id="MercenaryManagement_PoachSucceeded" text="The {CLAN} clan has left its former employer and entered your kingdom's service." />
+    <string id="MercenaryManagement_PoachFailedNoKingdom" text="The kingdom is no longer available." />
+    <string id="MercenaryManagement_PoachFailedNotRuler" text="Only the ruler of the kingdom can recruit mercenary clans from other kingdoms." />
+    <string id="MercenaryManagement_PoachFailedNotServingOther" text="This clan is no longer serving another kingdom as mercenaries." />
+    <string id="MercenaryManagement_PoachFailedEmployerChanged" text="The clan's current employer has changed. Select the clan again to make a new offer." />
+    <string id="MercenaryManagement_PoachFailedKingdomsAtWar" text="The clan cannot switch sides while its current kingdom is at war with your kingdom." />
+    <string id="MercenaryManagement_PoachFailedConstantWar" text="The clan cannot enter your kingdom's service because the factions are permanent enemies." />
+    <string id="MercenaryManagement_PoachFailedCommitment" text="The clan must fulfill its current service commitment before it can switch kingdoms." />
+    <string id="MercenaryManagement_PoachFailedInBattle" text="The clan cannot switch kingdoms while one of its parties is participating in a battle." />
+    <string id="MercenaryManagement_PoachFailedUnknown" text="The clan could not switch to your kingdom's service." />
     <string id="MercenaryManagement_Dismiss" text="Dismiss clan" />
     <string id="MercenaryManagement_DismissConfirmationTitle" text="Dismiss mercenaries" />
     <string id="MercenaryManagement_DismissConfirmation" text="Dismiss the {CLAN} clan from your kingdom's service?" />

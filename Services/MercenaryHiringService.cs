@@ -47,6 +47,11 @@ internal static class MercenaryHiringService
             return true;
         }
 
+        return TryGetEmployerFailureReason(clan, kingdom, out reason);
+    }
+
+    public static bool TryGetEmployerFailureReason(Clan clan, Kingdom kingdom, out TextObject reason)
+    {
         int hiredMercenaryClans = 0;
         foreach (Clan kingdomClan in kingdom.Clans)
         {
@@ -98,6 +103,24 @@ internal static class MercenaryHiringService
             return true;
         }
 
+        if (TryGetLeaderFailureReason(clan, out reason))
+        {
+            return true;
+        }
+
+        if (FactionManager.IsAtWarAgainstFaction(clan.MapFaction, kingdom))
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedAtWar}The clan cannot be hired while it is at war with your kingdom.");
+            return true;
+        }
+
+        reason = new TextObject(string.Empty);
+        return false;
+    }
+
+    public static bool TryGetLeaderFailureReason(Clan clan, out TextObject reason)
+    {
         if (clan.Leader is null || !clan.Leader.IsAlive)
         {
             reason = new TextObject(
@@ -109,13 +132,6 @@ internal static class MercenaryHiringService
         {
             reason = new TextObject(
                 "{=MercenaryManagement_HireFailedLeaderPrisoner}The clan leader is a prisoner and cannot enter into service.");
-            return true;
-        }
-
-        if (FactionManager.IsAtWarAgainstFaction(clan.MapFaction, kingdom))
-        {
-            reason = new TextObject(
-                "{=MercenaryManagement_HireFailedAtWar}The clan cannot be hired while it is at war with your kingdom.");
             return true;
         }
 
