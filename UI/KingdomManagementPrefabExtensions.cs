@@ -363,13 +363,13 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                 </ListPanel>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
 
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom">
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanInfluencePriceVisible">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@InfluencePriceText" />
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@InfluencePrice" />
                                   </Children>
                                 </ListPanel>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanServingPlayerKingdom" />
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanInfluencePriceVisible" />
 
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom">
                                   <Children>
@@ -393,6 +393,44 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ServiceStatus" />
                                   </Children>
                                 </ListPanel>
+
+                                <ButtonWidget WidthSizePolicy="Fixed"
+                                              HeightSizePolicy="Fixed"
+                                              SuggestedWidth="227"
+                                              SuggestedHeight="40"
+                                              MarginTop="12"
+                                              HorizontalAlignment="Center"
+                                              Brush="ButtonBrush2"
+                                              Command.Click="ExecuteHireSelectedClan"
+                                              IsVisible="@CanHireSelectedClan"
+                                              UpdateChildrenStates="true"
+                                              DoNotPassEventsToChildren="true">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="StretchToParent"
+                                                Brush="Kingdom.GeneralButtons.Text"
+                                                Text="@HireText" />
+                                  </Children>
+                                </ButtonWidget>
+
+                                <ButtonWidget WidthSizePolicy="Fixed"
+                                              HeightSizePolicy="Fixed"
+                                              SuggestedWidth="227"
+                                              SuggestedHeight="40"
+                                              MarginTop="12"
+                                              HorizontalAlignment="Center"
+                                              Brush="ButtonBrush2"
+                                              Command.Click="ExecuteDismissSelectedClan"
+                                              IsVisible="@CanDismissSelectedClan"
+                                              UpdateChildrenStates="true"
+                                              DoNotPassEventsToChildren="true">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="StretchToParent"
+                                                Brush="Kingdom.GeneralButtons.Text"
+                                                Text="@DismissText" />
+                                  </Children>
+                                </ButtonWidget>
                               </Children>
                             </ListPanel>
                           </Children>

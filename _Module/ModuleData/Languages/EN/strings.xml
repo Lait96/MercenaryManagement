@@ -25,10 +25,40 @@
     <string id="MercenaryManagement_ServiceStatus" text="Service status" />
     <string id="MercenaryManagement_InService" text="Serving this kingdom" />
     <string id="MercenaryManagement_NotInService" text="Available for hire" />
+    <string id="MercenaryManagement_UnavailableForHire" text="Unavailable for hire" />
     <string id="MercenaryManagement_InOtherKingdom" text="Serving {KINGDOM}" />
     <string id="MercenaryManagement_NoMercenaryClans" text="No mercenary clans are serving this kingdom or available for hire." />
     <string id="MercenaryManagement_NoHiredClans" text="No mercenary clans are serving this kingdom." />
     <string id="MercenaryManagement_NoAvailableClans" text="No independent mercenary clans are available." />
     <string id="MercenaryManagement_NoOtherKingdomClans" text="No mercenary clans are serving other kingdoms." />
+    <string id="MercenaryManagement_Hire" text="Hire clan" />
+    <string id="MercenaryManagement_HireConfirmationTitle" text="Hire mercenaries" />
+    <string id="MercenaryManagement_HireConfirmation" text="Hire the {CLAN} clan for {PRICE} denars per influence point?" />
+    <string id="MercenaryManagement_ConfirmHire" text="Hire" />
+    <string id="MercenaryManagement_Cancel" text="Cancel" />
+    <string id="MercenaryManagement_HireSucceeded" text="The {CLAN} clan has entered your kingdom's service." />
+    <string id="MercenaryManagement_HireFailedNoKingdom" text="The kingdom is no longer available." />
+    <string id="MercenaryManagement_HireFailedNotRuler" text="Only the ruler of the kingdom can hire mercenary clans." />
+    <string id="MercenaryManagement_HireFailedNotFree" text="This mercenary clan is no longer available for hire." />
+    <string id="MercenaryManagement_HireFailedNoLeader" text="This clan has no available leader who can enter into service." />
+    <string id="MercenaryManagement_HireFailedLeaderPrisoner" text="The clan leader is a prisoner and cannot enter into service." />
+    <string id="MercenaryManagement_HireFailedAtWar" text="The clan cannot be hired while it is at war with your kingdom." />
+    <string id="MercenaryManagement_HireFailedLimit" text="Your kingdom already employs the maximum of three mercenary clans." />
+    <string id="MercenaryManagement_HireFailedRelation" text="The clan leader's relation with the ruler is too poor to accept service." />
+    <string id="MercenaryManagement_HireFailedGold" text="The ruler does not have enough denars to guarantee the clan's initial wages." />
+    <string id="MercenaryManagement_HireFailedDebt" text="The ruler's clan has too much unpaid debt to the kingdom." />
+    <string id="MercenaryManagement_HireFailedUnknown" text="The clan could not enter your kingdom's service." />
+    <string id="MercenaryManagement_Dismiss" text="Dismiss clan" />
+    <string id="MercenaryManagement_DismissConfirmationTitle" text="Dismiss mercenaries" />
+    <string id="MercenaryManagement_DismissConfirmation" text="Dismiss the {CLAN} clan from your kingdom's service?" />
+    <string id="MercenaryManagement_DismissConfirmationWithPayment" text="Dismiss the {CLAN} clan and pay the outstanding {GOLD} denars?" />
+    <string id="MercenaryManagement_ConfirmDismiss" text="Dismiss" />
+    <string id="MercenaryManagement_DismissSucceeded" text="The {CLAN} clan has left your kingdom's service." />
+    <string id="MercenaryManagement_DismissFailedNoKingdom" text="The kingdom is no longer available." />
+    <string id="MercenaryManagement_DismissFailedNotRuler" text="Only the ruler of the kingdom can dismiss mercenary clans." />
+    <string id="MercenaryManagement_DismissFailedNotServing" text="This mercenary clan is no longer serving your kingdom." />
+    <string id="MercenaryManagement_DismissFailedNoLeader" text="This clan has no available leader with whom to settle the contract." />
+    <string id="MercenaryManagement_DismissFailedGold" text="You need {GOLD} denars to settle the clan's outstanding payment before dismissal." />
+    <string id="MercenaryManagement_DismissFailedUnknown" text="The clan could not be dismissed from your kingdom's service." />
   </strings>
 </base>

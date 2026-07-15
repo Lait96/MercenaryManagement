@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Bannerlord.UIExtenderEx.Attributes;
 using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
@@ -10,6 +11,7 @@ namespace MercenaryManagement.UI;
 
 internal sealed class MercenaryClansVM : ViewModel
 {
+    private Kingdom? _kingdom;
     private bool _hasClans;
     private bool _hasAvailableClans;
     private bool _hasOtherKingdomClans;
@@ -107,6 +109,19 @@ internal sealed class MercenaryClansVM : ViewModel
     public bool IsSelectedClanServingPlayerKingdom => SelectedClan?.IsServingPlayerKingdom == true;
 
     [DataSourceProperty]
+    public bool IsSelectedClanInfluencePriceVisible => SelectedClan?.ShouldShowInfluencePrice == true;
+
+    [DataSourceProperty]
+    public bool CanHireSelectedClan => _kingdom is not null
+                                       && MercenaryHiringService.IsPlayerRuler(_kingdom)
+                                       && SelectedClan?.IsFreeMercenaryClan == true;
+
+    [DataSourceProperty]
+    public bool CanDismissSelectedClan => _kingdom is not null
+                                          && MercenaryHiringService.IsPlayerRuler(_kingdom)
+                                          && SelectedClan?.IsServingPlayerKingdom == true;
+
+    [DataSourceProperty]
     public MercenaryClanItemVM? SelectedClan
     {
         get => _selectedClan;
@@ -122,6 +137,11 @@ internal sealed class MercenaryClansVM : ViewModel
             OnPropertyChangedWithValue(
                 IsSelectedClanServingPlayerKingdom,
                 nameof(IsSelectedClanServingPlayerKingdom));
+            OnPropertyChangedWithValue(
+                IsSelectedClanInfluencePriceVisible,
+                nameof(IsSelectedClanInfluencePriceVisible));
+            OnPropertyChangedWithValue(CanHireSelectedClan, nameof(CanHireSelectedClan));
+            OnPropertyChangedWithValue(CanDismissSelectedClan, nameof(CanDismissSelectedClan));
         }
     }
 
@@ -191,6 +211,12 @@ internal sealed class MercenaryClansVM : ViewModel
         "{=MercenaryManagement_ServiceStatus}Service status").ToString();
 
     [DataSourceProperty]
+    public string HireText => new TextObject("{=MercenaryManagement_Hire}Hire clan").ToString();
+
+    [DataSourceProperty]
+    public string DismissText => new TextObject("{=MercenaryManagement_Dismiss}Dismiss clan").ToString();
+
+    [DataSourceProperty]
     public string EmptyStateText => new TextObject(
         "{=MercenaryManagement_NoMercenaryClans}No mercenary clans are serving this kingdom or available for hire.").ToString();
 
@@ -228,6 +254,8 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(AccumulatedInfluenceText, nameof(AccumulatedInfluenceText));
         OnPropertyChangedWithValue(ExpectedPaymentText, nameof(ExpectedPaymentText));
         OnPropertyChangedWithValue(ServiceStatusText, nameof(ServiceStatusText));
+        OnPropertyChangedWithValue(HireText, nameof(HireText));
+        OnPropertyChangedWithValue(DismissText, nameof(DismissText));
         OnPropertyChangedWithValue(EmptyStateText, nameof(EmptyStateText));
         OnPropertyChangedWithValue(NoHiredClansText, nameof(NoHiredClansText));
         OnPropertyChangedWithValue(NoAvailableClansText, nameof(NoAvailableClansText));
@@ -251,6 +279,7 @@ internal sealed class MercenaryClansVM : ViewModel
 
     public void Refresh(Kingdom? kingdom)
     {
+        _kingdom = kingdom;
         SelectedClan = null;
 
         foreach (MercenaryClanItemVM clan in Clans)
@@ -325,6 +354,79 @@ internal sealed class MercenaryClansVM : ViewModel
         }
     }
 
+    [DataSourceMethod]
+    public void ExecuteHireSelectedClan()
+    {
+        MercenaryClanItemVM? selectedClan = SelectedClan;
+        Kingdom? kingdom = _kingdom;
+        if (selectedClan is null)
+        {
+            return;
+        }
+
+        if (MercenaryHiringService.TryGetFailureReason(selectedClan.Clan, kingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            return;
+        }
+
+        int influencePrice = MercenaryHiringService.CalculateHirePrice(selectedClan.Clan, kingdom!);
+        TextObject confirmation = new TextObject(
+            "{=MercenaryManagement_HireConfirmation}Hire the {CLAN} clan for {PRICE} denars per influence point?");
+        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
+        confirmation.SetTextVariable("PRICE", influencePrice);
+
+        InformationManager.ShowInquiry(
+            new InquiryData(
+                new TextObject("{=MercenaryManagement_HireConfirmationTitle}Hire mercenaries").ToString(),
+                confirmation.ToString(),
+                true,
+                true,
+                new TextObject("{=MercenaryManagement_ConfirmHire}Hire").ToString(),
+                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
+                () => HireClan(selectedClan.Clan, kingdom!),
+                null),
+            true);
+    }
+
+    [DataSourceMethod]
+    public void ExecuteDismissSelectedClan()
+    {
+        MercenaryClanItemVM? selectedClan = SelectedClan;
+        Kingdom? kingdom = _kingdom;
+        if (selectedClan is null)
+        {
+            return;
+        }
+
+        if (MercenaryDismissalService.TryGetFailureReason(selectedClan.Clan, kingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            return;
+        }
+
+        int outstandingPayment = MercenaryDismissalService.CalculateOutstandingPayment(selectedClan.Clan);
+        TextObject confirmation = outstandingPayment > 0
+            ? new TextObject(
+                "{=MercenaryManagement_DismissConfirmationWithPayment}Dismiss the {CLAN} clan and pay the outstanding {GOLD} denars?")
+            : new TextObject(
+                "{=MercenaryManagement_DismissConfirmation}Dismiss the {CLAN} clan from your kingdom's service?");
+        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
+        confirmation.SetTextVariable("GOLD", outstandingPayment);
+
+        InformationManager.ShowInquiry(
+            new InquiryData(
+                new TextObject("{=MercenaryManagement_DismissConfirmationTitle}Dismiss mercenaries").ToString(),
+                confirmation.ToString(),
+                true,
+                true,
+                new TextObject("{=MercenaryManagement_ConfirmDismiss}Dismiss").ToString(),
+                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
+                () => DismissClan(selectedClan.Clan, kingdom!),
+                null),
+            true);
+    }
+
     public override void OnFinalize()
     {
         SelectedClan = null;
@@ -367,6 +469,64 @@ internal sealed class MercenaryClansVM : ViewModel
         SelectedClan = clan;
         clan.IsSelected = true;
     }
+
+    private void HireClan(Clan clan, Kingdom kingdom)
+    {
+        if (MercenaryHiringService.TryGetFailureReason(clan, kingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            Refresh(kingdom);
+            return;
+        }
+
+        MercenaryHiringService.Hire(clan, kingdom);
+
+        if (clan.IsUnderMercenaryService && clan.Kingdom == kingdom)
+        {
+            TextObject success = new TextObject(
+                "{=MercenaryManagement_HireSucceeded}The {CLAN} clan has entered your kingdom's service.");
+            success.SetTextVariable("CLAN", clan.Name);
+            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
+        }
+        else
+        {
+            InformationManager.DisplayMessage(new InformationMessage(
+                new TextObject(
+                    "{=MercenaryManagement_HireFailedUnknown}The clan could not enter your kingdom's service.")
+                    .ToString()));
+        }
+
+        Refresh(kingdom);
+    }
+
+    private void DismissClan(Clan clan, Kingdom kingdom)
+    {
+        if (MercenaryDismissalService.TryGetFailureReason(clan, kingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            Refresh(kingdom);
+            return;
+        }
+
+        MercenaryDismissalService.Dismiss(clan);
+
+        if (!clan.IsUnderMercenaryService && clan.Kingdom is null)
+        {
+            TextObject success = new TextObject(
+                "{=MercenaryManagement_DismissSucceeded}The {CLAN} clan has left your kingdom's service.");
+            success.SetTextVariable("CLAN", clan.Name);
+            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
+        }
+        else
+        {
+            InformationManager.DisplayMessage(new InformationMessage(
+                new TextObject(
+                    "{=MercenaryManagement_DismissFailedUnknown}The clan could not be dismissed from your kingdom's service.")
+                    .ToString()));
+        }
+
+        Refresh(kingdom);
+    }
 }
 
 internal sealed class MercenaryClanItemVM : ViewModel
@@ -396,7 +556,9 @@ internal sealed class MercenaryClanItemVM : ViewModel
         RelationToRuler = clan.Leader is not null && kingdom.Leader is not null
             ? clan.Leader.GetRelation(kingdom.Leader)
             : 0;
-        InfluencePrice = clan.MercenaryAwardMultiplier;
+        InfluencePrice = MercenaryHiringService.IsFreeMercenaryClan(clan)
+            ? MercenaryHiringService.CalculateHirePrice(clan, kingdom)
+            : clan.MercenaryAwardMultiplier;
         AccumulatedInfluence = FormatInfluence(clan.Influence);
         ExpectedPayment = MercenaryPaymentService.CalculateExpectedPayment(clan);
         RefreshValues();
@@ -404,6 +566,8 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
     [DataSourceProperty]
     public BannerImageIdentifierVM Banner { get; }
+
+    internal Clan Clan => _clan;
 
     [DataSourceProperty]
     public string ClanName
@@ -481,6 +645,12 @@ internal sealed class MercenaryClanItemVM : ViewModel
     public bool IsServingPlayerKingdom => _clan.IsUnderMercenaryService && _clan.Kingdom == _kingdom;
 
     [DataSourceProperty]
+    public bool IsFreeMercenaryClan => MercenaryHiringService.IsFreeMercenaryClan(_clan);
+
+    [DataSourceProperty]
+    public bool ShouldShowInfluencePrice => IsServingPlayerKingdom || IsFreeMercenaryClan;
+
+    [DataSourceProperty]
     public bool IsSelected
     {
         get => _isSelected;
@@ -520,7 +690,13 @@ internal sealed class MercenaryClanItemVM : ViewModel
         }
         else
         {
-            serviceStatus = new TextObject("{=MercenaryManagement_NotInService}Available for hire");
+            bool hasFailureReason = MercenaryHiringService.IsPlayerRuler(_kingdom)
+                ? MercenaryHiringService.TryGetFailureReason(_clan, _kingdom, out _)
+                : MercenaryHiringService.TryGetInherentFailureReason(_clan, _kingdom, out _);
+
+            serviceStatus = hasFailureReason
+                ? new TextObject("{=MercenaryManagement_UnavailableForHire}Unavailable for hire")
+                : new TextObject("{=MercenaryManagement_NotInService}Available for hire");
         }
 
         ServiceStatus = serviceStatus.ToString();

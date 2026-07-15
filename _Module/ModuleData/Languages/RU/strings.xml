@@ -25,10 +25,40 @@
     <string id="MercenaryManagement_ServiceStatus" text="Статус службы" />
     <string id="MercenaryManagement_InService" text="Служит этому королевству" />
     <string id="MercenaryManagement_NotInService" text="Доступен для найма" />
+    <string id="MercenaryManagement_UnavailableForHire" text="Недоступен для найма" />
     <string id="MercenaryManagement_InOtherKingdom" text="Служит королевству {KINGDOM}" />
     <string id="MercenaryManagement_NoMercenaryClans" text="Нет наёмных кланов на службе или доступных для найма." />
     <string id="MercenaryManagement_NoHiredClans" text="Этому королевству не служит ни один наёмный клан." />
     <string id="MercenaryManagement_NoAvailableClans" text="Нет независимых наёмных кланов, доступных для найма." />
     <string id="MercenaryManagement_NoOtherKingdomClans" text="Другим королевствам не служит ни один наёмный клан." />
+    <string id="MercenaryManagement_Hire" text="Нанять клан" />
+    <string id="MercenaryManagement_HireConfirmationTitle" text="Найм наёмников" />
+    <string id="MercenaryManagement_HireConfirmation" text="Нанять клан {CLAN} за {PRICE} динаров за единицу влияния?" />
+    <string id="MercenaryManagement_ConfirmHire" text="Нанять" />
+    <string id="MercenaryManagement_Cancel" text="Отмена" />
+    <string id="MercenaryManagement_HireSucceeded" text="Клан {CLAN} поступил на службу вашему королевству." />
+    <string id="MercenaryManagement_HireFailedNoKingdom" text="Это королевство больше недоступно." />
+    <string id="MercenaryManagement_HireFailedNotRuler" text="Нанимать наёмные кланы может только правитель королевства." />
+    <string id="MercenaryManagement_HireFailedNotFree" text="Этот наёмный клан больше не доступен для найма." />
+    <string id="MercenaryManagement_HireFailedNoLeader" text="У этого клана нет доступного лидера, который мог бы поступить на службу." />
+    <string id="MercenaryManagement_HireFailedLeaderPrisoner" text="Лидер клана находится в плену и не может поступить на службу." />
+    <string id="MercenaryManagement_HireFailedAtWar" text="Клан нельзя нанять, пока он воюет с вашим королевством." />
+    <string id="MercenaryManagement_HireFailedLimit" text="Ваше королевство уже наняло максимально допустимые три наёмных клана." />
+    <string id="MercenaryManagement_HireFailedRelation" text="Отношение лидера клана к правителю слишком плохое, чтобы принять предложение." />
+    <string id="MercenaryManagement_HireFailedGold" text="У правителя недостаточно динаров, чтобы гарантировать клану первые выплаты." />
+    <string id="MercenaryManagement_HireFailedDebt" text="У клана правителя слишком большой невыплаченный долг перед королевством." />
+    <string id="MercenaryManagement_HireFailedUnknown" text="Клан не смог поступить на службу вашему королевству." />
+    <string id="MercenaryManagement_Dismiss" text="Исключить" />
+    <string id="MercenaryManagement_DismissConfirmationTitle" text="Исключение наёмников" />
+    <string id="MercenaryManagement_DismissConfirmation" text="Исключить клан {CLAN} со службы вашему королевству?" />
+    <string id="MercenaryManagement_DismissConfirmationWithPayment" text="Исключить клан {CLAN} и выплатить задолженность в размере {GOLD} динаров?" />
+    <string id="MercenaryManagement_ConfirmDismiss" text="Исключить" />
+    <string id="MercenaryManagement_DismissSucceeded" text="Клан {CLAN} покинул службу вашему королевству." />
+    <string id="MercenaryManagement_DismissFailedNoKingdom" text="Это королевство больше недоступно." />
+    <string id="MercenaryManagement_DismissFailedNotRuler" text="Исключать наёмные кланы может только правитель королевства." />
+    <string id="MercenaryManagement_DismissFailedNotServing" text="Этот наёмный клан больше не служит вашему королевству." />
+    <string id="MercenaryManagement_DismissFailedNoLeader" text="У этого клана нет доступного лидера, с которым можно произвести расчёт." />
+    <string id="MercenaryManagement_DismissFailedGold" text="Для расчёта с кланом перед исключением требуется {GOLD} динаров." />
+    <string id="MercenaryManagement_DismissFailedUnknown" text="Клан не удалось исключить со службы вашему королевству." />
   </strings>
 </base>

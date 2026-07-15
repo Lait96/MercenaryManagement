@@ -1,0 +1,144 @@
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.Localization;
+
+namespace MercenaryManagement.Services;
+
+internal static class MercenaryHiringService
+{
+    private const int MaximumHiredMercenaryClans = 3;
+    private const int MaximumKingdomDebt = 1000;
+    private const int RequiredGoldInDailyWages = 20;
+
+    public static bool IsPlayerRuler(Kingdom kingdom)
+    {
+        return kingdom.Leader == Hero.MainHero
+               && Clan.PlayerClan.Kingdom == kingdom
+               && !Clan.PlayerClan.IsUnderMercenaryService;
+    }
+
+    public static bool IsFreeMercenaryClan(Clan clan)
+    {
+        return clan.IsMinorFaction
+               && !clan.IsBanditFaction
+               && !clan.IsEliminated
+               && !clan.IsUnderMercenaryService
+               && clan.Kingdom is null;
+    }
+
+    public static bool TryGetFailureReason(Clan clan, Kingdom? kingdom, out TextObject reason)
+    {
+        if (kingdom is null || kingdom.IsEliminated)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedNoKingdom}The kingdom is no longer available.");
+            return true;
+        }
+
+        if (!IsPlayerRuler(kingdom))
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedNotRuler}Only the ruler of the kingdom can hire mercenary clans.");
+            return true;
+        }
+
+        if (TryGetInherentFailureReason(clan, kingdom, out reason))
+        {
+            return true;
+        }
+
+        int hiredMercenaryClans = 0;
+        foreach (Clan kingdomClan in kingdom.Clans)
+        {
+            if (kingdomClan.IsUnderMercenaryService)
+            {
+                hiredMercenaryClans++;
+            }
+        }
+
+        if (hiredMercenaryClans >= MaximumHiredMercenaryClans)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedLimit}Your kingdom already employs the maximum of three mercenary clans.");
+            return true;
+        }
+
+        if (clan.Leader!.GetRelation(kingdom.Leader) <= -10)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedRelation}The clan leader's relation with the ruler is too poor to accept service.");
+            return true;
+        }
+
+        int awardFactor = CalculateHirePrice(clan, kingdom);
+        if (Hero.MainHero.Gold < awardFactor * RequiredGoldInDailyWages)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedGold}The ruler does not have enough denars to guarantee the clan's initial wages.");
+            return true;
+        }
+
+        if (Clan.PlayerClan.DebtToKingdom > MaximumKingdomDebt)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedDebt}The ruler's clan has too much unpaid debt to the kingdom.");
+            return true;
+        }
+
+        reason = new TextObject(string.Empty);
+        return false;
+    }
+
+    public static bool TryGetInherentFailureReason(Clan clan, Kingdom kingdom, out TextObject reason)
+    {
+        if (!IsFreeMercenaryClan(clan))
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedNotFree}This mercenary clan is no longer available for hire.");
+            return true;
+        }
+
+        if (clan.Leader is null || !clan.Leader.IsAlive)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedNoLeader}This clan has no available leader who can enter into service.");
+            return true;
+        }
+
+        if (clan.Leader.IsPrisoner)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedLeaderPrisoner}The clan leader is a prisoner and cannot enter into service.");
+            return true;
+        }
+
+        if (FactionManager.IsAtWarAgainstFaction(clan.MapFaction, kingdom))
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedAtWar}The clan cannot be hired while it is at war with your kingdom.");
+            return true;
+        }
+
+        reason = new TextObject(string.Empty);
+        return false;
+    }
+
+    public static int CalculateHirePrice(Clan clan, Kingdom kingdom)
+    {
+        return Campaign.Current.Models.MinorFactionsModel
+            .GetMercenaryAwardFactorToJoinKingdom(clan, kingdom, true);
+    }
+
+    public static void Hire(Clan clan, Kingdom kingdom)
+    {
+        int awardFactor = CalculateHirePrice(clan, kingdom);
+
+        // This is the same native action used by Bannerlord's mercenary barter.
+        ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
+            clan,
+            kingdom,
+            default,
+            awardFactor,
+            true);
+    }
+}
