@@ -6,19 +6,29 @@
   <strings>
     <string id="MercenaryManagement_Mercenaries" text="Наёмники" />
     <string id="MercenaryManagement_MercenaryClans" text="Наёмные кланы" />
+    <string id="MercenaryManagement_HiredClans" text="Служат этому королевству" />
+    <string id="MercenaryManagement_AvailableClans" text="Доступны для найма" />
+    <string id="MercenaryManagement_OtherKingdomClans" text="Служат другим королевствам" />
     <string id="MercenaryManagement_Clan" text="Клан" />
     <string id="MercenaryManagement_Leader" text="Лидер" />
     <string id="MercenaryManagement_Strength" text="Сила" />
     <string id="MercenaryManagement_ActiveParties" text="Активные отряды" />
+    <string id="MercenaryManagement_PartiesColumn" text="Отряды" />
     <string id="MercenaryManagement_ClanLevel" text="Уровень клана" />
+    <string id="MercenaryManagement_LevelColumn" text="Уровень" />
     <string id="MercenaryManagement_ClanMembers" text="Члены клана" />
     <string id="MercenaryManagement_RelationToRuler" text="Отношение лидера к правителю" />
+    <string id="MercenaryManagement_RelationColumn" text="Отношение" />
     <string id="MercenaryManagement_InfluencePrice" text="Денаров за единицу влияния" />
     <string id="MercenaryManagement_AccumulatedInfluence" text="Накопленное влияние" />
     <string id="MercenaryManagement_ExpectedPayment" text="Ожидаемая выплата (денары)" />
     <string id="MercenaryManagement_ServiceStatus" text="Статус службы" />
-    <string id="MercenaryManagement_InService" text="На службе" />
-    <string id="MercenaryManagement_NotInService" text="Не на службе" />
-    <string id="MercenaryManagement_NoMercenaryClans" text="Сейчас этому королевству не служит ни один наёмный клан." />
+    <string id="MercenaryManagement_InService" text="Служит этому королевству" />
+    <string id="MercenaryManagement_NotInService" text="Доступен для найма" />
+    <string id="MercenaryManagement_InOtherKingdom" text="Служит королевству {KINGDOM}" />
+    <string id="MercenaryManagement_NoMercenaryClans" text="Нет наёмных кланов на службе или доступных для найма." />
+    <string id="MercenaryManagement_NoHiredClans" text="Этому королевству не служит ни один наёмный клан." />
+    <string id="MercenaryManagement_NoAvailableClans" text="Нет независимых наёмных кланов, доступных для найма." />
+    <string id="MercenaryManagement_NoOtherKingdomClans" text="Другим королевствам не служит ни один наёмный клан." />
   </strings>
 </base>

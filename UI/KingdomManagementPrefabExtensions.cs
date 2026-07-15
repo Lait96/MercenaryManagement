@@ -110,106 +110,183 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                    MarginLeft="35"
                                    MarginRight="35"
                                    StackLayout.LayoutMethod="HorizontalLeftToRight"
-                                   IsVisible="@HasClans">
+                                   IsVisible="@HasAnyClans">
                           <Children>
-                            <BrushListPanel WidthSizePolicy="Fixed"
-                                            HeightSizePolicy="StretchToParent"
-                                            SuggestedWidth="930"
-                                            Brush="Frame1Brush"
-                                            StackLayout.LayoutMethod="VerticalTopToBottom">
+                            <ListPanel WidthSizePolicy="Fixed"
+                                       HeightSizePolicy="StretchToParent"
+                                       SuggestedWidth="955">
                               <Children>
-                                <ListPanel WidthSizePolicy="Fixed"
-                                           HeightSizePolicy="Fixed"
-                                           SuggestedWidth="880"
-                                           SuggestedHeight="55"
-                                           MarginLeft="15"
-                                           StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                <ScrollablePanel WidthSizePolicy="StretchToParent"
+                                                 HeightSizePolicy="StretchToParent"
+                                                 AutoHideScrollBars="true"
+                                                 MouseScrollAxis="Vertical"
+                                                 ClipRect="MercenarySectionsClipRect"
+                                                 InnerPanel="MercenarySectionsClipRect\MercenarySections"
+                                                 VerticalScrollbar="..\MercenarySectionsScrollbar\Scrollbar">
                                   <Children>
-                                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="90" />
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@ClanText" />
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="250" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@LeaderText" />
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="130" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@StrengthText" />
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="190" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@ActivePartiesText" />
-                                  </Children>
-                                </ListPanel>
-
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
-                                  <Children>
-                                    <ScrollablePanel WidthSizePolicy="StretchToParent"
-                                                     HeightSizePolicy="StretchToParent"
-                                                     MarginLeft="15"
-                                                     MarginBottom="8"
-                                                     AutoHideScrollBars="true"
-                                                     ClipRect="MercenaryClanListClipRect"
-                                                     InnerPanel="MercenaryClanListClipRect\MercenaryClanList"
-                                                     VerticalScrollbar="..\MercenaryClanListScrollbar\Scrollbar">
+                                    <Widget Id="MercenarySectionsClipRect"
+                                            WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="StretchToParent"
+                                            ClipContents="true">
                                       <Children>
-                                        <Widget Id="MercenaryClanListClipRect"
-                                                WidthSizePolicy="StretchToParent"
-                                                HeightSizePolicy="StretchToParent"
-                                                ClipContents="true">
+                                        <ListPanel Id="MercenarySections"
+                                                   WidthSizePolicy="Fixed"
+                                                   HeightSizePolicy="CoverChildren"
+                                                   SuggestedWidth="930"
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom">
                                           <Children>
-                                            <ListPanel Id="MercenaryClanList"
-                                                       DataSource="{Clans}"
-                                                       WidthSizePolicy="StretchToParent"
-                                                       HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="VerticalTopToBottom">
-                                              <ItemTemplate>
-                                                <ButtonWidget WidthSizePolicy="Fixed"
-                                                              HeightSizePolicy="Fixed"
-                                                              SuggestedWidth="880"
-                                                              SuggestedHeight="90"
-                                                              MarginBottom="4"
-                                                              Brush="Kingdom.Item.Tuple"
-                                                              Command.Click="ExecuteSelect"
-                                                              IsSelected="@IsSelected"
-                                                              DoNotPassEventsToChildren="true">
-                                                  <Children>
-                                                    <ListPanel WidthSizePolicy="StretchToParent"
-                                                               HeightSizePolicy="StretchToParent"
-                                                               StackLayout.LayoutMethod="HorizontalLeftToRight"
-                                                               DoNotAcceptEvents="true">
-                                                      <Children>
-                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="90">
-                                                          <Children>
-                                                            <MaskedTextureWidget DataSource="{Banner}"
-                                                                                 WidthSizePolicy="Fixed"
-                                                                                 HeightSizePolicy="Fixed"
-                                                                                 SuggestedWidth="62"
-                                                                                 SuggestedHeight="80"
-                                                                                 HorizontalAlignment="Center"
-                                                                                 VerticalAlignment="Center"
-                                                                                 Brush="Flat.Tuple.Banner.Small"
-                                                                                 AdditionalArgs="@AdditionalArgs"
-                                                                                 ImageId="@Id"
-                                                                                 TextureProviderName="@TextureProviderName"
-                                                                                 IsDisabled="true" />
-                                                          </Children>
-                                                        </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" Brush="ArmyManagement.Army.Tuple.Name" Text="@ClanName" />
-                                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="250" Brush="ArmyManagement.Army.Tuple.Name" Text="@LeaderName" />
-                                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="130" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" IntText="@Strength" />
-                                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="190" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ActiveParties" />
-                                                      </Children>
-                                                    </ListPanel>
-                                                  </Children>
-                                                </ButtonWidget>
-                                              </ItemTemplate>
-                                            </ListPanel>
-                                          </Children>
-                                        </Widget>
+                                <BrushListPanel WidthSizePolicy="Fixed"
+                                                HeightSizePolicy="CoverChildren"
+                                                SuggestedWidth="930"
+                                                MinHeight="610"
+                                                MarginBottom="12"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="25" Text="@HiredClansTitleText" />
+                                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="38" MarginLeft="10" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                      <Children>
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@LeaderText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanLevelColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@StrengthText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ActivePartiesColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@RelationColumnText" />
                                       </Children>
-                                    </ScrollablePanel>
-                                    <Standard.VerticalScrollbar Id="MercenaryClanListScrollbar"
-                                                                HeightSizePolicy="StretchToParent"
-                                                                HorizontalAlignment="Right"
-                                                                MarginLeft="4"
-                                                                MarginRight="8"
-                                                                MarginBottom="8" />
+                                    </ListPanel>
+                                    <ListPanel Id="HiredClanList" DataSource="{Clans}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@HasClans">
+                                      <ItemTemplate>
+                                                    <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="66" MarginBottom="3" Brush="Kingdom.Item.Tuple" Command.Click="ExecuteSelect" IsSelected="@IsSelected" DoNotPassEventsToChildren="true">
+                                                      <Children>
+                                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="true">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65">
+                                                              <Children>
+                                                                <MaskedTextureWidget DataSource="{Banner}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="46" SuggestedHeight="58" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@ClanName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@LeaderName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ClanLevel" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@Strength" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ActiveParties" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@RelationToRuler" />
+                                                          </Children>
+                                                        </ListPanel>
+                                                      </Children>
+                                                    </ButtonWidget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="530" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@NoHiredClansText" IsVisible="@AreHiredClansEmpty" />
                                   </Children>
-                                </ListPanel>
+                                </BrushListPanel>
+
+                                <BrushListPanel WidthSizePolicy="Fixed"
+                                                HeightSizePolicy="CoverChildren"
+                                                SuggestedWidth="930"
+                                                MinHeight="610"
+                                                MarginBottom="12"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="25" Text="@AvailableClansTitleText" />
+                                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="38" MarginLeft="10" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                      <Children>
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@LeaderText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanLevelColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@StrengthText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ActivePartiesColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@RelationColumnText" />
+                                      </Children>
+                                    </ListPanel>
+                                    <ListPanel Id="AvailableClanList" DataSource="{AvailableClans}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@HasAvailableClans">
+                                      <ItemTemplate>
+                                                    <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="66" MarginBottom="3" Brush="Kingdom.Item.Tuple" Command.Click="ExecuteSelect" IsSelected="@IsSelected" DoNotPassEventsToChildren="true">
+                                                      <Children>
+                                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="true">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65">
+                                                              <Children>
+                                                                <MaskedTextureWidget DataSource="{Banner}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="46" SuggestedHeight="58" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@ClanName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@LeaderName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ClanLevel" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@Strength" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ActiveParties" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@RelationToRuler" />
+                                                          </Children>
+                                                        </ListPanel>
+                                                      </Children>
+                                                    </ButtonWidget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="530" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@NoAvailableClansText" IsVisible="@AreAvailableClansEmpty" />
+                                  </Children>
+                                </BrushListPanel>
+
+                                <BrushListPanel WidthSizePolicy="Fixed"
+                                                HeightSizePolicy="CoverChildren"
+                                                SuggestedWidth="930"
+                                                MinHeight="610"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="25" Text="@OtherKingdomClansTitleText" />
+                                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="38" MarginLeft="10" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                      <Children>
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@LeaderText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ClanLevelColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@StrengthText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@ActivePartiesColumnText" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@RelationColumnText" />
+                                      </Children>
+                                    </ListPanel>
+                                    <ListPanel Id="OtherKingdomClanList" DataSource="{OtherKingdomClans}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@HasOtherKingdomClans">
+                                      <ItemTemplate>
+                                                    <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="900" SuggestedHeight="66" MarginBottom="3" Brush="Kingdom.Item.Tuple" Command.Click="ExecuteSelect" IsSelected="@IsSelected" DoNotPassEventsToChildren="true">
+                                                      <Children>
+                                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="true">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="65">
+                                                              <Children>
+                                                                <MaskedTextureWidget DataSource="{Banner}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="46" SuggestedHeight="58" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="155" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@ClanName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="175" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" Text="@LeaderName" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="85" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ClanLevel" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="105" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@Strength" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@ActiveParties" />
+                                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="165" HorizontalAlignment="Center" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="20" IntText="@RelationToRuler" />
+                                                          </Children>
+                                                        </ListPanel>
+                                                      </Children>
+                                                    </ButtonWidget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="530" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@NoOtherKingdomClansText" IsVisible="@AreOtherKingdomClansEmpty" />
+                                  </Children>
+                                </BrushListPanel>
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                  </Children>
+                                </ScrollablePanel>
+                                <Standard.VerticalScrollbar Id="MercenarySectionsScrollbar"
+                                                            HeightSizePolicy="StretchToParent"
+                                                            HorizontalAlignment="Right"
+                                                            MarginLeft="4"
+                                                            MarginRight="4" />
                               </Children>
-                            </BrushListPanel>
+                            </ListPanel>
 
                             <ListPanel WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="CoverChildren"
@@ -286,29 +363,29 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                 </ListPanel>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
 
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@InfluencePriceText" />
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@InfluencePrice" />
                                   </Children>
                                 </ListPanel>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanServingPlayerKingdom" />
 
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@AccumulatedInfluenceText" />
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@AccumulatedInfluence" />
                                   </Children>
                                 </ListPanel>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanServingPlayerKingdom" />
 
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ExpectedPaymentText" />
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ExpectedPayment" />
                                   </Children>
                                 </ListPanel>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanServingPlayerKingdom" />
 
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
                                   <Children>

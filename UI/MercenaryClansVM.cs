@@ -11,15 +11,25 @@ namespace MercenaryManagement.UI;
 internal sealed class MercenaryClansVM : ViewModel
 {
     private bool _hasClans;
+    private bool _hasAvailableClans;
+    private bool _hasOtherKingdomClans;
     private MercenaryClanItemVM? _selectedClan;
 
     public MercenaryClansVM()
     {
         Clans = new MBBindingList<MercenaryClanItemVM>();
+        AvailableClans = new MBBindingList<MercenaryClanItemVM>();
+        OtherKingdomClans = new MBBindingList<MercenaryClanItemVM>();
     }
 
     [DataSourceProperty]
     public MBBindingList<MercenaryClanItemVM> Clans { get; }
+
+    [DataSourceProperty]
+    public MBBindingList<MercenaryClanItemVM> AvailableClans { get; }
+
+    [DataSourceProperty]
+    public MBBindingList<MercenaryClanItemVM> OtherKingdomClans { get; }
 
     [DataSourceProperty]
     public bool HasClans
@@ -34,12 +44,67 @@ internal sealed class MercenaryClansVM : ViewModel
 
             _hasClans = value;
             OnPropertyChangedWithValue(value);
-            OnPropertyChangedWithValue(!value, nameof(IsEmpty));
+            OnPropertyChangedWithValue(!value, nameof(AreHiredClansEmpty));
+            OnPropertyChangedWithValue(HasAnyClans, nameof(HasAnyClans));
+            OnPropertyChangedWithValue(IsEmpty, nameof(IsEmpty));
         }
     }
 
     [DataSourceProperty]
-    public bool IsEmpty => !HasClans;
+    public bool HasAvailableClans
+    {
+        get => _hasAvailableClans;
+        private set
+        {
+            if (_hasAvailableClans == value)
+            {
+                return;
+            }
+
+            _hasAvailableClans = value;
+            OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(!value, nameof(AreAvailableClansEmpty));
+            OnPropertyChangedWithValue(HasAnyClans, nameof(HasAnyClans));
+            OnPropertyChangedWithValue(IsEmpty, nameof(IsEmpty));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool HasOtherKingdomClans
+    {
+        get => _hasOtherKingdomClans;
+        private set
+        {
+            if (_hasOtherKingdomClans == value)
+            {
+                return;
+            }
+
+            _hasOtherKingdomClans = value;
+            OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(!value, nameof(AreOtherKingdomClansEmpty));
+            OnPropertyChangedWithValue(HasAnyClans, nameof(HasAnyClans));
+            OnPropertyChangedWithValue(IsEmpty, nameof(IsEmpty));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool HasAnyClans => HasClans || HasAvailableClans || HasOtherKingdomClans;
+
+    [DataSourceProperty]
+    public bool IsEmpty => !HasAnyClans;
+
+    [DataSourceProperty]
+    public bool AreHiredClansEmpty => !HasClans;
+
+    [DataSourceProperty]
+    public bool AreAvailableClansEmpty => !HasAvailableClans;
+
+    [DataSourceProperty]
+    public bool AreOtherKingdomClansEmpty => !HasOtherKingdomClans;
+
+    [DataSourceProperty]
+    public bool IsSelectedClanServingPlayerKingdom => SelectedClan?.IsServingPlayerKingdom == true;
 
     [DataSourceProperty]
     public MercenaryClanItemVM? SelectedClan
@@ -54,11 +119,26 @@ internal sealed class MercenaryClansVM : ViewModel
 
             _selectedClan = value;
             OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(
+                IsSelectedClanServingPlayerKingdom,
+                nameof(IsSelectedClanServingPlayerKingdom));
         }
     }
 
     [DataSourceProperty]
     public string TitleText => new TextObject("{=MercenaryManagement_MercenaryClans}Mercenary clans").ToString();
+
+    [DataSourceProperty]
+    public string HiredClansTitleText => new TextObject(
+        "{=MercenaryManagement_HiredClans}Serving this kingdom").ToString();
+
+    [DataSourceProperty]
+    public string AvailableClansTitleText => new TextObject(
+        "{=MercenaryManagement_AvailableClans}Available for hire").ToString();
+
+    [DataSourceProperty]
+    public string OtherKingdomClansTitleText => new TextObject(
+        "{=MercenaryManagement_OtherKingdomClans}Serving other kingdoms").ToString();
 
     [DataSourceProperty]
     public string ClanText => new TextObject("{=MercenaryManagement_Clan}Clan").ToString();
@@ -73,7 +153,15 @@ internal sealed class MercenaryClansVM : ViewModel
     public string ActivePartiesText => new TextObject("{=MercenaryManagement_ActiveParties}Active parties").ToString();
 
     [DataSourceProperty]
+    public string ActivePartiesColumnText => new TextObject(
+        "{=MercenaryManagement_PartiesColumn}Parties").ToString();
+
+    [DataSourceProperty]
     public string ClanLevelText => new TextObject("{=MercenaryManagement_ClanLevel}Clan level").ToString();
+
+    [DataSourceProperty]
+    public string ClanLevelColumnText => new TextObject(
+        "{=MercenaryManagement_LevelColumn}Level").ToString();
 
     [DataSourceProperty]
     public string ClanMembersText => new TextObject("{=MercenaryManagement_ClanMembers}Clan members").ToString();
@@ -81,6 +169,10 @@ internal sealed class MercenaryClansVM : ViewModel
     [DataSourceProperty]
     public string RelationToRulerText => new TextObject(
         "{=MercenaryManagement_RelationToRuler}Leader's relation to the ruler").ToString();
+
+    [DataSourceProperty]
+    public string RelationColumnText => new TextObject(
+        "{=MercenaryManagement_RelationColumn}Relation").ToString();
 
     [DataSourceProperty]
     public string InfluencePriceText => new TextObject(
@@ -100,27 +192,58 @@ internal sealed class MercenaryClansVM : ViewModel
 
     [DataSourceProperty]
     public string EmptyStateText => new TextObject(
-        "{=MercenaryManagement_NoMercenaryClans}No mercenary clans are currently serving this kingdom.").ToString();
+        "{=MercenaryManagement_NoMercenaryClans}No mercenary clans are serving this kingdom or available for hire.").ToString();
+
+    [DataSourceProperty]
+    public string NoHiredClansText => new TextObject(
+        "{=MercenaryManagement_NoHiredClans}No mercenary clans are serving this kingdom.").ToString();
+
+    [DataSourceProperty]
+    public string NoAvailableClansText => new TextObject(
+        "{=MercenaryManagement_NoAvailableClans}No independent mercenary clans are available.").ToString();
+
+    [DataSourceProperty]
+    public string NoOtherKingdomClansText => new TextObject(
+        "{=MercenaryManagement_NoOtherKingdomClans}No mercenary clans are serving other kingdoms.").ToString();
 
     public override void RefreshValues()
     {
         base.RefreshValues();
 
         OnPropertyChangedWithValue(TitleText, nameof(TitleText));
+        OnPropertyChangedWithValue(HiredClansTitleText, nameof(HiredClansTitleText));
+        OnPropertyChangedWithValue(AvailableClansTitleText, nameof(AvailableClansTitleText));
+        OnPropertyChangedWithValue(OtherKingdomClansTitleText, nameof(OtherKingdomClansTitleText));
         OnPropertyChangedWithValue(ClanText, nameof(ClanText));
         OnPropertyChangedWithValue(LeaderText, nameof(LeaderText));
         OnPropertyChangedWithValue(StrengthText, nameof(StrengthText));
         OnPropertyChangedWithValue(ActivePartiesText, nameof(ActivePartiesText));
+        OnPropertyChangedWithValue(ActivePartiesColumnText, nameof(ActivePartiesColumnText));
         OnPropertyChangedWithValue(ClanLevelText, nameof(ClanLevelText));
+        OnPropertyChangedWithValue(ClanLevelColumnText, nameof(ClanLevelColumnText));
         OnPropertyChangedWithValue(ClanMembersText, nameof(ClanMembersText));
         OnPropertyChangedWithValue(RelationToRulerText, nameof(RelationToRulerText));
+        OnPropertyChangedWithValue(RelationColumnText, nameof(RelationColumnText));
         OnPropertyChangedWithValue(InfluencePriceText, nameof(InfluencePriceText));
         OnPropertyChangedWithValue(AccumulatedInfluenceText, nameof(AccumulatedInfluenceText));
         OnPropertyChangedWithValue(ExpectedPaymentText, nameof(ExpectedPaymentText));
         OnPropertyChangedWithValue(ServiceStatusText, nameof(ServiceStatusText));
         OnPropertyChangedWithValue(EmptyStateText, nameof(EmptyStateText));
+        OnPropertyChangedWithValue(NoHiredClansText, nameof(NoHiredClansText));
+        OnPropertyChangedWithValue(NoAvailableClansText, nameof(NoAvailableClansText));
+        OnPropertyChangedWithValue(NoOtherKingdomClansText, nameof(NoOtherKingdomClansText));
 
         foreach (MercenaryClanItemVM clan in Clans)
+        {
+            clan.RefreshValues();
+        }
+
+        foreach (MercenaryClanItemVM clan in AvailableClans)
+        {
+            clan.RefreshValues();
+        }
+
+        foreach (MercenaryClanItemVM clan in OtherKingdomClans)
         {
             clan.RefreshValues();
         }
@@ -137,6 +260,20 @@ internal sealed class MercenaryClansVM : ViewModel
 
         Clans.Clear();
 
+        foreach (MercenaryClanItemVM clan in AvailableClans)
+        {
+            clan.OnFinalize();
+        }
+
+        AvailableClans.Clear();
+
+        foreach (MercenaryClanItemVM clan in OtherKingdomClans)
+        {
+            clan.OnFinalize();
+        }
+
+        OtherKingdomClans.Clear();
+
         if (kingdom is not null)
         {
             foreach (Clan clan in kingdom.Clans
@@ -145,13 +282,46 @@ internal sealed class MercenaryClansVM : ViewModel
             {
                 Clans.Add(new MercenaryClanItemVM(clan, kingdom, SelectClan));
             }
+
+            foreach (Clan clan in Clan.All
+                         .Where(clan => clan.IsMinorFaction
+                                        && !clan.IsBanditFaction
+                                        && !clan.IsEliminated
+                                        && !clan.IsUnderMercenaryService
+                                        && clan.Kingdom is null)
+                         .OrderBy(clan => clan.Name.ToString()))
+            {
+                AvailableClans.Add(new MercenaryClanItemVM(clan, kingdom, SelectClan));
+            }
+
+            foreach (Clan clan in Kingdom.All
+                         .Where(otherKingdom => otherKingdom != kingdom
+                                                && !otherKingdom.IsEliminated)
+                         .OrderBy(otherKingdom => otherKingdom.Name.ToString())
+                         .SelectMany(otherKingdom => otherKingdom.Clans
+                             .Where(clan => !clan.IsEliminated
+                                            && clan.IsUnderMercenaryService)
+                             .OrderBy(clan => clan.Name.ToString())))
+            {
+                OtherKingdomClans.Add(new MercenaryClanItemVM(clan, kingdom, SelectClan));
+            }
         }
 
         HasClans = Clans.Count > 0;
+        HasAvailableClans = AvailableClans.Count > 0;
+        HasOtherKingdomClans = OtherKingdomClans.Count > 0;
 
         if (HasClans)
         {
             SelectClan(Clans[0]);
+        }
+        else if (HasAvailableClans)
+        {
+            SelectClan(AvailableClans[0]);
+        }
+        else if (HasOtherKingdomClans)
+        {
+            SelectClan(OtherKingdomClans[0]);
         }
     }
 
@@ -165,6 +335,20 @@ internal sealed class MercenaryClansVM : ViewModel
         }
 
         Clans.Clear();
+
+        foreach (MercenaryClanItemVM clan in AvailableClans)
+        {
+            clan.OnFinalize();
+        }
+
+        AvailableClans.Clear();
+
+        foreach (MercenaryClanItemVM clan in OtherKingdomClans)
+        {
+            clan.OnFinalize();
+        }
+
+        OtherKingdomClans.Clear();
         base.OnFinalize();
     }
 
@@ -294,6 +478,9 @@ internal sealed class MercenaryClanItemVM : ViewModel
     }
 
     [DataSourceProperty]
+    public bool IsServingPlayerKingdom => _clan.IsUnderMercenaryService && _clan.Kingdom == _kingdom;
+
+    [DataSourceProperty]
     public bool IsSelected
     {
         get => _isSelected;
@@ -320,10 +507,23 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
         ClanName = _clan.Name.ToString();
         LeaderName = _clan.Leader?.Name.ToString() ?? string.Empty;
-        ServiceStatus = new TextObject(
-            _clan.IsUnderMercenaryService && _clan.Kingdom == _kingdom
-                ? "{=MercenaryManagement_InService}In service"
-                : "{=MercenaryManagement_NotInService}Not in service").ToString();
+        TextObject serviceStatus;
+
+        if (IsServingPlayerKingdom)
+        {
+            serviceStatus = new TextObject("{=MercenaryManagement_InService}Serving this kingdom");
+        }
+        else if (_clan.IsUnderMercenaryService && _clan.Kingdom is not null)
+        {
+            serviceStatus = new TextObject("{=MercenaryManagement_InOtherKingdom}Serving {KINGDOM}");
+            serviceStatus.SetTextVariable("KINGDOM", _clan.Kingdom.Name);
+        }
+        else
+        {
+            serviceStatus = new TextObject("{=MercenaryManagement_NotInService}Available for hire");
+        }
+
+        ServiceStatus = serviceStatus.ToString();
     }
 
     public override void OnFinalize()
