@@ -37,6 +37,10 @@
       <HintPath>$(GameBinPath)\TaleWorlds.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.Core.ViewModelCollection">
+      <HintPath>$(GameBinPath)\TaleWorlds.Core.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="TaleWorlds.Library">
       <HintPath>$(GameBinPath)\TaleWorlds.Library.dll</HintPath>
       <Private>false</Private>

@@ -5,5 +5,11 @@
   </tags>
   <strings>
     <string id="MercenaryManagement_Mercenaries" text="Наёмники" />
+    <string id="MercenaryManagement_MercenaryClans" text="Наёмные кланы" />
+    <string id="MercenaryManagement_Clan" text="Клан" />
+    <string id="MercenaryManagement_Leader" text="Лидер" />
+    <string id="MercenaryManagement_Strength" text="Сила" />
+    <string id="MercenaryManagement_ActiveParties" text="Активные отряды" />
+    <string id="MercenaryManagement_NoMercenaryClans" text="Сейчас этому королевству не служит ни один наёмный клан." />
   </strings>
 </base>

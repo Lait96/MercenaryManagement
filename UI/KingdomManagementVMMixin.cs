@@ -12,6 +12,7 @@ namespace MercenaryManagement.UI;
 internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManagementVM>
 {
     private readonly KingdomCategoryVM[] _categories;
+    private readonly MercenaryClansVM _mercenaries = new MercenaryClansVM();
     private bool _isMercenariesSelected;
     private string _mercenariesText = string.Empty;
 
@@ -34,6 +35,9 @@ internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManag
 
         RefreshValues();
     }
+
+    [DataSourceProperty]
+    public MercenaryClansVM Mercenaries => _mercenaries;
 
     [DataSourceProperty]
     public bool IsMercenariesSelected
@@ -70,6 +74,8 @@ internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManag
     [DataSourceMethod]
     public void ExecuteShowMercenaries()
     {
+        Mercenaries.Refresh(ViewModel?.Kingdom);
+
         foreach (KingdomCategoryVM category in _categories)
         {
             category.Show = false;
@@ -82,6 +88,12 @@ internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManag
     {
         base.OnRefresh();
         RefreshValues();
+        Mercenaries.RefreshValues();
+
+        if (IsMercenariesSelected)
+        {
+            Mercenaries.Refresh(ViewModel?.Kingdom);
+        }
     }
 
     public override void OnFinalize()
@@ -91,6 +103,7 @@ internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManag
             category.PropertyChanged -= OnCategoryPropertyChanged;
         }
 
+        Mercenaries.OnFinalize();
         base.OnFinalize();
     }
 
