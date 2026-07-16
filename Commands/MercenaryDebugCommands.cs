@@ -239,7 +239,7 @@ public static class MercenaryDebugCommands
             return $"Could not change the {clan.Name} clan's rate: {reason}";
         }
 
-        return $"The {clan.Name} clan's individual rate is now {influencePrice} denars per influence.";
+        return $"The {clan.Name} clan's individual rate is now {influencePrice} dinars per influence.";
     }
 
     [CommandLineFunctionality.CommandLineArgumentFunction("mm_set_start_days_ago", "campaign")]

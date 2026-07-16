@@ -220,7 +220,7 @@ internal sealed class MercenaryClansVM : ViewModel
 
     [DataSourceProperty]
     public string InfluencePriceText => new TextObject(
-        "{=MercenaryManagement_InfluencePrice}Denars per influence").ToString();
+        "{=MercenaryManagement_InfluencePrice}Dinars per influence").ToString();
 
     [DataSourceProperty]
     public string StrategicPriorityText => new TextObject(
@@ -240,7 +240,7 @@ internal sealed class MercenaryClansVM : ViewModel
 
     [DataSourceProperty]
     public string ExpectedPaymentText => new TextObject(
-        "{=MercenaryManagement_ExpectedPayment}Expected payment (denars)").ToString();
+        "{=MercenaryManagement_ExpectedPayment}Expected payment (dinars)").ToString();
 
     [DataSourceProperty]
     public string ServiceStatusText => new TextObject(

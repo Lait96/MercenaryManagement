@@ -53,7 +53,7 @@ internal static class MercenaryDismissalService
         if (Hero.MainHero.Gold < outstandingPayment)
         {
             TextObject insufficientFunds = new TextObject(
-                "{=MercenaryManagement_DismissFailedGold}You need {GOLD} denars to settle the clan's outstanding payment before dismissal.");
+                "{=MercenaryManagement_DismissFailedGold}You need {GOLD} dinars to settle the clan's outstanding payment before dismissal.");
             insufficientFunds.SetTextVariable("GOLD", outstandingPayment);
             reason = insufficientFunds;
             return true;

@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using Bannerlord.UIExtenderEx.Attributes;
 using MercenaryManagement.Behaviors;
 using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using MercenaryManagement.Services;
 
 namespace MercenaryManagement.UI;
 
@@ -12,6 +14,28 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
 {
     private MercenaryContract? _contract;
     private string _unavailableReason = string.Empty;
+    private PlayerMercenaryOfferItemVM? _selectedOffer;
+
+    public PlayerMercenaryContractVM()
+    {
+        AvailableOffers = new MBBindingList<PlayerMercenaryOfferItemVM>();
+    }
+
+    [DataSourceProperty] public MBBindingList<PlayerMercenaryOfferItemVM> AvailableOffers { get; }
+    [DataSourceProperty] public bool HasAvailableOffers => HasNoActiveContract && AvailableOffers.Count > 0;
+    [DataSourceProperty] public bool HasNoAvailableOffers => HasNoActiveContract && AvailableOffers.Count == 0;
+    [DataSourceProperty] public PlayerMercenaryOfferItemVM? SelectedOffer
+    {
+        get => _selectedOffer;
+        private set
+        {
+            if (_selectedOffer == value) return;
+            _selectedOffer = value;
+            OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(value is not null, nameof(HasSelectedOffer));
+        }
+    }
+    [DataSourceProperty] public bool HasSelectedOffer => SelectedOffer is not null;
 
     [DataSourceProperty]
     public bool IsUnavailable => !string.IsNullOrEmpty(_unavailableReason);
@@ -84,7 +108,7 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     public string ContractAgeText => Localize("MercenaryManagement_ContractAge", "Contract age");
 
     [DataSourceProperty]
-    public string InfluencePriceText => Localize("MercenaryManagement_InfluencePrice", "Denars per influence");
+    public string InfluencePriceText => Localize("MercenaryManagement_InfluencePrice", "Dinars per influence");
 
     [DataSourceProperty]
     public string StrategicPriorityTitleText => Localize("MercenaryManagement_StrategicPriority", "Strategic priority");
@@ -94,11 +118,19 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         "MercenaryManagement_PlayerNoActiveContract",
         "Your clan is not currently serving any kingdom.");
 
+    [DataSourceProperty] public string AvailableOffersTitleText => Localize("MercenaryManagement_AvailableOffers", "Available offers");
+    [DataSourceProperty] public string AvailableOffersHintText => Localize("MercenaryManagement_AvailableOffersHint", "Select a kingdom to view its terms");
+    [DataSourceProperty] public string NoAvailableOffersText => Localize("MercenaryManagement_NoAvailableOffers", "No kingdom is currently ready to hire your clan.");
+    [DataSourceProperty] public string RelationToRulerText => Localize("MercenaryManagement_RelationColumn", "Relation");
+    [DataSourceProperty] public string CurrentWarsText => Localize("MercenaryManagement_CurrentWars", "Current wars");
+    [DataSourceProperty] public string OfferRateText => Localize("MercenaryManagement_OfferRate", "Rate");
+
     public void Refresh()
     {
         Clan? clan = Clan.PlayerClan;
         _contract = null;
         _unavailableReason = GetUnavailableReason(clan);
+        ClearOffers();
 
         if (string.IsNullOrEmpty(_unavailableReason) && clan is not null)
         {
@@ -107,6 +139,18 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
             if (behavior?.GetOrCreateContract(clan, out MercenaryContract contract) == true)
             {
                 _contract = contract;
+            }
+
+            if (_contract?.IsActive != true)
+            {
+                foreach (Kingdom kingdom in Kingdom.All
+                             .Where(kingdom => !MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, kingdom, out _))
+                             .OrderBy(kingdom => kingdom.Name.ToString()))
+                {
+                    AvailableOffers.Add(new PlayerMercenaryOfferItemVM(clan, kingdom, SelectOffer));
+                }
+
+                if (AvailableOffers.Count > 0) SelectOffer(AvailableOffers[0]);
             }
         }
 
@@ -124,6 +168,8 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         OnPropertyChangedWithValue(IsUnavailable, nameof(IsUnavailable));
         OnPropertyChangedWithValue(HasActiveContract, nameof(HasActiveContract));
         OnPropertyChangedWithValue(HasNoActiveContract, nameof(HasNoActiveContract));
+        OnPropertyChangedWithValue(HasAvailableOffers, nameof(HasAvailableOffers));
+        OnPropertyChangedWithValue(HasNoAvailableOffers, nameof(HasNoAvailableOffers));
         OnPropertyChangedWithValue(UnavailableReason, nameof(UnavailableReason));
         OnPropertyChangedWithValue(EmployerKingdom, nameof(EmployerKingdom));
         OnPropertyChangedWithValue(EmployerRuler, nameof(EmployerRuler));
@@ -133,6 +179,27 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         OnPropertyChangedWithValue(InfluencePrice, nameof(InfluencePrice));
         OnPropertyChangedWithValue(StrategicPriority, nameof(StrategicPriority));
         OnPropertyChangedWithValue(StrategicPriorityDescription, nameof(StrategicPriorityDescription));
+    }
+
+    public override void OnFinalize()
+    {
+        ClearOffers();
+        base.OnFinalize();
+    }
+
+    private void SelectOffer(PlayerMercenaryOfferItemVM offer)
+    {
+        if (SelectedOffer == offer) return;
+        if (SelectedOffer is not null) SelectedOffer.IsSelected = false;
+        SelectedOffer = offer;
+        offer.IsSelected = true;
+    }
+
+    private void ClearOffers()
+    {
+        SelectedOffer = null;
+        foreach (PlayerMercenaryOfferItemVM offer in AvailableOffers) offer.OnFinalize();
+        AvailableOffers.Clear();
     }
 
     private static string GetUnavailableReason(Clan? clan)

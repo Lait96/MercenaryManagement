@@ -77,7 +77,7 @@ internal static class MercenaryPaymentService
             || influencePrice > maximumInfluencePrice)
         {
             reason = new TextObject(
-                "{=MercenaryManagement_RateFailedRange}The rate must be between {MINIMUM} and {MAXIMUM} denars per influence.");
+                "{=MercenaryManagement_RateFailedRange}The rate must be between {MINIMUM} and {MAXIMUM} dinars per influence.");
             reason.SetTextVariable("MINIMUM", minimumInfluencePrice);
             reason.SetTextVariable("MAXIMUM", maximumInfluencePrice);
             return false;

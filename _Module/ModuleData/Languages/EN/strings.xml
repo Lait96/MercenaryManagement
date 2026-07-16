@@ -30,7 +30,7 @@
     <string id="MercenaryManagement_ClanMembers" text="Clan members" />
     <string id="MercenaryManagement_RelationToRuler" text="Leader's relation to the ruler" />
     <string id="MercenaryManagement_RelationColumn" text="Relation" />
-    <string id="MercenaryManagement_InfluencePrice" text="Denars per influence" />
+    <string id="MercenaryManagement_InfluencePrice" text="Dinars per influence" />
     <string id="MercenaryManagement_StrategicPriority" text="Strategic priority" />
     <string id="MercenaryManagement_PriorityIndependentOperations" text="Independent operations" />
     <string id="MercenaryManagement_PriorityIndependentOperationsDescription" text="The clan chooses its own actions according to the current situation." />
@@ -44,7 +44,7 @@
     <string id="MercenaryManagement_ClanInformation" text="Clan information" />
     <string id="MercenaryManagement_ContractSettings" text="Contract settings" />
     <string id="MercenaryManagement_AccumulatedInfluence" text="Accumulated influence" />
-    <string id="MercenaryManagement_ExpectedPayment" text="Expected payment (denars)" />
+    <string id="MercenaryManagement_ExpectedPayment" text="Expected payment (dinars)" />
     <string id="MercenaryManagement_ServiceStatus" text="Service status" />
     <string id="MercenaryManagement_ContractState" text="Contract state" />
     <string id="MercenaryManagement_ContractStart" text="Contract start" />
@@ -64,7 +64,7 @@
     <string id="MercenaryManagement_NoOtherKingdomClans" text="No mercenary clans are serving other kingdoms." />
     <string id="MercenaryManagement_Hire" text="Hire clan" />
     <string id="MercenaryManagement_HireConfirmationTitle" text="Hire mercenaries" />
-    <string id="MercenaryManagement_HireConfirmation" text="Hire the {CLAN} clan for {PRICE} denars per influence point?" />
+    <string id="MercenaryManagement_HireConfirmation" text="Hire the {CLAN} clan for {PRICE} dinars per influence point?" />
     <string id="MercenaryManagement_ConfirmHire" text="Hire" />
     <string id="MercenaryManagement_Cancel" text="Cancel" />
     <string id="MercenaryManagement_HireSucceeded" text="The {CLAN} clan has entered your kingdom's service." />
@@ -76,12 +76,12 @@
     <string id="MercenaryManagement_HireFailedAtWar" text="The clan cannot be hired while it is at war with your kingdom." />
     <string id="MercenaryManagement_HireFailedLimit" text="Your kingdom already employs the maximum of three mercenary clans." />
     <string id="MercenaryManagement_HireFailedRelation" text="The clan leader's relation with the ruler is too poor to accept service." />
-    <string id="MercenaryManagement_HireFailedGold" text="The ruler does not have enough denars to guarantee the clan's initial wages." />
+    <string id="MercenaryManagement_HireFailedGold" text="The ruler does not have enough dinars to guarantee the clan's initial wages." />
     <string id="MercenaryManagement_HireFailedDebt" text="The ruler's clan has too much unpaid debt to the kingdom." />
     <string id="MercenaryManagement_HireFailedUnknown" text="The clan could not enter your kingdom's service." />
     <string id="MercenaryManagement_Poach" text="Poach clan" />
     <string id="MercenaryManagement_PoachConfirmationTitle" text="Recruit serving mercenaries" />
-    <string id="MercenaryManagement_PoachConfirmation" text="Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} denars per influence point?" />
+    <string id="MercenaryManagement_PoachConfirmation" text="Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} dinars per influence point?" />
     <string id="MercenaryManagement_ConfirmPoach" text="Recruit" />
     <string id="MercenaryManagement_PoachSucceeded" text="The {CLAN} clan has left its former employer and entered your kingdom's service." />
     <string id="MercenaryManagement_PoachFailedNoKingdom" text="The kingdom is no longer available." />
@@ -96,14 +96,14 @@
     <string id="MercenaryManagement_Dismiss" text="Dismiss clan" />
     <string id="MercenaryManagement_DismissConfirmationTitle" text="Dismiss mercenaries" />
     <string id="MercenaryManagement_DismissConfirmation" text="Dismiss the {CLAN} clan from your kingdom's service?" />
-    <string id="MercenaryManagement_DismissConfirmationWithPayment" text="Dismiss the {CLAN} clan and pay the outstanding {GOLD} denars?" />
+    <string id="MercenaryManagement_DismissConfirmationWithPayment" text="Dismiss the {CLAN} clan and pay the outstanding {GOLD} dinars?" />
     <string id="MercenaryManagement_ConfirmDismiss" text="Dismiss" />
     <string id="MercenaryManagement_DismissSucceeded" text="The {CLAN} clan has left your kingdom's service." />
     <string id="MercenaryManagement_DismissFailedNoKingdom" text="The kingdom is no longer available." />
     <string id="MercenaryManagement_DismissFailedNotRuler" text="Only the ruler of the kingdom can dismiss mercenary clans." />
     <string id="MercenaryManagement_DismissFailedNotServing" text="This mercenary clan is no longer serving your kingdom." />
     <string id="MercenaryManagement_DismissFailedNoLeader" text="This clan has no available leader with whom to settle the contract." />
-    <string id="MercenaryManagement_DismissFailedGold" text="You need {GOLD} denars to settle the clan's outstanding payment before dismissal." />
+    <string id="MercenaryManagement_DismissFailedGold" text="You need {GOLD} dinars to settle the clan's outstanding payment before dismissal." />
     <string id="MercenaryManagement_DismissFailedUnknown" text="The clan could not be dismissed from your kingdom's service." />
     <string id="MercenaryManagement_HireFailedNotMercenary" text="This clan is not an eligible mercenary clan." />
     <string id="MercenaryManagement_HireFailedEliminated" text="This mercenary clan has been eliminated." />
@@ -111,7 +111,14 @@
     <string id="MercenaryManagement_HireFailedServingOther" text="This mercenary clan is already serving another kingdom." />
     <string id="MercenaryManagement_HireFailedKingdomMember" text="This clan is already a non-mercenary member of a kingdom." />
     <string id="MercenaryManagement_RateFailedNotServing" text="The clan is not currently serving a kingdom as mercenaries." />
-    <string id="MercenaryManagement_RateFailedRange" text="The rate must be between {MINIMUM} and {MAXIMUM} denars per influence." />
+    <string id="MercenaryManagement_RateFailedRange" text="The rate must be between {MINIMUM} and {MAXIMUM} dinars per influence." />
     <string id="MercenaryManagement_RateFailedNoStorage" text="Mercenary contract storage is not available in the current campaign." />
+    <string id="MercenaryManagement_AvailableOffers" text="Available offers" />
+    <string id="MercenaryManagement_AvailableOffersHint" text="Select a kingdom to view its terms" />
+    <string id="MercenaryManagement_NoAvailableOffers" text="No kingdom is currently ready to hire your clan." />
+    <string id="MercenaryManagement_CurrentWars" text="Current wars" />
+    <string id="MercenaryManagement_CurrentWarsSummary" text="Wars: {WARS}" />
+    <string id="MercenaryManagement_NoCurrentWars" text="No current wars" />
+    <string id="MercenaryManagement_OfferRate" text="Rate" />
   </strings>
 </base>

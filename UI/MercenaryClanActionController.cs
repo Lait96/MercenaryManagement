@@ -17,7 +17,7 @@ internal static class MercenaryClanActionController
         }
 
         int price = MercenaryHiringService.CalculateHirePrice(clan, kingdom!);
-        TextObject confirmation = new TextObject("{=MercenaryManagement_HireConfirmation}Hire the {CLAN} clan for {PRICE} denars per influence point?");
+        TextObject confirmation = new TextObject("{=MercenaryManagement_HireConfirmation}Hire the {CLAN} clan for {PRICE} dinars per influence point?");
         confirmation.SetTextVariable("CLAN", clan.Name);
         confirmation.SetTextVariable("PRICE", price);
         ShowConfirmation("{=MercenaryManagement_HireConfirmationTitle}Hire mercenaries", confirmation,
@@ -34,7 +34,7 @@ internal static class MercenaryClanActionController
 
         int payment = MercenaryDismissalService.CalculateOutstandingPayment(clan);
         TextObject confirmation = payment > 0
-            ? new TextObject("{=MercenaryManagement_DismissConfirmationWithPayment}Dismiss the {CLAN} clan and pay the outstanding {GOLD} denars?")
+            ? new TextObject("{=MercenaryManagement_DismissConfirmationWithPayment}Dismiss the {CLAN} clan and pay the outstanding {GOLD} dinars?")
             : new TextObject("{=MercenaryManagement_DismissConfirmation}Dismiss the {CLAN} clan from your kingdom's service?");
         confirmation.SetTextVariable("CLAN", clan.Name);
         confirmation.SetTextVariable("GOLD", payment);
@@ -52,7 +52,7 @@ internal static class MercenaryClanActionController
 
         Kingdom currentKingdom = clan.Kingdom!;
         int price = MercenaryHiringService.CalculateHirePrice(clan, targetKingdom!);
-        TextObject confirmation = new TextObject("{=MercenaryManagement_PoachConfirmation}Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} denars per influence point?");
+        TextObject confirmation = new TextObject("{=MercenaryManagement_PoachConfirmation}Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} dinars per influence point?");
         confirmation.SetTextVariable("CLAN", clan.Name);
         confirmation.SetTextVariable("CURRENT_KINGDOM", currentKingdom.Name);
         confirmation.SetTextVariable("PRICE", price);

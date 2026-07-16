@@ -1,4 +1,6 @@
 using MercenaryManagement.Behaviors;
+using MercenaryManagement.Contracts;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
@@ -80,7 +82,7 @@ internal static class MercenaryHiringService
         if (Hero.MainHero.Gold < awardFactor * RequiredGoldInDailyWages)
         {
             reason = new TextObject(
-                "{=MercenaryManagement_HireFailedGold}The ruler does not have enough denars to guarantee the clan's initial wages.");
+                "{=MercenaryManagement_HireFailedGold}The ruler does not have enough dinars to guarantee the clan's initial wages.");
             return true;
         }
 
@@ -168,6 +170,83 @@ internal static class MercenaryHiringService
     {
         return Campaign.Current.Models.MinorFactionsModel
             .GetMercenaryAwardFactorToJoinKingdom(clan, kingdom, true);
+    }
+
+    public static bool TryGetPlayerOfferFailureReason(Clan clan, Kingdom kingdom, out TextObject reason)
+    {
+        if (kingdom.IsEliminated || kingdom.Leader is null || !kingdom.Leader.IsAlive)
+        {
+            reason = new TextObject("{=MercenaryManagement_OfferKingdomUnavailable}The kingdom has no ruler available to make an offer.");
+            return true;
+        }
+
+        if (TryGetLeaderFailureReason(clan, out reason))
+        {
+            return true;
+        }
+
+        if (FactionManager.IsAtWarAgainstFaction(clan.MapFaction, kingdom))
+        {
+            reason = new TextObject("{=MercenaryManagement_HireFailedAtWar}The clan cannot be hired while it is at war with this kingdom.");
+            return true;
+        }
+
+        int hiredMercenaryClans = kingdom.Clans.Count(kingdomClan => kingdomClan.IsUnderMercenaryService);
+        if (hiredMercenaryClans >= MaximumHiredMercenaryClans)
+        {
+            reason = new TextObject("{=MercenaryManagement_HireFailedLimit}The kingdom already employs the maximum of three mercenary clans.");
+            return true;
+        }
+
+        if (clan.Leader!.GetRelation(kingdom.Leader) <= -10)
+        {
+            reason = new TextObject("{=MercenaryManagement_HireFailedRelation}The clan leader's relation with the ruler is too poor to accept service.");
+            return true;
+        }
+
+        int awardFactor = CalculateHirePrice(clan, kingdom);
+        if (kingdom.Leader.Gold < awardFactor * RequiredGoldInDailyWages)
+        {
+            reason = new TextObject("{=MercenaryManagement_OfferInsufficientFunds}The ruler cannot guarantee the clan's initial wages.");
+            return true;
+        }
+
+        if (kingdom.RulingClan is not null && kingdom.RulingClan.DebtToKingdom > MaximumKingdomDebt)
+        {
+            reason = new TextObject("{=MercenaryManagement_HireFailedDebt}The ruling clan has too much unpaid debt to the kingdom.");
+            return true;
+        }
+
+        reason = new TextObject(string.Empty);
+        return false;
+    }
+
+    public static MercenaryStrategicPriority GetSuggestedPriority(Kingdom kingdom)
+    {
+        Kingdom[] enemies = Kingdom.All
+            .Where(other => !other.IsEliminated
+                            && other != kingdom
+                            && FactionManager.IsAtWarAgainstFaction(kingdom, other))
+            .ToArray();
+        if (enemies.Length == 0)
+        {
+            return MercenaryStrategicPriority.IndependentOperations;
+        }
+
+        float enemyStrength = enemies.Sum(enemy => enemy.CurrentTotalStrength);
+        if (kingdom.CurrentTotalStrength < enemyStrength * 0.75f)
+        {
+            return MercenaryStrategicPriority.TerritorialDefense;
+        }
+
+        if (enemies.Length > 1)
+        {
+            return MercenaryStrategicPriority.JoinArmies;
+        }
+
+        return kingdom.CurrentTotalStrength < enemyStrength
+            ? MercenaryStrategicPriority.EconomicWarfare
+            : MercenaryStrategicPriority.JoinArmies;
     }
 
     public static void Hire(Clan clan, Kingdom kingdom)

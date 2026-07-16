@@ -30,7 +30,7 @@
     <string id="MercenaryManagement_ClanMembers" text="Члены клана" />
     <string id="MercenaryManagement_RelationToRuler" text="Отношение лидера к правителю" />
     <string id="MercenaryManagement_RelationColumn" text="Отношение" />
-    <string id="MercenaryManagement_InfluencePrice" text="Денаров за единицу влияния" />
+    <string id="MercenaryManagement_InfluencePrice" text="Динаров за единицу влияния" />
     <string id="MercenaryManagement_StrategicPriority" text="Стратегический приоритет" />
     <string id="MercenaryManagement_PriorityIndependentOperations" text="Самостоятельные действия" />
     <string id="MercenaryManagement_PriorityIndependentOperationsDescription" text="Клан сам выбирает действия с учётом текущей обстановки." />
@@ -44,7 +44,7 @@
     <string id="MercenaryManagement_ClanInformation" text="Информация о клане" />
     <string id="MercenaryManagement_ContractSettings" text="Настройки контракта" />
     <string id="MercenaryManagement_AccumulatedInfluence" text="Накопленное влияние" />
-    <string id="MercenaryManagement_ExpectedPayment" text="Ожидаемая выплата (денары)" />
+    <string id="MercenaryManagement_ExpectedPayment" text="Ожидаемая выплата (динары)" />
     <string id="MercenaryManagement_ServiceStatus" text="Статус службы" />
     <string id="MercenaryManagement_ContractState" text="Состояние контракта" />
     <string id="MercenaryManagement_ContractStart" text="Начало контракта" />
@@ -113,5 +113,12 @@
     <string id="MercenaryManagement_RateFailedNotServing" text="Клан сейчас не служит королевству в качестве наёмников." />
     <string id="MercenaryManagement_RateFailedRange" text="Ставка должна быть от {MINIMUM} до {MAXIMUM} динаров за единицу влияния." />
     <string id="MercenaryManagement_RateFailedNoStorage" text="Хранилище контрактов наёмников недоступно в текущей кампании." />
+    <string id="MercenaryManagement_AvailableOffers" text="Доступные предложения" />
+    <string id="MercenaryManagement_AvailableOffersHint" text="Выберите королевство, чтобы просмотреть условия" />
+    <string id="MercenaryManagement_NoAvailableOffers" text="Сейчас ни одно королевство не готово нанять ваш клан." />
+    <string id="MercenaryManagement_CurrentWars" text="Текущие войны" />
+    <string id="MercenaryManagement_CurrentWarsSummary" text="Войны: {WARS}" />
+    <string id="MercenaryManagement_NoCurrentWars" text="Нет текущих войн" />
+    <string id="MercenaryManagement_OfferRate" text="Ставка" />
   </strings>
 </base>
