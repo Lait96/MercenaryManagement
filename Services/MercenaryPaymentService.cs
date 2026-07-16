@@ -2,6 +2,7 @@ using System;
 using MercenaryManagement.Behaviors;
 using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 namespace MercenaryManagement.Services;
 
@@ -49,12 +50,36 @@ internal static class MercenaryPaymentService
 
     public static bool TrySetInfluencePrice(Clan clan, Kingdom kingdom, int influencePrice)
     {
-        if (influencePrice < CalculateMinimumInfluencePrice(clan)
-            || influencePrice > CalculateMaximumInfluencePrice(clan)
-            || !MercenaryHiringService.IsPlayerRuler(kingdom)
-            || !clan.IsUnderMercenaryService
+        if (!MercenaryHiringService.IsPlayerRuler(kingdom)
             || clan.Kingdom != kingdom)
         {
+            return false;
+        }
+
+        return TrySetInfluencePrice(clan, influencePrice, out _);
+    }
+
+    public static bool TrySetInfluencePrice(
+        Clan clan,
+        int influencePrice,
+        out TextObject reason)
+    {
+        if (!clan.IsUnderMercenaryService || clan.Kingdom is null)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_RateFailedNotServing}The clan is not currently serving a kingdom as mercenaries.");
+            return false;
+        }
+
+        int minimumInfluencePrice = CalculateMinimumInfluencePrice(clan);
+        int maximumInfluencePrice = CalculateMaximumInfluencePrice(clan);
+        if (influencePrice < minimumInfluencePrice
+            || influencePrice > maximumInfluencePrice)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_RateFailedRange}The rate must be between {MINIMUM} and {MAXIMUM} denars per influence.");
+            reason.SetTextVariable("MINIMUM", minimumInfluencePrice);
+            reason.SetTextVariable("MAXIMUM", maximumInfluencePrice);
             return false;
         }
 
@@ -62,10 +87,13 @@ internal static class MercenaryPaymentService
             .GetCampaignBehavior<MercenaryContractBehavior>();
         if (contractBehavior is null)
         {
+            reason = new TextObject(
+                "{=MercenaryManagement_RateFailedNoStorage}Mercenary contract storage is not available in the current campaign.");
             return false;
         }
 
         contractBehavior.SetInfluencePrice(clan, influencePrice);
+        reason = new TextObject(string.Empty);
         return true;
     }
 

@@ -1,3 +1,4 @@
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.SaveSystem;
 
 namespace MercenaryManagement.Contracts;
@@ -9,6 +10,7 @@ internal sealed class MercenaryContract
         ClanId = clanId;
         KingdomId = kingdomId;
         InfluencePrice = influencePrice;
+        ServiceStartTime = CampaignTime.Now;
     }
 
     [SaveableProperty(1)]
@@ -20,6 +22,9 @@ internal sealed class MercenaryContract
     [SaveableProperty(3)]
     public int InfluencePrice { get; private set; }
 
+    [SaveableProperty(4)]
+    public CampaignTime ServiceStartTime { get; private set; }
+
     public bool Matches(string clanId, string kingdomId)
     {
         return ClanId == clanId && KingdomId == kingdomId;
@@ -28,5 +33,18 @@ internal sealed class MercenaryContract
     public void SetInfluencePrice(int influencePrice)
     {
         InfluencePrice = influencePrice;
+    }
+
+    public void SetServiceStartTime(CampaignTime serviceStartTime)
+    {
+        ServiceStartTime = serviceStartTime;
+    }
+
+    public void EnsureServiceStartTime()
+    {
+        if (ServiceStartTime == CampaignTime.Zero)
+        {
+            ServiceStartTime = CampaignTime.Now;
+        }
     }
 }

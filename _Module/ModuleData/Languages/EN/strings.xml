@@ -77,5 +77,13 @@
     <string id="MercenaryManagement_DismissFailedNoLeader" text="This clan has no available leader with whom to settle the contract." />
     <string id="MercenaryManagement_DismissFailedGold" text="You need {GOLD} denars to settle the clan's outstanding payment before dismissal." />
     <string id="MercenaryManagement_DismissFailedUnknown" text="The clan could not be dismissed from your kingdom's service." />
+    <string id="MercenaryManagement_HireFailedNotMercenary" text="This clan is not an eligible mercenary clan." />
+    <string id="MercenaryManagement_HireFailedEliminated" text="This mercenary clan has been eliminated." />
+    <string id="MercenaryManagement_HireFailedAlreadyServing" text="This mercenary clan is already serving the specified kingdom." />
+    <string id="MercenaryManagement_HireFailedServingOther" text="This mercenary clan is already serving another kingdom." />
+    <string id="MercenaryManagement_HireFailedKingdomMember" text="This clan is already a non-mercenary member of a kingdom." />
+    <string id="MercenaryManagement_RateFailedNotServing" text="The clan is not currently serving a kingdom as mercenaries." />
+    <string id="MercenaryManagement_RateFailedRange" text="The rate must be between {MINIMUM} and {MAXIMUM} denars per influence." />
+    <string id="MercenaryManagement_RateFailedNoStorage" text="Mercenary contract storage is not available in the current campaign." />
   </strings>
 </base>

@@ -39,6 +39,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             && _contracts.TryGetValue(clan.StringId, out contract)
             && contract.Matches(clan.StringId, clan.Kingdom.StringId))
         {
+            contract.EnsureServiceStartTime();
             return true;
         }
 
@@ -95,6 +96,17 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         {
             contract.SetInfluencePrice(influencePrice);
         }
+    }
+
+    public bool SetServiceStartTime(Clan clan, CampaignTime serviceStartTime)
+    {
+        if (!GetOrCreateContract(clan, out MercenaryContract contract))
+        {
+            return false;
+        }
+
+        contract.SetServiceStartTime(serviceStartTime);
+        return true;
     }
 
     private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)

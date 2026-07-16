@@ -77,5 +77,13 @@
     <string id="MercenaryManagement_DismissFailedNoLeader" text="У этого клана нет доступного лидера, с которым можно произвести расчёт." />
     <string id="MercenaryManagement_DismissFailedGold" text="Для расчёта с кланом перед исключением требуется {GOLD} динаров." />
     <string id="MercenaryManagement_DismissFailedUnknown" text="Клан не удалось исключить со службы вашему королевству." />
+    <string id="MercenaryManagement_HireFailedNotMercenary" text="Этот клан не является подходящим наёмным кланом." />
+    <string id="MercenaryManagement_HireFailedEliminated" text="Этот наёмный клан уничтожен." />
+    <string id="MercenaryManagement_HireFailedAlreadyServing" text="Этот наёмный клан уже служит указанному королевству." />
+    <string id="MercenaryManagement_HireFailedServingOther" text="Этот наёмный клан уже служит другому королевству." />
+    <string id="MercenaryManagement_HireFailedKingdomMember" text="Этот клан уже входит в состав королевства не как наёмник." />
+    <string id="MercenaryManagement_RateFailedNotServing" text="Клан сейчас не служит королевству в качестве наёмников." />
+    <string id="MercenaryManagement_RateFailedRange" text="Ставка должна быть от {MINIMUM} до {MAXIMUM} динаров за единицу влияния." />
+    <string id="MercenaryManagement_RateFailedNoStorage" text="Хранилище контрактов наёмников недоступно в текущей кампании." />
   </strings>
 </base>

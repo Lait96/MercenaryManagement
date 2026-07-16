@@ -97,10 +97,34 @@ internal static class MercenaryHiringService
 
     public static bool TryGetInherentFailureReason(Clan clan, Kingdom kingdom, out TextObject reason)
     {
-        if (!IsFreeMercenaryClan(clan))
+        if (!clan.IsMinorFaction || clan.IsBanditFaction)
         {
             reason = new TextObject(
-                "{=MercenaryManagement_HireFailedNotFree}This mercenary clan is no longer available for hire.");
+                "{=MercenaryManagement_HireFailedNotMercenary}This clan is not an eligible mercenary clan.");
+            return true;
+        }
+
+        if (clan.IsEliminated)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedEliminated}This mercenary clan has been eliminated.");
+            return true;
+        }
+
+        if (clan.IsUnderMercenaryService)
+        {
+            reason = clan.Kingdom == kingdom
+                ? new TextObject(
+                    "{=MercenaryManagement_HireFailedAlreadyServing}This mercenary clan is already serving the specified kingdom.")
+                : new TextObject(
+                    "{=MercenaryManagement_HireFailedServingOther}This mercenary clan is already serving another kingdom.");
+            return true;
+        }
+
+        if (clan.Kingdom is not null)
+        {
+            reason = new TextObject(
+                "{=MercenaryManagement_HireFailedKingdomMember}This clan is already a non-mercenary member of a kingdom.");
             return true;
         }
 

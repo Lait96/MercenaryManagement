@@ -82,6 +82,12 @@ internal static class MercenaryDismissalService
             DismissalRelationPenalty,
             true,
             true);
+
+        EndService(clan);
+    }
+
+    public static void EndService(Clan clan)
+    {
         ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(clan, true);
     }
 }
