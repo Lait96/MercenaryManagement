@@ -55,6 +55,10 @@
       <HintPath>$(GameBinPath)\TaleWorlds.Localization.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.SaveSystem">
+      <HintPath>$(GameBinPath)\TaleWorlds.SaveSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>$(GameBinPath)\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>false</Private>

@@ -1,5 +1,6 @@
 using System;
 using MercenaryManagement.Behaviors;
+using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
 
 namespace MercenaryManagement.Services;
@@ -15,10 +16,12 @@ internal static class MercenaryPaymentService
             return clan.MercenaryAwardMultiplier;
         }
 
-        if (!contractBehavior.TryGetInfluencePrice(clan, out int influencePrice))
+        if (!contractBehavior.GetOrCreateContract(clan, out MercenaryContract contract))
         {
             return clan.MercenaryAwardMultiplier;
         }
+
+        int influencePrice = contract.InfluencePrice;
 
         int clampedInfluencePrice = Math.Max(
             CalculateMinimumInfluencePrice(clan),

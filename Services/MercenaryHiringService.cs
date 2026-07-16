@@ -1,3 +1,4 @@
+using MercenaryManagement.Behaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
@@ -156,5 +157,12 @@ internal static class MercenaryHiringService
             default,
             awardFactor,
             true);
+
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (contractBehavior is not null)
+        {
+            contractBehavior.StartContract(clan, kingdom, awardFactor, out _);
+        }
     }
 }

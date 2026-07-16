@@ -1,4 +1,5 @@
 using System.Linq;
+using MercenaryManagement.Behaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
@@ -93,5 +94,12 @@ internal static class MercenaryPoachingService
             serviceCommitment,
             awardFactor,
             true);
+
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (contractBehavior is not null)
+        {
+            contractBehavior.StartContract(clan, targetKingdom, awardFactor, out _);
+        }
     }
 }
