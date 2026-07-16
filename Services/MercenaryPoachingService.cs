@@ -1,5 +1,6 @@
 using System.Linq;
 using MercenaryManagement.Behaviors;
+using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
@@ -63,7 +64,16 @@ internal static class MercenaryPoachingService
             return true;
         }
 
-        if (!clan.ShouldStayInKingdomUntil.IsPast)
+        CampaignTime commitmentEnd = clan.ShouldStayInKingdomUntil;
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (contractBehavior is not null
+            && contractBehavior.GetOrCreateContract(clan, out MercenaryContract contract))
+        {
+            commitmentEnd = contract.EndTime;
+        }
+
+        if (commitmentEnd != CampaignTime.Zero && !commitmentEnd.IsPast)
         {
             reason = new TextObject(
                 "{=MercenaryManagement_PoachFailedCommitment}The clan must fulfill its current service commitment before it can switch kingdoms.");
@@ -99,7 +109,12 @@ internal static class MercenaryPoachingService
             .GetCampaignBehavior<MercenaryContractBehavior>();
         if (contractBehavior is not null)
         {
-            contractBehavior.StartContract(clan, targetKingdom, awardFactor, out _);
+            contractBehavior.StartContract(
+                clan,
+                targetKingdom,
+                awardFactor,
+                serviceCommitment,
+                out _);
         }
     }
 }

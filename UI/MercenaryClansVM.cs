@@ -229,6 +229,18 @@ internal sealed class MercenaryClansVM : ViewModel
         "{=MercenaryManagement_ServiceStatus}Service status").ToString();
 
     [DataSourceProperty]
+    public string ContractStateText => new TextObject(
+        "{=MercenaryManagement_ContractState}Contract state").ToString();
+
+    [DataSourceProperty]
+    public string ContractStartText => new TextObject(
+        "{=MercenaryManagement_ContractStart}Contract start").ToString();
+
+    [DataSourceProperty]
+    public string ContractEndText => new TextObject(
+        "{=MercenaryManagement_ContractEnd}Contract end").ToString();
+
+    [DataSourceProperty]
     public string HireText => new TextObject("{=MercenaryManagement_Hire}Hire clan").ToString();
 
     [DataSourceProperty]
@@ -277,6 +289,9 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(AccumulatedInfluenceText, nameof(AccumulatedInfluenceText));
         OnPropertyChangedWithValue(ExpectedPaymentText, nameof(ExpectedPaymentText));
         OnPropertyChangedWithValue(ServiceStatusText, nameof(ServiceStatusText));
+        OnPropertyChangedWithValue(ContractStateText, nameof(ContractStateText));
+        OnPropertyChangedWithValue(ContractStartText, nameof(ContractStartText));
+        OnPropertyChangedWithValue(ContractEndText, nameof(ContractEndText));
         OnPropertyChangedWithValue(HireText, nameof(HireText));
         OnPropertyChangedWithValue(DismissText, nameof(DismissText));
         OnPropertyChangedWithValue(PoachText, nameof(PoachText));

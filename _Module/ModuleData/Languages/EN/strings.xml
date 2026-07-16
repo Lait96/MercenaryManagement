@@ -26,6 +26,14 @@
     <string id="MercenaryManagement_AccumulatedInfluence" text="Accumulated influence" />
     <string id="MercenaryManagement_ExpectedPayment" text="Expected payment (denars)" />
     <string id="MercenaryManagement_ServiceStatus" text="Service status" />
+    <string id="MercenaryManagement_ContractState" text="Contract state" />
+    <string id="MercenaryManagement_ContractStart" text="Contract start" />
+    <string id="MercenaryManagement_ContractEnd" text="Contract end" />
+    <string id="MercenaryManagement_ContractActive" text="Active" />
+    <string id="MercenaryManagement_NoActiveContract" text="No active contract" />
+    <string id="MercenaryManagement_Indefinite" text="Indefinite" />
+    <string id="MercenaryManagement_DaysAgo" text="{DAYS} days ago" />
+    <string id="MercenaryManagement_DaysRemaining" text="{DAYS} days remaining" />
     <string id="MercenaryManagement_InService" text="Serving this kingdom" />
     <string id="MercenaryManagement_NotInService" text="Available for hire" />
     <string id="MercenaryManagement_UnavailableForHire" text="Unavailable for hire" />

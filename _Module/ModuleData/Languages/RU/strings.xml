@@ -26,6 +26,14 @@
     <string id="MercenaryManagement_AccumulatedInfluence" text="Накопленное влияние" />
     <string id="MercenaryManagement_ExpectedPayment" text="Ожидаемая выплата (денары)" />
     <string id="MercenaryManagement_ServiceStatus" text="Статус службы" />
+    <string id="MercenaryManagement_ContractState" text="Состояние контракта" />
+    <string id="MercenaryManagement_ContractStart" text="Начало контракта" />
+    <string id="MercenaryManagement_ContractEnd" text="Окончание контракта" />
+    <string id="MercenaryManagement_ContractActive" text="Активен" />
+    <string id="MercenaryManagement_NoActiveContract" text="Нет активного контракта" />
+    <string id="MercenaryManagement_Indefinite" text="Бессрочный" />
+    <string id="MercenaryManagement_DaysAgo" text="{DAYS} дн. назад" />
+    <string id="MercenaryManagement_DaysRemaining" text="Осталось дней: {DAYS}" />
     <string id="MercenaryManagement_InService" text="Служит этому королевству" />
     <string id="MercenaryManagement_NotInService" text="Доступен для найма" />
     <string id="MercenaryManagement_UnavailableForHire" text="Недоступен для найма" />

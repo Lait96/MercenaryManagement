@@ -91,7 +91,11 @@ public static class MercenaryDebugCommands
                     result.Append(" | start_days_ago=")
                         .Append(contract.ServiceStartTime.ElapsedDaysUntilNow.ToString(
                             "0.##",
-                            CultureInfo.InvariantCulture));
+                            CultureInfo.InvariantCulture))
+                        .Append(" | end=")
+                        .Append(FormatContractEnd(contract.EndTime))
+                        .Append(" | contract_state=")
+                        .Append(contract.State.ToString().ToLowerInvariant());
                 }
             }
         }
@@ -281,6 +285,63 @@ public static class MercenaryDebugCommands
         return $"The {clan.Name} clan's service start is now {daysAgo.ToString(CultureInfo.InvariantCulture)} days ago.";
     }
 
+    [CommandLineFunctionality.CommandLineArgumentFunction("mm_set_contract_days", "campaign")]
+    public static string SetContractDays(List<string> arguments)
+    {
+        if (!TryValidateCampaign(out string error))
+        {
+            return error;
+        }
+
+        if (arguments.Count < 2)
+        {
+            return "Usage: campaign.mm_set_contract_days <non-negative days | indefinite> <clan name or id>";
+        }
+
+        bool isIndefinite = string.Equals(
+            arguments[0],
+            "indefinite",
+            StringComparison.OrdinalIgnoreCase);
+        float days = 0f;
+        if (!isIndefinite
+            && (!float.TryParse(
+                    arguments[0],
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture,
+                    out days)
+                || days < 0f
+                || float.IsNaN(days)
+                || float.IsInfinity(days)))
+        {
+            return "Usage: campaign.mm_set_contract_days <non-negative days | indefinite> <clan name or id>";
+        }
+
+        string clanQuery = JoinArguments(arguments.Skip(1));
+        if (!TryFindClan(clanQuery, out Clan clan, out error))
+        {
+            return error;
+        }
+
+        MercenaryContractBehavior? contractBehavior = Campaign.Current!
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (contractBehavior is null)
+        {
+            return "Mercenary contract storage is not available in the current campaign.";
+        }
+
+        CampaignTime endTime = isIndefinite
+            ? CampaignTime.Zero
+            : CampaignTime.DaysFromNow(days);
+        if (!contractBehavior.SetContractEndTime(clan, endTime))
+        {
+            return $"Could not change the {clan.Name} clan's contract term: the clan has no active mercenary contract.";
+        }
+
+        return isIndefinite
+            ? $"The {clan.Name} clan's contract is now indefinite."
+            : $"The {clan.Name} clan's contract now ends in {days.ToString(CultureInfo.InvariantCulture)} days.";
+    }
+
     private static string Hire(Clan clan, Kingdom kingdom)
     {
         MercenaryHiringService.Hire(clan, kingdom);
@@ -458,5 +519,18 @@ public static class MercenaryDebugCommands
         return string.Join(
             ", ",
             matches.Select(match => $"{match.Name} ({match.StringId})"));
+    }
+
+    private static string FormatContractEnd(CampaignTime endTime)
+    {
+        if (endTime == CampaignTime.Zero || endTime == CampaignTime.Never)
+        {
+            return "indefinite";
+        }
+
+        float days = endTime.IsPast
+            ? -endTime.ElapsedDaysUntilNow
+            : endTime.RemainingDaysFromNow;
+        return days.ToString("0.##", CultureInfo.InvariantCulture) + "_days";
     }
 }

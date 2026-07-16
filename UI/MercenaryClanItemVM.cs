@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using MercenaryManagement.Behaviors;
+using MercenaryManagement.Contracts;
 using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
@@ -13,6 +15,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private readonly Clan _clan;
     private readonly Kingdom _kingdom;
     private readonly Action<MercenaryClanItemVM> _onSelect;
+    private MercenaryContract? _contract;
     private string _clanName = string.Empty;
     private string _leaderName = string.Empty;
     private string _serviceStatus = string.Empty;
@@ -37,6 +40,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
         RelationToRuler = clan.Leader is not null && kingdom.Leader is not null
             ? clan.Leader.GetRelation(kingdom.Leader)
             : 0;
+        _contract = GetActiveContract();
         _influencePrice = MercenaryHiringService.IsFreeMercenaryClan(clan)
             ? MercenaryHiringService.CalculateHirePrice(clan, kingdom)
             : MercenaryPaymentService.GetInfluencePrice(clan);
@@ -191,7 +195,25 @@ internal sealed class MercenaryClanItemVM : ViewModel
     }
 
     [DataSourceProperty]
-    public bool IsServingPlayerKingdom => _clan.IsUnderMercenaryService && _clan.Kingdom == _kingdom;
+    public string ContractState => _contract is null
+        ? new TextObject("{=MercenaryManagement_NoActiveContract}No active contract").ToString()
+        : new TextObject("{=MercenaryManagement_ContractActive}Active").ToString();
+
+    [DataSourceProperty]
+    public string ContractStart => _contract is null
+        ? string.Empty
+        : FormatPastTime(_contract.ServiceStartTime);
+
+    [DataSourceProperty]
+    public string ContractEnd => _contract is null
+        ? string.Empty
+        : FormatEndTime(_contract.EndTime);
+
+    [DataSourceProperty]
+    public bool HasActiveContract => _contract?.IsActive == true;
+
+    [DataSourceProperty]
+    public bool IsServingPlayerKingdom => _contract?.EmployerKingdom == _kingdom;
 
     [DataSourceProperty]
     public bool IsFreeMercenaryClan => MercenaryHiringService.IsFreeMercenaryClan(_clan);
@@ -234,18 +256,23 @@ internal sealed class MercenaryClanItemVM : ViewModel
         OnPropertyChangedWithValue(
             InfluencePricePercentageText,
             nameof(InfluencePricePercentageText));
+        _contract = GetActiveContract();
+        OnPropertyChangedWithValue(ContractState, nameof(ContractState));
+        OnPropertyChangedWithValue(ContractStart, nameof(ContractStart));
+        OnPropertyChangedWithValue(ContractEnd, nameof(ContractEnd));
+        OnPropertyChangedWithValue(HasActiveContract, nameof(HasActiveContract));
         ClanName = _clan.Name.ToString();
         LeaderName = _clan.Leader?.Name.ToString() ?? string.Empty;
         TextObject serviceStatus;
 
-        if (IsServingPlayerKingdom)
+        if (_contract is not null && _contract.EmployerKingdom == _kingdom)
         {
             serviceStatus = new TextObject("{=MercenaryManagement_InService}Serving this kingdom");
         }
-        else if (_clan.IsUnderMercenaryService && _clan.Kingdom is not null)
+        else if (_contract?.EmployerKingdom is not null)
         {
             serviceStatus = new TextObject("{=MercenaryManagement_InOtherKingdom}Serving {KINGDOM}");
-            serviceStatus.SetTextVariable("KINGDOM", _clan.Kingdom.Name);
+            serviceStatus.SetTextVariable("KINGDOM", _contract.EmployerKingdom.Name);
         }
         else
         {
@@ -285,5 +312,39 @@ internal sealed class MercenaryClanItemVM : ViewModel
             _influencePrice * 100d / BaseInfluencePrice,
             MidpointRounding.AwayFromZero);
         return Math.Max(85, Math.Min(150, percentage));
+    }
+
+    private MercenaryContract? GetActiveContract()
+    {
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        return contractBehavior is not null
+               && contractBehavior.GetOrCreateContract(_clan, out MercenaryContract contract)
+            ? contract
+            : null;
+    }
+
+    private static string FormatPastTime(CampaignTime time)
+    {
+        TextObject text = new TextObject("{=MercenaryManagement_DaysAgo}{DAYS} days ago");
+        text.SetTextVariable("DAYS", Math.Max(0f, time.ElapsedDaysUntilNow).ToString("0.#"));
+        return text.ToString();
+    }
+
+    private static string FormatEndTime(CampaignTime time)
+    {
+        if (time == CampaignTime.Zero || time == CampaignTime.Never)
+        {
+            return new TextObject("{=MercenaryManagement_Indefinite}Indefinite").ToString();
+        }
+
+        TextObject text = time.IsPast
+            ? new TextObject("{=MercenaryManagement_DaysAgo}{DAYS} days ago")
+            : new TextObject("{=MercenaryManagement_DaysRemaining}{DAYS} days remaining");
+        float days = time.IsPast
+            ? time.ElapsedDaysUntilNow
+            : time.RemainingDaysFromNow;
+        text.SetTextVariable("DAYS", Math.Max(0f, days).ToString("0.#"));
+        return text.ToString();
     }
 }

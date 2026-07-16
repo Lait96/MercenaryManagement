@@ -186,7 +186,12 @@ internal static class MercenaryHiringService
             .GetCampaignBehavior<MercenaryContractBehavior>();
         if (contractBehavior is not null)
         {
-            contractBehavior.StartContract(clan, kingdom, awardFactor, out _);
+            contractBehavior.StartContract(
+                clan,
+                kingdom,
+                awardFactor,
+                clan.ShouldStayInKingdomUntil,
+                out _);
         }
     }
 }

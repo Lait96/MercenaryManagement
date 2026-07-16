@@ -30,6 +30,9 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         dataStore.SyncData(
             "MercenaryManagement_InfluencePrices",
             ref _legacyInfluencePrices);
+
+        _contracts ??= new Dictionary<string, MercenaryContract>();
+        _legacyInfluencePrices ??= new Dictionary<string, int>();
     }
 
     public bool TryGetContract(Clan clan, out MercenaryContract contract)
@@ -37,8 +40,17 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         if (clan.IsUnderMercenaryService
             && clan.Kingdom is not null
             && _contracts.TryGetValue(clan.StringId, out contract)
+            && contract.IsActive
             && contract.Matches(clan.StringId, clan.Kingdom.StringId))
         {
+            bool isLegacyContract = contract.Clan is null
+                                    || contract.EmployerKingdom is null;
+            contract.AttachParticipants(clan, clan.Kingdom);
+            if (isLegacyContract && contract.EndTime == CampaignTime.Zero)
+            {
+                contract.SetEndTime(clan.ShouldStayInKingdomUntil);
+            }
+
             contract.EnsureServiceStartTime();
             return true;
         }
@@ -66,13 +78,19 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             influencePrice = legacyInfluencePrice;
         }
 
-        return StartContract(clan, clan.Kingdom, influencePrice, out contract);
+        return StartContract(
+            clan,
+            clan.Kingdom,
+            influencePrice,
+            clan.ShouldStayInKingdomUntil,
+            out contract);
     }
 
     public bool StartContract(
         Clan clan,
         Kingdom kingdom,
         int influencePrice,
+        CampaignTime endTime,
         out MercenaryContract contract)
     {
         if (!clan.IsUnderMercenaryService || clan.Kingdom != kingdom)
@@ -81,10 +99,15 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return false;
         }
 
-        contract = new MercenaryContract(
-            clan.StringId,
-            kingdom.StringId,
-            influencePrice);
+        if (TryGetContract(clan, out contract))
+        {
+            contract.SetInfluencePrice(influencePrice);
+            contract.SetEndTime(endTime);
+            return true;
+        }
+
+        CompleteContract(clan);
+        contract = new MercenaryContract(clan, kingdom, influencePrice, endTime);
         _contracts[clan.StringId] = contract;
         _legacyInfluencePrices.Remove(clan.StringId);
         return true;
@@ -109,6 +132,43 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         return true;
     }
 
+    public bool SetContractEndTime(Clan clan, CampaignTime endTime)
+    {
+        if (!GetOrCreateContract(clan, out MercenaryContract contract))
+        {
+            return false;
+        }
+
+        contract.SetEndTime(endTime);
+        return true;
+    }
+
+    public bool CompleteContract(Clan clan)
+    {
+        _legacyInfluencePrices.Remove(clan.StringId);
+
+        if (!_contracts.TryGetValue(clan.StringId, out MercenaryContract contract)
+            || !contract.IsActive)
+        {
+            return false;
+        }
+
+        if (contract.Clan is null || contract.EmployerKingdom is null)
+        {
+            foreach (Kingdom kingdom in Kingdom.All)
+            {
+                if (kingdom.StringId == contract.KingdomId)
+                {
+                    contract.AttachParticipants(clan, kingdom);
+                    break;
+                }
+            }
+        }
+
+        contract.Complete(CampaignTime.Now);
+        return true;
+    }
+
     private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
     {
         foreach (Clan clan in Clan.All)
@@ -119,7 +179,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
                 continue;
             }
 
-            RemoveContract(clan);
+            CompleteContract(clan);
         }
     }
 
@@ -134,13 +194,13 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         {
             if (!clan.IsUnderMercenaryService)
             {
-                RemoveContract(clan);
+                CompleteContract(clan);
             }
 
             return;
         }
 
-        RemoveContract(clan);
+        CompleteContract(clan);
 
         if (newKingdom is not null && clan.IsUnderMercenaryService)
         {
@@ -148,13 +208,8 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
                 clan,
                 newKingdom,
                 clan.MercenaryAwardMultiplier,
+                clan.ShouldStayInKingdomUntil,
                 out _);
         }
-    }
-
-    private void RemoveContract(Clan clan)
-    {
-        _contracts.Remove(clan.StringId);
-        _legacyInfluencePrices.Remove(clan.StringId);
     }
 }
