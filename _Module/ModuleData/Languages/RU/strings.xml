@@ -20,6 +20,7 @@
     <string id="MercenaryManagement_RelationToRuler" text="Отношение лидера к правителю" />
     <string id="MercenaryManagement_RelationColumn" text="Отношение" />
     <string id="MercenaryManagement_InfluencePrice" text="Денаров за единицу влияния" />
+    <string id="MercenaryManagement_BaseInfluencePrice" text="База: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Информация о клане" />
     <string id="MercenaryManagement_ContractSettings" text="Настройки контракта" />
     <string id="MercenaryManagement_AccumulatedInfluence" text="Накопленное влияние" />

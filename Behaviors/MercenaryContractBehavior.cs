@@ -30,11 +30,6 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         _influencePrices[clan.StringId] = influencePrice;
     }
 
-    public void BeginContract(Clan clan)
-    {
-        _influencePrices.Remove(clan.StringId);
-    }
-
     private void OnClanChangedKingdom(
         Clan clan,
         Kingdom oldKingdom,

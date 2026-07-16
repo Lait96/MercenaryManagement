@@ -9,14 +9,14 @@ using TaleWorlds.Localization;
 namespace MercenaryManagement.UI;
 
 [ViewModelMixin(true)]
-internal sealed class KingdomManagementVmMixin : BaseViewModelMixin<KingdomManagementVM>
+internal sealed class KingdomManagementVMMixin : BaseViewModelMixin<KingdomManagementVM>
 {
     private readonly KingdomCategoryVM[] _categories;
     private readonly MercenaryClansVM _mercenaries = new MercenaryClansVM();
     private bool _isMercenariesSelected;
     private string _mercenariesText = string.Empty;
 
-    public KingdomManagementVmMixin(KingdomManagementVM viewModel)
+    public KingdomManagementVMMixin(KingdomManagementVM viewModel)
         : base(viewModel)
     {
         _categories =

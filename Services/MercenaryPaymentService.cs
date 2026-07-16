@@ -66,13 +66,6 @@ internal static class MercenaryPaymentService
         return true;
     }
 
-    public static void BeginContract(Clan clan)
-    {
-        Campaign.Current?
-            .GetCampaignBehavior<MercenaryContractBehavior>()?
-            .BeginContract(clan);
-    }
-
     public static int CalculateExpectedPayment(Clan clan)
     {
         if (!clan.IsUnderMercenaryService

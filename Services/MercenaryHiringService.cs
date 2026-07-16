@@ -156,10 +156,5 @@ internal static class MercenaryHiringService
             default,
             awardFactor,
             true);
-
-        if (clan.IsUnderMercenaryService && clan.Kingdom == kingdom)
-        {
-            MercenaryPaymentService.BeginContract(clan);
-        }
     }
 }

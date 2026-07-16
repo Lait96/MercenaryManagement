@@ -1,74 +1,8 @@
-using System.Collections.Generic;
 using System.Xml;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs2;
 
 namespace MercenaryManagement.UI;
-
-[PrefabExtension(
-    "KingdomManagement",
-    "descendant::Constant[@Name='Header.Tab.Left.Width.Scaled']")]
-internal sealed class KingdomLeftTabWidthExtension : PrefabExtensionSetAttributePatch
-{
-    public override List<Attribute> Attributes => [new Attribute("MultiplyResult", "0.75")];
-}
-
-[PrefabExtension(
-    "KingdomManagement",
-    "descendant::Constant[@Name='Header.Tab.Center.Width.Scaled']")]
-internal sealed class KingdomCenterTabWidthExtension : PrefabExtensionSetAttributePatch
-{
-    public override List<Attribute> Attributes => [new Attribute("MultiplyResult", "0.75")];
-}
-
-[PrefabExtension(
-    "KingdomManagement",
-    "descendant::Constant[@Name='Header.Tab.Right.Width.Scaled']")]
-internal sealed class KingdomRightTabWidthExtension : PrefabExtensionSetAttributePatch
-{
-    public override List<Attribute> Attributes => [new Attribute("MultiplyResult", "0.75")];
-}
-
-[PrefabExtension(
-    "KingdomManagement",
-    "descendant::KingdomTabControlListPanel/Children/ButtonWidget[@Id='DiplomacyTabButton']")]
-internal sealed class KingdomMercenariesTabExtension : PrefabExtensionInsertPatch
-{
-    private readonly XmlDocument _document = new XmlDocument();
-
-    public KingdomMercenariesTabExtension()
-    {
-        _document.LoadXml(
-            """
-            <ButtonWidget Id="MercenariesTabButton"
-                          DoNotPassEventsToChildren="true"
-                          WidthSizePolicy="Fixed"
-                          HeightSizePolicy="Fixed"
-                          SuggestedWidth="!Header.Tab.Center.Width.Scaled"
-                          SuggestedHeight="!Header.Tab.Center.Height.Scaled"
-                          VerticalAlignment="Center"
-                          PositionYOffset="2"
-                          Brush="Header.Tab.Center"
-                          Command.Click="ExecuteShowMercenaries"
-                          IsSelected="@IsMercenariesSelected"
-                          UpdateChildrenStates="true">
-              <Children>
-                <TextWidget WidthSizePolicy="CoverChildren"
-                            HeightSizePolicy="CoverChildren"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Brush="Clan.TabControl.Text"
-                            Text="@MercenariesText" />
-              </Children>
-            </ButtonWidget>
-            """);
-    }
-
-    public override InsertType Type => InsertType.Prepend;
-
-    [PrefabExtensionXmlNode(false)]
-    public XmlNode GetPrefabExtension() => _document;
-}
 
 [PrefabExtension(
     "KingdomManagement",
@@ -477,6 +411,17 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                                     Brush="Kingdom.ParagraphSmall.Text"
                                                     Brush.FontSize="23"
                                                     Text="@InfluencePriceText" />
+                                        <TextWidget DataSource="{SelectedClan}"
+                                                    WidthSizePolicy="Fixed"
+                                                    HeightSizePolicy="Fixed"
+                                                    SuggestedWidth="75"
+                                                    SuggestedHeight="36"
+                                                    MarginRight="8"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Brush="CustomBattle.SliderValue.Text"
+                                                    Brush.FontSize="22"
+                                                    Text="@InfluencePricePercentageText" />
                                         <IntegerInputTextWidget DataSource="{SelectedClan}"
                                                                 WidthSizePolicy="Fixed"
                                                                 HeightSizePolicy="Fixed"
@@ -497,77 +442,131 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                                                 DoNotPassEventsToChildren="true" />
                                       </Children>
                                     </ListPanel>
-                                    <SliderWidget DataSource="{SelectedClan}"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="42"
-                                                  MarginLeft="24"
-                                                  MarginRight="24"
-                                                  VerticalAlignment="Center"
-                                                  Filler="Filler"
-                                                  Handle="SliderHandle"
-                                                  MinValueInt="@MinimumInfluencePrice"
-                                                  MaxValueInt="@MaximumInfluencePrice"
-                                                  ValueInt="@InfluencePrice"
-                                                  IsDiscrete="true"
-                                                  IsDisabled="@IsInfluencePriceReadOnly"
-                                                  UpdateChildrenStates="true"
-                                                  DoNotPassEventsToChildren="true"
-                                                  DoNotUpdateHandleSize="true">
+                                    <Widget DataSource="{SelectedClan}"
+                                            WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="Fixed"
+                                            SuggestedHeight="94"
+                                            MarginLeft="24"
+                                            MarginRight="24">
                                       <Children>
-                                        <BrushWidget DoNotAcceptEvents="true"
-                                                     WidthSizePolicy="StretchToParent"
-                                                     HeightSizePolicy="Fixed"
-                                                     SuggestedHeight="14"
-                                                     VerticalAlignment="Center"
-                                                     Sprite="General\Slider\slider_inner_canvas" />
-                                        <BrushWidget Id="Filler"
-                                                     DoNotAcceptEvents="true"
-                                                     WidthSizePolicy="StretchToParent"
-                                                     HeightSizePolicy="Fixed"
-                                                     SuggestedHeight="21"
-                                                     VerticalAlignment="Center"
-                                                     PositionYOffset="2"
-                                                     Sprite="General\Slider\slider_fill" />
-                                        <BrushWidget DoNotAcceptEvents="true"
-                                                     WidthSizePolicy="StretchToParent"
-                                                     HeightSizePolicy="StretchToParent"
-                                                     MarginTop="5"
-                                                     MarginBottom="5"
-                                                     Brush="Slider"
-                                                     Brush.SaturationFactor="25"
-                                                     Brush.ValueFactor="-15" />
-                                        <ImageWidget Id="SliderHandle"
-                                                     DoNotAcceptEvents="true"
-                                                     WidthSizePolicy="Fixed"
-                                                     HeightSizePolicy="Fixed"
-                                                     SuggestedWidth="20"
-                                                     SuggestedHeight="32"
-                                                     HorizontalAlignment="Left"
-                                                     VerticalAlignment="Center"
-                                                     Brush="SliderHandle" />
+                                        <SliderWidget WidthSizePolicy="StretchToParent"
+                                                      HeightSizePolicy="Fixed"
+                                                      SuggestedHeight="42"
+                                                      VerticalAlignment="Top"
+                                                      Filler="Filler"
+                                                      Handle="SliderHandle"
+                                                      MinValueInt="@MinimumInfluencePrice"
+                                                      MaxValueInt="@MaximumInfluencePrice"
+                                                      ValueInt="@InfluencePrice"
+                                                      IsDiscrete="true"
+                                                      IsDisabled="@IsInfluencePriceReadOnly"
+                                                      UpdateChildrenStates="true"
+                                                      DoNotPassEventsToChildren="true"
+                                                      DoNotUpdateHandleSize="true">
+                                          <Children>
+                                            <BrushWidget DoNotAcceptEvents="true"
+                                                         WidthSizePolicy="StretchToParent"
+                                                         HeightSizePolicy="Fixed"
+                                                         SuggestedHeight="14"
+                                                         VerticalAlignment="Center"
+                                                         Sprite="General\Slider\slider_inner_canvas" />
+                                            <BrushWidget Id="Filler"
+                                                         DoNotAcceptEvents="true"
+                                                         WidthSizePolicy="StretchToParent"
+                                                         HeightSizePolicy="Fixed"
+                                                         SuggestedHeight="21"
+                                                         VerticalAlignment="Center"
+                                                         PositionYOffset="2"
+                                                         Sprite="General\Slider\slider_fill" />
+                                            <BrushWidget DoNotAcceptEvents="true"
+                                                         WidthSizePolicy="StretchToParent"
+                                                         HeightSizePolicy="StretchToParent"
+                                                         MarginTop="5"
+                                                         MarginBottom="5"
+                                                         Brush="Slider"
+                                                         Brush.SaturationFactor="25"
+                                                         Brush.ValueFactor="-15" />
+                                            <ImageWidget Id="SliderHandle"
+                                                         DoNotAcceptEvents="true"
+                                                         WidthSizePolicy="Fixed"
+                                                         HeightSizePolicy="Fixed"
+                                                         SuggestedWidth="20"
+                                                         SuggestedHeight="32"
+                                                         HorizontalAlignment="Left"
+                                                         VerticalAlignment="Center"
+                                                         Brush="SliderHandle" />
+                                          </Children>
+                                        </SliderWidget>
+                                        <SliderWidget WidthSizePolicy="StretchToParent"
+                                                      HeightSizePolicy="Fixed"
+                                                      SuggestedHeight="42"
+                                                      VerticalAlignment="Top"
+                                                      Handle="BaseInfluencePriceHandle"
+                                                      MinValueInt="@MinimumInfluencePrice"
+                                                      MaxValueInt="@MaximumInfluencePrice"
+                                                      ValueInt="@BaseInfluencePrice"
+                                                      IsDiscrete="true"
+                                                      Locked="true"
+                                                      DoNotAcceptEvents="true"
+                                                      DoNotUpdateHandleSize="true">
+                                          <Children>
+                                            <Widget Id="BaseInfluencePriceHandle"
+                                                    DoNotAcceptEvents="true"
+                                                    WidthSizePolicy="Fixed"
+                                                    HeightSizePolicy="Fixed"
+                                                    SuggestedWidth="20"
+                                                    SuggestedHeight="42"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center">
+                                              <Children>
+                                                <Widget WidthSizePolicy="Fixed"
+                                                        HeightSizePolicy="Fixed"
+                                                        SuggestedWidth="2"
+                                                        SuggestedHeight="24"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Sprite="BlankWhiteSquare_9"
+                                                        AlphaFactor="0.75" />
+                                                <TextWidget WidthSizePolicy="Fixed"
+                                                            HeightSizePolicy="Fixed"
+                                                            SuggestedWidth="120"
+                                                            SuggestedHeight="22"
+                                                            PositionXOffset="-50"
+                                                            PositionYOffset="38"
+                                                            Brush="Kingdom.ParagraphSmall.Text"
+                                                            Brush.FontSize="16"
+                                                            Text="@BaseInfluencePriceText" />
+                                              </Children>
+                                            </Widget>
+                                          </Children>
+                                        </SliderWidget>
+                                        <Widget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="Fixed"
+                                                SuggestedHeight="24"
+                                                MarginLeft="10"
+                                                MarginRight="10"
+                                                VerticalAlignment="Bottom">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="Fixed"
+                                                        HeightSizePolicy="StretchToParent"
+                                                        SuggestedWidth="60"
+                                                        PositionXOffset="-30"
+                                                        HorizontalAlignment="Left"
+                                                        Brush="Kingdom.ParagraphSmall.Text"
+                                                        Brush.FontSize="18"
+                                                        IntText="@MinimumInfluencePrice" />
+                                            <TextWidget WidthSizePolicy="Fixed"
+                                                        HeightSizePolicy="StretchToParent"
+                                                        SuggestedWidth="60"
+                                                        PositionXOffset="30"
+                                                        HorizontalAlignment="Right"
+                                                        Brush="Kingdom.ParagraphSmall.Text"
+                                                        Brush.FontSize="18"
+                                                        IntText="@MaximumInfluencePrice" />
+                                          </Children>
+                                        </Widget>
                                       </Children>
-                                    </SliderWidget>
-                                    <ListPanel DataSource="{SelectedClan}"
-                                               WidthSizePolicy="StretchToParent"
-                                               HeightSizePolicy="Fixed"
-                                               SuggestedHeight="28"
-                                               MarginLeft="24"
-                                               MarginRight="24">
-                                      <Children>
-                                        <TextWidget WidthSizePolicy="StretchToParent"
-                                                    HeightSizePolicy="StretchToParent"
-                                                    Brush="Kingdom.ParagraphSmall.Text"
-                                                    Brush.FontSize="18"
-                                                    IntText="@MinimumInfluencePrice" />
-                                        <TextWidget WidthSizePolicy="StretchToParent"
-                                                    HeightSizePolicy="StretchToParent"
-                                                    HorizontalAlignment="Right"
-                                                    Brush="Kingdom.ParagraphSmall.Text"
-                                                    Brush.FontSize="18"
-                                                    IntText="@MaximumInfluencePrice" />
-                                      </Children>
-                                    </ListPanel>
+                                    </Widget>
                                   </Children>
                                 </BrushListPanel>
 

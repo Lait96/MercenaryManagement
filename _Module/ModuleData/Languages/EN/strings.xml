@@ -20,6 +20,7 @@
     <string id="MercenaryManagement_RelationToRuler" text="Leader's relation to the ruler" />
     <string id="MercenaryManagement_RelationColumn" text="Relation" />
     <string id="MercenaryManagement_InfluencePrice" text="Denars per influence" />
+    <string id="MercenaryManagement_BaseInfluencePrice" text="Base: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Clan information" />
     <string id="MercenaryManagement_ContractSettings" text="Contract settings" />
     <string id="MercenaryManagement_AccumulatedInfluence" text="Accumulated influence" />
