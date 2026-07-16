@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MercenaryManagement.Contracts;
+using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 
@@ -7,9 +8,12 @@ namespace MercenaryManagement.Behaviors;
 
 internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 {
+    private const int CurrentDataVersion = 1;
+
     private Dictionary<string, MercenaryContract> _contracts =
         new Dictionary<string, MercenaryContract>();
     private Dictionary<string, int> _legacyInfluencePrices = new Dictionary<string, int>();
+    private int _dataVersion;
 
     public override void RegisterEvents()
     {
@@ -24,6 +28,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
     public override void SyncData(IDataStore dataStore)
     {
         dataStore.SyncData("MercenaryManagement_Contracts", ref _contracts);
+        dataStore.SyncData("MercenaryManagement_DataVersion", ref _dataVersion);
 
         // Keep reading the old key so campaigns saved before contracts were introduced
         // retain their individually configured prices.
@@ -53,6 +58,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
             contract.EnsureServiceStartTime();
             contract.EnsureStrategicPriority();
+            contract.SetInfluencePrice(NormalizeInfluencePrice(clan, contract.InfluencePrice));
             return true;
         }
 
@@ -100,6 +106,8 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return false;
         }
 
+        influencePrice = NormalizeInfluencePrice(clan, influencePrice);
+
         if (TryGetContract(clan, out contract))
         {
             contract.SetInfluencePrice(influencePrice);
@@ -118,12 +126,17 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
     {
         if (GetOrCreateContract(clan, out MercenaryContract contract))
         {
-            contract.SetInfluencePrice(influencePrice);
+            contract.SetInfluencePrice(NormalizeInfluencePrice(clan, influencePrice));
         }
     }
 
     public bool SetServiceStartTime(Clan clan, CampaignTime serviceStartTime)
     {
+        if (serviceStartTime == CampaignTime.Zero || serviceStartTime.IsFuture)
+        {
+            return false;
+        }
+
         if (!GetOrCreateContract(clan, out MercenaryContract contract))
         {
             return false;
@@ -148,6 +161,11 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         Clan clan,
         MercenaryStrategicPriority strategicPriority)
     {
+        if (!IsDefined(strategicPriority))
+        {
+            return false;
+        }
+
         if (!GetOrCreateContract(clan, out MercenaryContract contract))
         {
             return false;
@@ -185,8 +203,17 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
     private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
     {
+        if (_dataVersion > CurrentDataVersion)
+        {
+            // Do not downgrade or rewrite data created by a newer mod version.
+            return;
+        }
+
+        bool migrateToVersion1 = _dataVersion < 1;
+        var knownClanIds = new HashSet<string>();
         foreach (Clan clan in Clan.All)
         {
+            knownClanIds.Add(clan.StringId);
             if (clan.IsUnderMercenaryService && clan.Kingdom is not null)
             {
                 GetOrCreateContract(clan, out _);
@@ -194,6 +221,52 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             }
 
             CompleteContract(clan);
+        }
+
+        var orphanedContractIds = new List<string>();
+        foreach (string clanId in _contracts.Keys)
+        {
+            if (!knownClanIds.Contains(clanId))
+            {
+                orphanedContractIds.Add(clanId);
+            }
+        }
+
+        foreach (string clanId in orphanedContractIds)
+        {
+            _contracts.Remove(clanId);
+        }
+
+        _legacyInfluencePrices.Clear();
+
+        if (migrateToVersion1)
+        {
+            // Reconciliation above migrates legacy prices and supplies defaults for
+            // contract fields that did not exist before schema version 1.
+            _dataVersion = 1;
+        }
+    }
+
+    private static int NormalizeInfluencePrice(Clan clan, int influencePrice)
+    {
+        return System.Math.Max(
+            MercenaryPaymentService.CalculateMinimumInfluencePrice(clan),
+            System.Math.Min(
+                MercenaryPaymentService.CalculateMaximumInfluencePrice(clan),
+                influencePrice));
+    }
+
+    private static bool IsDefined(MercenaryStrategicPriority strategicPriority)
+    {
+        switch (strategicPriority)
+        {
+            case MercenaryStrategicPriority.IndependentOperations:
+            case MercenaryStrategicPriority.JoinArmies:
+            case MercenaryStrategicPriority.EconomicWarfare:
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return true;
+            default:
+                return false;
         }
     }
 

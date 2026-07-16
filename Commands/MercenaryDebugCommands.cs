@@ -342,6 +342,61 @@ public static class MercenaryDebugCommands
             : $"The {clan.Name} clan's contract now ends in {days.ToString(CultureInfo.InvariantCulture)} days.";
     }
 
+    [CommandLineFunctionality.CommandLineArgumentFunction("mm_ai_diagnostics_start", "campaign")]
+    public static string StartAiDiagnostics(List<string> arguments)
+    {
+        if (!TryValidateCampaign(out string error))
+        {
+            return error;
+        }
+
+        string clanQuery = JoinArguments(arguments);
+        if (string.IsNullOrWhiteSpace(clanQuery))
+        {
+            return "Usage: campaign.mm_ai_diagnostics_start <clan name or id>";
+        }
+
+        if (!TryFindClan(clanQuery, out Clan clan, out error))
+        {
+            return error;
+        }
+
+        MercenaryAiDiagnostics.Start(clan);
+        return $"AI diagnostics started for the {clan.Name} clan. Existing counters were cleared.";
+    }
+
+    [CommandLineFunctionality.CommandLineArgumentFunction("mm_ai_diagnostics_report", "campaign")]
+    public static string ReportAiDiagnostics(List<string> arguments)
+    {
+        return arguments.Count == 0
+            ? MercenaryAiDiagnostics.GetReport()
+            : "Usage: campaign.mm_ai_diagnostics_report";
+    }
+
+    [CommandLineFunctionality.CommandLineArgumentFunction("mm_ai_diagnostics_clear", "campaign")]
+    public static string ClearAiDiagnostics(List<string> arguments)
+    {
+        if (arguments.Count != 0)
+        {
+            return "Usage: campaign.mm_ai_diagnostics_clear";
+        }
+
+        MercenaryAiDiagnostics.Clear();
+        return "AI diagnostic counters were cleared.";
+    }
+
+    [CommandLineFunctionality.CommandLineArgumentFunction("mm_ai_diagnostics_stop", "campaign")]
+    public static string StopAiDiagnostics(List<string> arguments)
+    {
+        if (arguments.Count != 0)
+        {
+            return "Usage: campaign.mm_ai_diagnostics_stop";
+        }
+
+        MercenaryAiDiagnostics.Stop();
+        return "AI diagnostics stopped and counters were cleared.";
+    }
+
     private static string Hire(Clan clan, Kingdom kingdom)
     {
         MercenaryHiringService.Hire(clan, kingdom);

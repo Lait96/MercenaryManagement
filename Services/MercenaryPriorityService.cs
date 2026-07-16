@@ -31,13 +31,61 @@ internal static class MercenaryPriorityService
         return contractBehavior?.SetStrategicPriority(clan, strategicPriority) == true;
     }
 
+    public static bool TryGetStrategicPriority(
+        Clan? clan,
+        out MercenaryStrategicPriority priority)
+    {
+        if (clan is null
+            || !clan.IsUnderMercenaryService
+            || clan.Kingdom is null)
+        {
+            priority = MercenaryStrategicPriority.IndependentOperations;
+            return false;
+        }
+
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (contractBehavior?.TryGetContract(clan, out MercenaryContract contract) != true)
+        {
+            priority = MercenaryStrategicPriority.IndependentOperations;
+            return false;
+        }
+
+        priority = contract.StrategicPriority;
+        return true;
+    }
+
     public static float GetArmyCandidateWeight(
         MobileParty mobileParty,
         float nativeWeight)
     {
-        return TryGetStrategicPriority(mobileParty, out MercenaryStrategicPriority priority)
-            ? GetDecisionWeight(priority, MercenaryAiDecision.ArmyCandidateRank, nativeWeight)
-            : nativeWeight;
+        if (!TryGetStrategicPriority(mobileParty, out MercenaryStrategicPriority priority))
+        {
+            return nativeWeight;
+        }
+
+        float finalWeight = GetDecisionWeight(
+            priority,
+            MercenaryAiDecision.ArmyCandidateRank,
+            nativeWeight);
+        if (priority == MercenaryStrategicPriority.EconomicWarfare
+            || priority == MercenaryStrategicPriority.TerritorialDefense)
+        {
+            MercenaryPriorityBehavior? priorityBehavior = Campaign.Current?
+                .GetCampaignBehavior<MercenaryPriorityBehavior>();
+            finalWeight *= priorityBehavior?
+                .GetArmyCandidateRankMultiplier(mobileParty) ?? 1f;
+        }
+        if (MercenaryAiDiagnostics.IsEnabled)
+        {
+            MercenaryAiDiagnostics.Record(
+                mobileParty.ActualClan,
+                priority,
+                MercenaryAiDecision.ArmyCandidateRank.ToString(),
+                nativeWeight,
+                finalWeight);
+        }
+        return finalWeight;
     }
 
     public static float GetMaximumDistanceToCallToArmy(
@@ -45,9 +93,25 @@ internal static class MercenaryPriorityService
         MobileParty mobileParty)
     {
         float nativeMaximumDistance = armyManagementModel.MaximumDistanceToCallToArmy;
-        return TryGetStrategicPriority(mobileParty, out MercenaryStrategicPriority priority)
-            ? GetDecisionWeight(priority, MercenaryAiDecision.ArmyCallDistance, nativeMaximumDistance)
-            : nativeMaximumDistance;
+        if (!TryGetStrategicPriority(mobileParty, out MercenaryStrategicPriority priority))
+        {
+            return nativeMaximumDistance;
+        }
+
+        float finalDistance = GetDecisionWeight(
+            priority,
+            MercenaryAiDecision.ArmyCallDistance,
+            nativeMaximumDistance);
+        if (MercenaryAiDiagnostics.IsEnabled)
+        {
+            MercenaryAiDiagnostics.Record(
+                mobileParty.ActualClan,
+                priority,
+                MercenaryAiDecision.ArmyCallDistance.ToString(),
+                nativeMaximumDistance,
+                finalDistance);
+        }
+        return finalDistance;
     }
 
     public static void AdjustBehaviorScores(
@@ -74,6 +138,15 @@ internal static class MercenaryPriorityService
                 behaviorSource,
                 in behaviorData,
                 nativeWeight);
+            if (MercenaryAiDiagnostics.IsEnabled)
+            {
+                MercenaryAiDiagnostics.Record(
+                    mobileParty.ActualClan,
+                    priority,
+                    behaviorSource + ":" + behaviorData.AiBehavior,
+                    nativeWeight,
+                    adjustedWeight);
+            }
             if (adjustedWeight == nativeWeight)
             {
                 continue;
@@ -125,8 +198,6 @@ internal static class MercenaryPriorityService
 
                 break;
             case AiBehavior.EngageParty
-                when behaviorSource == MercenaryAiBehaviorSource.EngageParty:
-            case AiBehavior.GoAroundParty
                 when behaviorSource == MercenaryAiBehaviorSource.EngageParty:
                 if (behaviorData.Party is MobileParty engageTarget)
                 {
@@ -192,14 +263,17 @@ internal static class MercenaryPriorityService
         float nativeWeight)
     {
         float adjustedWeight = nativeWeight;
-        if (target.IsCaravan)
+        bool isAtWar = FactionManager.IsAtWarAgainstFaction(
+            mobileParty.MapFaction,
+            target.MapFaction);
+        if (target.IsCaravan && isAtWar)
         {
             adjustedWeight = GetDecisionWeight(
                 priority,
                 MercenaryAiDecision.AttackCaravan,
                 adjustedWeight);
         }
-        else if (target.IsVillager)
+        else if (target.IsVillager && isAtWar)
         {
             adjustedWeight = GetDecisionWeight(
                 priority,
@@ -213,7 +287,7 @@ internal static class MercenaryPriorityService
                 MercenaryAiDecision.PursueBandits,
                 adjustedWeight);
         }
-        else if (target.MapFaction != mobileParty.MapFaction
+        else if (isAtWar
                  && target.Party.EstimatedStrength
                  <= mobileParty.Party.EstimatedStrength * 0.75f)
         {
@@ -235,10 +309,12 @@ internal static class MercenaryPriorityService
         if (priority == MercenaryStrategicPriority.TerritorialDefense
             && IsInsideFriendlyTerritory(mobileParty, target.Position))
         {
-            adjustedWeight = GetDecisionWeight(
-                priority,
-                MercenaryAiDecision.FriendlyTerritoryAction,
-                adjustedWeight);
+            adjustedWeight = System.Math.Max(
+                adjustedWeight,
+                GetDecisionWeight(
+                    priority,
+                    MercenaryAiDecision.FriendlyTerritoryAction,
+                    nativeWeight));
         }
 
         return adjustedWeight;
@@ -254,12 +330,18 @@ internal static class MercenaryPriorityService
             ? MercenaryAiDecision.DefendVillage
             : MercenaryAiDecision.DefendSettlement;
         float adjustedWeight = GetDecisionWeight(priority, decision, nativeWeight);
-        return settlement.MapFaction == mobileParty.MapFaction
-            ? GetDecisionWeight(
-                priority,
-                MercenaryAiDecision.FriendlyTerritoryAction,
-                adjustedWeight)
-            : adjustedWeight;
+        if (priority == MercenaryStrategicPriority.TerritorialDefense
+            && settlement.MapFaction == mobileParty.MapFaction)
+        {
+            adjustedWeight = System.Math.Max(
+                adjustedWeight,
+                GetDecisionWeight(
+                    priority,
+                    MercenaryAiDecision.FriendlyTerritoryAction,
+                    nativeWeight));
+        }
+
+        return adjustedWeight;
     }
 
     private static float GetDecisionWeight(
@@ -307,6 +389,8 @@ internal static class MercenaryPriorityService
             case MercenaryStrategicPriority.TerritorialDefense:
                 switch (decision)
                 {
+                    case MercenaryAiDecision.FollowArmy:
+                        return 0.85f;
                     case MercenaryAiDecision.FriendlyTerritoryAction:
                         return 1.2f;
                     case MercenaryAiDecision.DefendVillage:
@@ -379,7 +463,9 @@ internal static class MercenaryPriorityService
         MobileParty? threatenedParty = target.ShortTermTargetParty
                                        ?? target.TargetParty;
         return threatenedParty is not null
-               && target.MapFaction != mobileParty.MapFaction
+               && FactionManager.IsAtWarAgainstFaction(
+                   mobileParty.MapFaction,
+                   target.MapFaction)
                && threatenedParty.IsCaravan
                && threatenedParty.MapFaction == mobileParty.MapFaction;
     }
@@ -420,25 +506,7 @@ internal static class MercenaryPriorityService
         MobileParty mobileParty,
         out MercenaryStrategicPriority priority)
     {
-        Clan? clan = mobileParty.ActualClan;
-        if (clan is null
-            || !clan.IsUnderMercenaryService
-            || clan.Kingdom is null)
-        {
-            priority = MercenaryStrategicPriority.IndependentOperations;
-            return false;
-        }
-
-        MercenaryContractBehavior? contractBehavior = Campaign.Current?
-            .GetCampaignBehavior<MercenaryContractBehavior>();
-        if (contractBehavior?.TryGetContract(clan, out MercenaryContract contract) != true)
-        {
-            priority = MercenaryStrategicPriority.IndependentOperations;
-            return false;
-        }
-
-        priority = contract.StrategicPriority;
-        return true;
+        return TryGetStrategicPriority(mobileParty.ActualClan, out priority);
     }
 
     private static bool IsDefined(MercenaryStrategicPriority strategicPriority)

@@ -9,8 +9,6 @@ namespace MercenaryManagement.Services;
 
 internal static class MercenaryPoachingService
 {
-    private const float NativeMercenaryRenewalPeriodInDays = 30f;
-
     public static bool IsServingAnotherKingdom(Clan clan, Kingdom kingdom)
     {
         return clan.IsMinorFaction
@@ -94,10 +92,10 @@ internal static class MercenaryPoachingService
     public static void Poach(Clan clan, Kingdom targetKingdom)
     {
         int awardFactor = MercenaryHiringService.CalculateHirePrice(clan, targetKingdom);
-        CampaignTime serviceCommitment = CampaignTime.DaysFromNow(NativeMercenaryRenewalPeriodInDays);
+        CampaignTime serviceCommitment = CampaignTime.Zero;
 
-        // Bannerlord's native action ends the old service, starts the new one, and uses this
-        // timestamp to prevent diplomatic AI from immediately moving the clan again.
+        // Bannerlord's native action ends the old service and starts the new one.
+        // The current contract scenario deliberately uses an indefinite commitment.
         ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
             clan,
             targetKingdom,

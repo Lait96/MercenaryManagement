@@ -173,12 +173,13 @@ internal static class MercenaryHiringService
     public static void Hire(Clan clan, Kingdom kingdom)
     {
         int awardFactor = CalculateHirePrice(clan, kingdom);
+        CampaignTime serviceCommitment = CampaignTime.Zero;
 
-        // This is the same native action used by Bannerlord's mercenary barter.
+        // The current contract scenario follows Bannerlord's indefinite mercenary service.
         ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
             clan,
             kingdom,
-            default,
+            serviceCommitment,
             awardFactor,
             true);
 
@@ -190,7 +191,7 @@ internal static class MercenaryHiringService
                 clan,
                 kingdom,
                 awardFactor,
-                clan.ShouldStayInKingdomUntil,
+                serviceCommitment,
                 out _);
         }
     }

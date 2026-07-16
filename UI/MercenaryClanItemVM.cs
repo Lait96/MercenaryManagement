@@ -410,21 +410,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private static TextObject GetStrategicPriorityName(
         MercenaryStrategicPriority strategicPriority)
     {
-        switch (strategicPriority)
-        {
-            case MercenaryStrategicPriority.JoinArmies:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityJoinArmies}Join armies");
-            case MercenaryStrategicPriority.EconomicWarfare:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityEconomicWarfare}Economic warfare");
-            case MercenaryStrategicPriority.TerritorialDefense:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityTerritorialDefense}Territorial defense");
-            default:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityIndependentOperations}Independent operations");
-        }
+        return MercenaryPriorityText.GetName(strategicPriority);
     }
 
     private static MercenaryStrategicPriority GetStrategicPriority(int selectedIndex)
@@ -445,21 +431,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private static TextObject GetStrategicPriorityDescription(
         MercenaryStrategicPriority strategicPriority)
     {
-        switch (strategicPriority)
-        {
-            case MercenaryStrategicPriority.JoinArmies:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityJoinArmiesDescription}The clan is expected to join and support the kingdom's armies.");
-            case MercenaryStrategicPriority.EconomicWarfare:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityEconomicWarfareDescription}The clan is expected to pressure enemy villages and economic targets.");
-            case MercenaryStrategicPriority.TerritorialDefense:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityTerritorialDefenseDescription}The clan is expected to defend friendly lands and respond to local threats.");
-            default:
-                return new TextObject(
-                    "{=MercenaryManagement_PriorityIndependentOperationsDescription}The clan chooses its own actions according to the current situation.");
-        }
+        return MercenaryPriorityText.GetDescription(strategicPriority);
     }
 
     private static string FormatPastTime(CampaignTime time)

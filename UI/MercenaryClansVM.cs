@@ -377,11 +377,7 @@ internal sealed class MercenaryClansVM : ViewModel
             }
 
             foreach (Clan clan in Clan.All
-                         .Where(clan => clan.IsMinorFaction
-                                        && !clan.IsBanditFaction
-                                        && !clan.IsEliminated
-                                        && !clan.IsUnderMercenaryService
-                                        && clan.Kingdom is null)
+                         .Where(MercenaryHiringService.IsFreeMercenaryClan)
                          .OrderBy(clan => clan.Name.ToString()))
             {
                 AvailableClans.Add(new MercenaryClanItemVM(clan, kingdom, SelectClan));
@@ -422,116 +418,36 @@ internal sealed class MercenaryClansVM : ViewModel
     public void ExecuteHireSelectedClan()
     {
         MercenaryClanItemVM? selectedClan = SelectedClan;
-        Kingdom? kingdom = _kingdom;
         if (selectedClan is null)
         {
             return;
         }
 
-        if (MercenaryHiringService.TryGetFailureReason(selectedClan.Clan, kingdom, out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            return;
-        }
-
-        int influencePrice = MercenaryHiringService.CalculateHirePrice(selectedClan.Clan, kingdom!);
-        TextObject confirmation = new TextObject(
-            "{=MercenaryManagement_HireConfirmation}Hire the {CLAN} clan for {PRICE} denars per influence point?");
-        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
-        confirmation.SetTextVariable("PRICE", influencePrice);
-
-        InformationManager.ShowInquiry(
-            new InquiryData(
-                new TextObject("{=MercenaryManagement_HireConfirmationTitle}Hire mercenaries").ToString(),
-                confirmation.ToString(),
-                true,
-                true,
-                new TextObject("{=MercenaryManagement_ConfirmHire}Hire").ToString(),
-                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
-                () => HireClan(selectedClan.Clan, kingdom!),
-                null),
-            true);
+        MercenaryClanActionController.ShowHire(selectedClan.Clan, _kingdom, Refresh);
     }
 
     [DataSourceMethod]
     public void ExecuteDismissSelectedClan()
     {
         MercenaryClanItemVM? selectedClan = SelectedClan;
-        Kingdom? kingdom = _kingdom;
         if (selectedClan is null)
         {
             return;
         }
 
-        if (MercenaryDismissalService.TryGetFailureReason(selectedClan.Clan, kingdom, out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            return;
-        }
-
-        int outstandingPayment = MercenaryDismissalService.CalculateOutstandingPayment(selectedClan.Clan);
-        TextObject confirmation = outstandingPayment > 0
-            ? new TextObject(
-                "{=MercenaryManagement_DismissConfirmationWithPayment}Dismiss the {CLAN} clan and pay the outstanding {GOLD} denars?")
-            : new TextObject(
-                "{=MercenaryManagement_DismissConfirmation}Dismiss the {CLAN} clan from your kingdom's service?");
-        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
-        confirmation.SetTextVariable("GOLD", outstandingPayment);
-
-        InformationManager.ShowInquiry(
-            new InquiryData(
-                new TextObject("{=MercenaryManagement_DismissConfirmationTitle}Dismiss mercenaries").ToString(),
-                confirmation.ToString(),
-                true,
-                true,
-                new TextObject("{=MercenaryManagement_ConfirmDismiss}Dismiss").ToString(),
-                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
-                () => DismissClan(selectedClan.Clan, kingdom!),
-                null),
-            true);
+        MercenaryClanActionController.ShowDismiss(selectedClan.Clan, _kingdom, Refresh);
     }
 
     [DataSourceMethod]
     public void ExecutePoachSelectedClan()
     {
         MercenaryClanItemVM? selectedClan = SelectedClan;
-        Kingdom? targetKingdom = _kingdom;
         if (selectedClan is null)
         {
             return;
         }
 
-        if (MercenaryPoachingService.TryGetFailureReason(
-                selectedClan.Clan,
-                targetKingdom,
-                out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            return;
-        }
-
-        Kingdom currentKingdom = selectedClan.Clan.Kingdom!;
-        int influencePrice = MercenaryHiringService.CalculateHirePrice(
-            selectedClan.Clan,
-            targetKingdom!);
-        TextObject confirmation = new TextObject(
-            "{=MercenaryManagement_PoachConfirmation}Persuade the {CLAN} clan to leave {CURRENT_KINGDOM} and enter your kingdom's service for {PRICE} denars per influence point?");
-        confirmation.SetTextVariable("CLAN", selectedClan.Clan.Name);
-        confirmation.SetTextVariable("CURRENT_KINGDOM", currentKingdom.Name);
-        confirmation.SetTextVariable("PRICE", influencePrice);
-
-        InformationManager.ShowInquiry(
-            new InquiryData(
-                new TextObject(
-                    "{=MercenaryManagement_PoachConfirmationTitle}Recruit serving mercenaries").ToString(),
-                confirmation.ToString(),
-                true,
-                true,
-                new TextObject("{=MercenaryManagement_ConfirmPoach}Recruit").ToString(),
-                new TextObject("{=MercenaryManagement_Cancel}Cancel").ToString(),
-                () => PoachClan(selectedClan.Clan, currentKingdom, targetKingdom!),
-                null),
-            true);
+        MercenaryClanActionController.ShowPoach(selectedClan.Clan, _kingdom, Refresh);
     }
 
     public override void OnFinalize()
@@ -575,102 +491,5 @@ internal sealed class MercenaryClansVM : ViewModel
 
         SelectedClan = clan;
         clan.IsSelected = true;
-    }
-
-    private void HireClan(Clan clan, Kingdom kingdom)
-    {
-        if (MercenaryHiringService.TryGetFailureReason(clan, kingdom, out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            Refresh(kingdom);
-            return;
-        }
-
-        MercenaryHiringService.Hire(clan, kingdom);
-
-        if (clan.IsUnderMercenaryService && clan.Kingdom == kingdom)
-        {
-            TextObject success = new TextObject(
-                "{=MercenaryManagement_HireSucceeded}The {CLAN} clan has entered your kingdom's service.");
-            success.SetTextVariable("CLAN", clan.Name);
-            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
-        }
-        else
-        {
-            InformationManager.DisplayMessage(new InformationMessage(
-                new TextObject(
-                    "{=MercenaryManagement_HireFailedUnknown}The clan could not enter your kingdom's service.")
-                    .ToString()));
-        }
-
-        Refresh(kingdom);
-    }
-
-    private void DismissClan(Clan clan, Kingdom kingdom)
-    {
-        if (MercenaryDismissalService.TryGetFailureReason(clan, kingdom, out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            Refresh(kingdom);
-            return;
-        }
-
-        MercenaryDismissalService.Dismiss(clan);
-
-        if (!clan.IsUnderMercenaryService && clan.Kingdom is null)
-        {
-            TextObject success = new TextObject(
-                "{=MercenaryManagement_DismissSucceeded}The {CLAN} clan has left your kingdom's service.");
-            success.SetTextVariable("CLAN", clan.Name);
-            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
-        }
-        else
-        {
-            InformationManager.DisplayMessage(new InformationMessage(
-                new TextObject(
-                    "{=MercenaryManagement_DismissFailedUnknown}The clan could not be dismissed from your kingdom's service.")
-                    .ToString()));
-        }
-
-        Refresh(kingdom);
-    }
-
-    private void PoachClan(Clan clan, Kingdom expectedCurrentKingdom, Kingdom targetKingdom)
-    {
-        if (clan.Kingdom != expectedCurrentKingdom)
-        {
-            InformationManager.DisplayMessage(new InformationMessage(
-                new TextObject(
-                    "{=MercenaryManagement_PoachFailedEmployerChanged}The clan's current employer has changed. Select the clan again to make a new offer.")
-                    .ToString()));
-            Refresh(targetKingdom);
-            return;
-        }
-
-        if (MercenaryPoachingService.TryGetFailureReason(clan, targetKingdom, out TextObject reason))
-        {
-            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
-            Refresh(targetKingdom);
-            return;
-        }
-
-        MercenaryPoachingService.Poach(clan, targetKingdom);
-
-        if (clan.IsUnderMercenaryService && clan.Kingdom == targetKingdom)
-        {
-            TextObject success = new TextObject(
-                "{=MercenaryManagement_PoachSucceeded}The {CLAN} clan has left its former employer and entered your kingdom's service.");
-            success.SetTextVariable("CLAN", clan.Name);
-            InformationManager.DisplayMessage(new InformationMessage(success.ToString()));
-        }
-        else
-        {
-            InformationManager.DisplayMessage(new InformationMessage(
-                new TextObject(
-                    "{=MercenaryManagement_PoachFailedUnknown}The clan could not switch to your kingdom's service.")
-                    .ToString()));
-        }
-
-        Refresh(targetKingdom);
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using MercenaryManagement.Behaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -17,8 +16,7 @@ internal static class MercenaryDismissalService
 
     public static int CalculateOutstandingPayment(Clan clan)
     {
-        return Math.Max(0, (int)clan.Influence)
-               * MercenaryPaymentService.GetInfluencePrice(clan);
+        return MercenaryPaymentService.CalculateExpectedPayment(clan);
     }
 
     public static bool TryGetFailureReason(Clan clan, Kingdom? kingdom, out TextObject reason)

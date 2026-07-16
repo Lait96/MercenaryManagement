@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -16,36 +17,89 @@ namespace MercenaryManagement.Patches;
 internal static class MercenaryPriorityArmyCallDistancePatch
 {
     private static IEnumerable<CodeInstruction> Transpiler(
-        IEnumerable<CodeInstruction> instructions)
+        IEnumerable<CodeInstruction> instructions,
+        MethodBase __originalMethod)
     {
+        var instructionList = instructions.ToList();
         MethodInfo nativeMaximumDistanceGetter = AccessTools.PropertyGetter(
             typeof(ArmyManagementCalculationModel),
             nameof(ArmyManagementCalculationModel.MaximumDistanceToCallToArmy));
         MethodInfo priorityMaximumDistanceGetter = AccessTools.Method(
             typeof(MercenaryPriorityService),
             nameof(MercenaryPriorityService.GetMaximumDistanceToCallToArmy));
-        int replacementCount = 0;
-
-        foreach (CodeInstruction instruction in instructions)
+        MethodBody? methodBody = __originalMethod.GetMethodBody();
+        if (methodBody is null)
         {
-            if (!instruction.Calls(nativeMaximumDistanceGetter))
+            throw new InvalidOperationException(
+                $"MercenaryManagement could not inspect {__originalMethod.Name}.");
+        }
+
+        int getterIndex = instructionList.FindIndex(
+            instruction => instruction.Calls(nativeMaximumDistanceGetter));
+        if (getterIndex < 0
+            || instructionList.FindIndex(
+                getterIndex + 1,
+                instruction => instruction.Calls(nativeMaximumDistanceGetter)) >= 0)
+        {
+            throw new InvalidOperationException(
+                "MercenaryManagement expected one native army call distance calculation.");
+        }
+
+        int mobilePartyLocalIndex = FindNearestStoredMobilePartyLocal(
+            instructionList,
+            getterIndex,
+            methodBody.LocalVariables);
+
+        for (int i = 0; i < instructionList.Count; i++)
+        {
+            CodeInstruction instruction = instructionList[i];
+            if (i != getterIndex)
             {
                 yield return instruction;
                 continue;
             }
 
-            replacementCount++;
-            yield return CodeInstruction.LoadLocal(6)
+            yield return CodeInstruction.LoadLocal(mobilePartyLocalIndex)
                 .MoveLabelsFrom(instruction)
                 .MoveBlocksFrom(instruction);
             yield return new CodeInstruction(OpCodes.Call, priorityMaximumDistanceGetter);
         }
+    }
 
-        if (replacementCount != 1)
+    private static int FindNearestStoredMobilePartyLocal(
+        IReadOnlyList<CodeInstruction> instructions,
+        int beforeIndex,
+        IList<LocalVariableInfo> locals)
+    {
+        for (int i = beforeIndex - 1; i >= 0; i--)
         {
-            throw new InvalidOperationException(
-                "MercenaryManagement could not find the native army call distance calculation.");
+            CodeInstruction instruction = instructions[i];
+            if (!IsStoreLocal(instruction.opcode))
+            {
+                continue;
+            }
+
+            int localIndex = instruction.LocalIndex();
+            if (localIndex >= 0
+                && localIndex < locals.Count
+                && locals[localIndex].LocalType == typeof(MobileParty))
+            {
+                return localIndex;
+            }
         }
+
+        throw new InvalidOperationException(
+            "MercenaryManagement could not identify the army candidate MobileParty local.");
+    }
+
+    private static bool IsStoreLocal(OpCode opcode)
+    {
+        return opcode == OpCodes.Stloc
+               || opcode == OpCodes.Stloc_S
+               || opcode == OpCodes.Stloc_0
+               || opcode == OpCodes.Stloc_1
+               || opcode == OpCodes.Stloc_2
+               || opcode == OpCodes.Stloc_3;
     }
 }
 
@@ -54,11 +108,16 @@ internal static class MercenaryPriorityArmyCandidateWeightPatch
 {
     private static MethodBase TargetMethod()
     {
-        Type? compilerGeneratedType = AccessTools.TypeByName(
-            "TaleWorlds.CampaignSystem.GameComponents.DefaultArmyManagementCalculationModel+<>c");
-        MethodInfo? targetMethod = compilerGeneratedType is null
-            ? null
-            : AccessTools.Method(compilerGeneratedType, "<CanLordCreateArmy>b__23_1");
+        Type? compilerGeneratedType = typeof(DefaultArmyManagementCalculationModel)
+            .GetNestedTypes(BindingFlags.NonPublic)
+            .FirstOrDefault(type => type.Name.StartsWith("<>c", StringComparison.Ordinal));
+        MethodInfo? targetMethod = compilerGeneratedType?
+            .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+            .SingleOrDefault(method =>
+                method.ReturnType == typeof(float)
+                && method.GetParameters().Length == 1
+                && method.GetParameters()[0].ParameterType
+                    == typeof(ValueTuple<MobileParty, float, int>));
 
         return targetMethod ?? throw new MissingMethodException(
             "MercenaryManagement could not find the native army candidate weight calculation.");

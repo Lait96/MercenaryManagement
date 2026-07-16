@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MercenaryManagement.Contracts;
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.SaveSystem;
 
 namespace MercenaryManagement.SaveSystem;
@@ -27,5 +28,6 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
     protected override void DefineContainerDefinitions()
     {
         ConstructContainerDefinition(typeof(Dictionary<string, MercenaryContract>));
+        ConstructContainerDefinition(typeof(Dictionary<string, CampaignTime>));
     }
 }

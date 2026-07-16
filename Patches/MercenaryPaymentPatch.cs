@@ -36,10 +36,10 @@ internal static class MercenaryPaymentPatch
             yield return instruction;
         }
 
-        if (replacementCount == 0)
+        if (replacementCount != 1)
         {
             throw new InvalidOperationException(
-                "MercenaryManagement could not find the native mercenary influence price calculation.");
+                $"MercenaryManagement expected one native mercenary influence price calculation, but found {replacementCount}.");
         }
     }
 }
