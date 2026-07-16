@@ -16,7 +16,8 @@ internal static class MercenaryDismissalService
 
     public static int CalculateOutstandingPayment(Clan clan)
     {
-        return Math.Max(0, (int)clan.Influence) * clan.MercenaryAwardMultiplier;
+        return Math.Max(0, (int)clan.Influence)
+               * MercenaryPaymentService.GetInfluencePrice(clan);
     }
 
     public static bool TryGetFailureReason(Clan clan, Kingdom? kingdom, out TextObject reason)

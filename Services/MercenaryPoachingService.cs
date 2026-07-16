@@ -93,5 +93,10 @@ internal static class MercenaryPoachingService
             serviceCommitment,
             awardFactor,
             true);
+
+        if (clan.IsUnderMercenaryService && clan.Kingdom == targetKingdom)
+        {
+            MercenaryPaymentService.BeginContract(clan);
+        }
     }
 }

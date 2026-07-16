@@ -112,6 +112,9 @@ internal sealed class MercenaryClansVM : ViewModel
     public bool IsSelectedClanInfluencePriceVisible => SelectedClan?.ShouldShowInfluencePrice == true;
 
     [DataSourceProperty]
+    public bool IsSelectedClanSettingsVisible => SelectedClan?.IsServingPlayerKingdom == true;
+
+    [DataSourceProperty]
     public bool CanHireSelectedClan => _kingdom is not null
                                        && MercenaryHiringService.IsPlayerRuler(_kingdom)
                                        && SelectedClan?.IsFreeMercenaryClan == true;
@@ -145,6 +148,9 @@ internal sealed class MercenaryClansVM : ViewModel
             OnPropertyChangedWithValue(
                 IsSelectedClanInfluencePriceVisible,
                 nameof(IsSelectedClanInfluencePriceVisible));
+            OnPropertyChangedWithValue(
+                IsSelectedClanSettingsVisible,
+                nameof(IsSelectedClanSettingsVisible));
             OnPropertyChangedWithValue(CanHireSelectedClan, nameof(CanHireSelectedClan));
             OnPropertyChangedWithValue(CanDismissSelectedClan, nameof(CanDismissSelectedClan));
             OnPropertyChangedWithValue(CanPoachSelectedClan, nameof(CanPoachSelectedClan));
@@ -205,6 +211,14 @@ internal sealed class MercenaryClansVM : ViewModel
         "{=MercenaryManagement_InfluencePrice}Denars per influence").ToString();
 
     [DataSourceProperty]
+    public string ClanInformationText => new TextObject(
+        "{=MercenaryManagement_ClanInformation}Clan information").ToString();
+
+    [DataSourceProperty]
+    public string ContractSettingsText => new TextObject(
+        "{=MercenaryManagement_ContractSettings}Contract settings").ToString();
+
+    [DataSourceProperty]
     public string AccumulatedInfluenceText => new TextObject(
         "{=MercenaryManagement_AccumulatedInfluence}Accumulated influence").ToString();
 
@@ -260,6 +274,8 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(RelationToRulerText, nameof(RelationToRulerText));
         OnPropertyChangedWithValue(RelationColumnText, nameof(RelationColumnText));
         OnPropertyChangedWithValue(InfluencePriceText, nameof(InfluencePriceText));
+        OnPropertyChangedWithValue(ClanInformationText, nameof(ClanInformationText));
+        OnPropertyChangedWithValue(ContractSettingsText, nameof(ContractSettingsText));
         OnPropertyChangedWithValue(AccumulatedInfluenceText, nameof(AccumulatedInfluenceText));
         OnPropertyChangedWithValue(ExpectedPaymentText, nameof(ExpectedPaymentText));
         OnPropertyChangedWithValue(ServiceStatusText, nameof(ServiceStatusText));
@@ -629,6 +645,8 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private string _clanName = string.Empty;
     private string _leaderName = string.Empty;
     private string _serviceStatus = string.Empty;
+    private int _influencePrice;
+    private int _expectedPayment;
     private bool _isSelected;
 
     public MercenaryClanItemVM(Clan clan, Kingdom kingdom, Action<MercenaryClanItemVM> onSelect)
@@ -648,11 +666,11 @@ internal sealed class MercenaryClanItemVM : ViewModel
         RelationToRuler = clan.Leader is not null && kingdom.Leader is not null
             ? clan.Leader.GetRelation(kingdom.Leader)
             : 0;
-        InfluencePrice = MercenaryHiringService.IsFreeMercenaryClan(clan)
+        _influencePrice = MercenaryHiringService.IsFreeMercenaryClan(clan)
             ? MercenaryHiringService.CalculateHirePrice(clan, kingdom)
-            : clan.MercenaryAwardMultiplier;
+            : MercenaryPaymentService.GetInfluencePrice(clan);
         AccumulatedInfluence = FormatInfluence(clan.Influence);
-        ExpectedPayment = MercenaryPaymentService.CalculateExpectedPayment(clan);
+        _expectedPayment = MercenaryPaymentService.CalculateExpectedPayment(clan);
         RefreshValues();
     }
 
@@ -709,13 +727,60 @@ internal sealed class MercenaryClanItemVM : ViewModel
     public int RelationToRuler { get; }
 
     [DataSourceProperty]
-    public int InfluencePrice { get; }
+    public int InfluencePrice
+    {
+        get => _influencePrice;
+        set
+        {
+            if (_influencePrice == value)
+            {
+                return;
+            }
+
+            if (!MercenaryPaymentService.TrySetInfluencePrice(_clan, _kingdom, value))
+            {
+                OnPropertyChangedWithValue(_influencePrice);
+                return;
+            }
+
+            _influencePrice = value;
+            OnPropertyChangedWithValue(value);
+
+            ExpectedPayment = MercenaryPaymentService.CalculateExpectedPayment(_clan);
+        }
+    }
+
+    [DataSourceProperty]
+    public int MinimumInfluencePrice => MercenaryPaymentService.CalculateMinimumInfluencePrice(_clan);
+
+    [DataSourceProperty]
+    public int MaximumInfluencePrice => MercenaryPaymentService.CalculateMaximumInfluencePrice(_clan);
+
+    [DataSourceProperty]
+    public bool CanEditInfluencePrice => IsServingPlayerKingdom
+                                         && MercenaryHiringService.IsPlayerRuler(_kingdom);
+
+    [DataSourceProperty]
+    public bool IsInfluencePriceReadOnly => !CanEditInfluencePrice;
 
     [DataSourceProperty]
     public string AccumulatedInfluence { get; }
 
     [DataSourceProperty]
-    public int ExpectedPayment { get; }
+    public int ExpectedPayment
+    {
+        get => _expectedPayment;
+        private set
+        {
+            if (_expectedPayment == value)
+            {
+                return;
+            }
+
+            _expectedPayment = value;
+            OnPropertyChangedWithValue(value);
+        }
+    }
 
     [DataSourceProperty]
     public string ServiceStatus
@@ -743,7 +808,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     public bool IsServingOtherKingdom => MercenaryPoachingService.IsServingAnotherKingdom(_clan, _kingdom);
 
     [DataSourceProperty]
-    public bool ShouldShowInfluencePrice => IsServingPlayerKingdom || IsFreeMercenaryClan;
+    public bool ShouldShowInfluencePrice => IsFreeMercenaryClan;
 
     [DataSourceProperty]
     public bool IsSelected

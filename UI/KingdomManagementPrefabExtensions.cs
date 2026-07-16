@@ -289,11 +289,29 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                             </ListPanel>
 
                             <ListPanel WidthSizePolicy="StretchToParent"
-                                       HeightSizePolicy="CoverChildren"
+                                       HeightSizePolicy="StretchToParent"
                                        MarginLeft="55"
-                                       MarginRight="35"
-                                       StackLayout.LayoutMethod="VerticalTopToBottom">
+                                       MarginRight="35">
                               <Children>
+                                <ScrollablePanel WidthSizePolicy="StretchToParent"
+                                                 HeightSizePolicy="StretchToParent"
+                                                 AutoHideScrollBars="true"
+                                                 MouseScrollAxis="Vertical"
+                                                 ClipRect="MercenaryDetailsClipRect"
+                                                 InnerPanel="MercenaryDetailsClipRect\MercenaryDetails"
+                                                 VerticalScrollbar="..\MercenaryDetailsScrollbar\Scrollbar">
+                                  <Children>
+                                    <Widget Id="MercenaryDetailsClipRect"
+                                            WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="StretchToParent"
+                                            ClipContents="true">
+                                      <Children>
+                                        <ListPanel Id="MercenaryDetails"
+                                                   WidthSizePolicy="StretchToParent"
+                                                   HeightSizePolicy="CoverChildren"
+                                                   MarginRight="22"
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom">
+                                          <Children>
                                 <TextWidget DataSource="{SelectedClan}"
                                             WidthSizePolicy="StretchToParent"
                                             HeightSizePolicy="Fixed"
@@ -315,6 +333,34 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                                      ImageId="@Id"
                                                      TextureProviderName="@TextureProviderName" />
 
+                                <BrushListPanel WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="CoverChildren"
+                                                MarginTop="8"
+                                                MarginBottom="18"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="Fixed"
+                                                SuggestedHeight="44"
+                                                HorizontalAlignment="Center"
+                                                Brush="Kingdom.TitleMedium.Text"
+                                                Brush.FontSize="24"
+                                                Text="@ClanInformationText" />
+                                    <Widget WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="Fixed"
+                                            SuggestedHeight="2"
+                                            MarginLeft="12"
+                                            MarginRight="12"
+                                            Sprite="GradientDivider_9"
+                                            AlphaFactor="0.4" />
+                                    <ListPanel WidthSizePolicy="StretchToParent"
+                                               HeightSizePolicy="CoverChildren"
+                                               MarginLeft="18"
+                                               MarginRight="18"
+                                               MarginBottom="8"
+                                               StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <Children>
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@LeaderText" />
@@ -393,6 +439,137 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                     <TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ServiceStatus" />
                                   </Children>
                                 </ListPanel>
+                                      </Children>
+                                    </ListPanel>
+                                  </Children>
+                                </BrushListPanel>
+
+                                <BrushListPanel WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="CoverChildren"
+                                                MinHeight="190"
+                                                MarginBottom="18"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom"
+                                                IsVisible="@IsSelectedClanSettingsVisible">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="Fixed"
+                                                SuggestedHeight="44"
+                                                HorizontalAlignment="Center"
+                                                Brush="Kingdom.TitleMedium.Text"
+                                                Brush.FontSize="24"
+                                                Text="@ContractSettingsText" />
+                                    <Widget WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="Fixed"
+                                            SuggestedHeight="2"
+                                            MarginLeft="12"
+                                            MarginRight="12"
+                                            Sprite="GradientDivider_9"
+                                            AlphaFactor="0.4" />
+                                    <ListPanel WidthSizePolicy="StretchToParent"
+                                               HeightSizePolicy="Fixed"
+                                               SuggestedHeight="58"
+                                               MarginLeft="18"
+                                               MarginRight="18">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent"
+                                                    HeightSizePolicy="StretchToParent"
+                                                    Brush="Kingdom.ParagraphSmall.Text"
+                                                    Brush.FontSize="23"
+                                                    Text="@InfluencePriceText" />
+                                        <IntegerInputTextWidget DataSource="{SelectedClan}"
+                                                                WidthSizePolicy="Fixed"
+                                                                HeightSizePolicy="Fixed"
+                                                                SuggestedWidth="130"
+                                                                SuggestedHeight="36"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                Brush="CustomBattle.SliderValue.Text"
+                                                                Brush.FontSize="22"
+                                                                IntText="@InfluencePrice"
+                                                                MinInt="@MinimumInfluencePrice"
+                                                                MaxInt="@MaximumInfluencePrice"
+                                                                MaxLength="10"
+                                                                EnableClamp="true"
+                                                                UpdateValueOnFocusLost="true"
+                                                                IsDisabled="@IsInfluencePriceReadOnly"
+                                                                UpdateChildrenStates="true"
+                                                                DoNotPassEventsToChildren="true" />
+                                      </Children>
+                                    </ListPanel>
+                                    <SliderWidget DataSource="{SelectedClan}"
+                                                  WidthSizePolicy="StretchToParent"
+                                                  HeightSizePolicy="Fixed"
+                                                  SuggestedHeight="42"
+                                                  MarginLeft="24"
+                                                  MarginRight="24"
+                                                  VerticalAlignment="Center"
+                                                  Filler="Filler"
+                                                  Handle="SliderHandle"
+                                                  MinValueInt="@MinimumInfluencePrice"
+                                                  MaxValueInt="@MaximumInfluencePrice"
+                                                  ValueInt="@InfluencePrice"
+                                                  IsDiscrete="true"
+                                                  IsDisabled="@IsInfluencePriceReadOnly"
+                                                  UpdateChildrenStates="true"
+                                                  DoNotPassEventsToChildren="true"
+                                                  DoNotUpdateHandleSize="true">
+                                      <Children>
+                                        <BrushWidget DoNotAcceptEvents="true"
+                                                     WidthSizePolicy="StretchToParent"
+                                                     HeightSizePolicy="Fixed"
+                                                     SuggestedHeight="14"
+                                                     VerticalAlignment="Center"
+                                                     Sprite="General\Slider\slider_inner_canvas" />
+                                        <BrushWidget Id="Filler"
+                                                     DoNotAcceptEvents="true"
+                                                     WidthSizePolicy="StretchToParent"
+                                                     HeightSizePolicy="Fixed"
+                                                     SuggestedHeight="21"
+                                                     VerticalAlignment="Center"
+                                                     PositionYOffset="2"
+                                                     Sprite="General\Slider\slider_fill" />
+                                        <BrushWidget DoNotAcceptEvents="true"
+                                                     WidthSizePolicy="StretchToParent"
+                                                     HeightSizePolicy="StretchToParent"
+                                                     MarginTop="5"
+                                                     MarginBottom="5"
+                                                     Brush="Slider"
+                                                     Brush.SaturationFactor="25"
+                                                     Brush.ValueFactor="-15" />
+                                        <ImageWidget Id="SliderHandle"
+                                                     DoNotAcceptEvents="true"
+                                                     WidthSizePolicy="Fixed"
+                                                     HeightSizePolicy="Fixed"
+                                                     SuggestedWidth="20"
+                                                     SuggestedHeight="32"
+                                                     HorizontalAlignment="Left"
+                                                     VerticalAlignment="Center"
+                                                     Brush="SliderHandle" />
+                                      </Children>
+                                    </SliderWidget>
+                                    <ListPanel DataSource="{SelectedClan}"
+                                               WidthSizePolicy="StretchToParent"
+                                               HeightSizePolicy="Fixed"
+                                               SuggestedHeight="28"
+                                               MarginLeft="24"
+                                               MarginRight="24">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent"
+                                                    HeightSizePolicy="StretchToParent"
+                                                    Brush="Kingdom.ParagraphSmall.Text"
+                                                    Brush.FontSize="18"
+                                                    IntText="@MinimumInfluencePrice" />
+                                        <TextWidget WidthSizePolicy="StretchToParent"
+                                                    HeightSizePolicy="StretchToParent"
+                                                    HorizontalAlignment="Right"
+                                                    Brush="Kingdom.ParagraphSmall.Text"
+                                                    Brush.FontSize="18"
+                                                    IntText="@MaximumInfluencePrice" />
+                                      </Children>
+                                    </ListPanel>
+                                  </Children>
+                                </BrushListPanel>
 
                                 <ButtonWidget WidthSizePolicy="Fixed"
                                               HeightSizePolicy="Fixed"
@@ -450,6 +627,17 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                                 Text="@DismissText" />
                                   </Children>
                                 </ButtonWidget>
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                  </Children>
+                                </ScrollablePanel>
+                                <Standard.VerticalScrollbar Id="MercenaryDetailsScrollbar"
+                                                            HeightSizePolicy="StretchToParent"
+                                                            HorizontalAlignment="Right"
+                                                            MarginLeft="4"
+                                                            MarginRight="4" />
                               </Children>
                             </ListPanel>
                           </Children>

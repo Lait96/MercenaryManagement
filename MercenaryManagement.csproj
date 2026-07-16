@@ -11,6 +11,7 @@
     <GamePath>F:\SteamLibrary\steamapps\common\Mount &amp; Blade II Bannerlord</GamePath>
     <GameBinPath>$(GamePath)\bin\Win64_Shipping_Client</GameBinPath>
     <UIExtenderPath>$(GamePath)\Modules\Bannerlord.UIExtenderEx\bin\Win64_Shipping_Client</UIExtenderPath>
+    <HarmonyPath>$(GamePath)\Modules\Bannerlord.Harmony\bin\Win64_Shipping_Client</HarmonyPath>
     <ModuleRoot>$(MSBuildProjectDirectory)\_Module</ModuleRoot>
     <ReleaseModuleRoot>$(MSBuildProjectDirectory)\artifacts\Release\$(AssemblyName)</ReleaseModuleRoot>
 
@@ -21,6 +22,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(HarmonyPath)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+      <ExternallyResolved>true</ExternallyResolved>
+    </Reference>
     <Reference Include="Bannerlord.UIExtenderEx">
       <HintPath>$(UIExtenderPath)\Bannerlord.UIExtenderEx.dll</HintPath>
       <Private>false</Private>
@@ -63,6 +69,9 @@
     <Error
       Condition="!Exists('$(GameBinPath)\TaleWorlds.MountAndBlade.dll')"
       Text="Bannerlord assemblies were not found at '$(GameBinPath)'. Update GamePath in MercenaryManagement.csproj." />
+    <Error
+      Condition="!Exists('$(HarmonyPath)\0Harmony.dll')"
+      Text="Bannerlord.Harmony was not found at '$(HarmonyPath)'. Install Bannerlord.Harmony or update GamePath in MercenaryManagement.csproj." />
     <Error
       Condition="!Exists('$(UIExtenderPath)\Bannerlord.UIExtenderEx.dll')"
       Text="Bannerlord.UIExtenderEx was not found at '$(UIExtenderPath)'. Install Bannerlord.UIExtenderEx or update GamePath in MercenaryManagement.csproj." />
