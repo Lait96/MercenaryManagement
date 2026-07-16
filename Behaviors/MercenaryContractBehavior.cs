@@ -52,6 +52,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             }
 
             contract.EnsureServiceStartTime();
+            contract.EnsureStrategicPriority();
             return true;
         }
 
@@ -140,6 +141,19 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         }
 
         contract.SetEndTime(endTime);
+        return true;
+    }
+
+    public bool SetStrategicPriority(
+        Clan clan,
+        MercenaryStrategicPriority strategicPriority)
+    {
+        if (!GetOrCreateContract(clan, out MercenaryContract contract))
+        {
+            return false;
+        }
+
+        contract.SetStrategicPriority(strategicPriority);
         return true;
     }
 

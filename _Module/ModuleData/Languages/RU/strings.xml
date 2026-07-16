@@ -20,6 +20,15 @@
     <string id="MercenaryManagement_RelationToRuler" text="Отношение лидера к правителю" />
     <string id="MercenaryManagement_RelationColumn" text="Отношение" />
     <string id="MercenaryManagement_InfluencePrice" text="Денаров за единицу влияния" />
+    <string id="MercenaryManagement_StrategicPriority" text="Стратегический приоритет" />
+    <string id="MercenaryManagement_PriorityIndependentOperations" text="Самостоятельные действия" />
+    <string id="MercenaryManagement_PriorityIndependentOperationsDescription" text="Клан сам выбирает действия с учётом текущей обстановки." />
+    <string id="MercenaryManagement_PriorityJoinArmies" text="Участие в армиях" />
+    <string id="MercenaryManagement_PriorityJoinArmiesDescription" text="От клана ожидается вступление в армии королевства и их поддержка." />
+    <string id="MercenaryManagement_PriorityEconomicWarfare" text="Экономическая война" />
+    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="От клана ожидается давление на вражеские деревни и экономические цели." />
+    <string id="MercenaryManagement_PriorityTerritorialDefense" text="Защита территории" />
+    <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="От клана ожидается защита земель королевства и реакция на местные угрозы." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="База: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Информация о клане" />
     <string id="MercenaryManagement_ContractSettings" text="Настройки контракта" />

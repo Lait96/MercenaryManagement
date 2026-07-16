@@ -113,6 +113,14 @@ internal sealed class MercenaryClansVM : ViewModel
     public bool IsSelectedClanSettingsVisible => SelectedClan?.IsServingPlayerKingdom == true;
 
     [DataSourceProperty]
+    public bool CanEditSelectedClanStrategicPriority =>
+        SelectedClan?.CanEditStrategicPriority == true;
+
+    [DataSourceProperty]
+    public bool IsSelectedClanStrategicPriorityReadOnly =>
+        !CanEditSelectedClanStrategicPriority;
+
+    [DataSourceProperty]
     public bool CanHireSelectedClan => _kingdom is not null
                                        && MercenaryHiringService.IsPlayerRuler(_kingdom)
                                        && SelectedClan?.IsFreeMercenaryClan == true;
@@ -149,6 +157,12 @@ internal sealed class MercenaryClansVM : ViewModel
             OnPropertyChangedWithValue(
                 IsSelectedClanSettingsVisible,
                 nameof(IsSelectedClanSettingsVisible));
+            OnPropertyChangedWithValue(
+                CanEditSelectedClanStrategicPriority,
+                nameof(CanEditSelectedClanStrategicPriority));
+            OnPropertyChangedWithValue(
+                IsSelectedClanStrategicPriorityReadOnly,
+                nameof(IsSelectedClanStrategicPriorityReadOnly));
             OnPropertyChangedWithValue(CanHireSelectedClan, nameof(CanHireSelectedClan));
             OnPropertyChangedWithValue(CanDismissSelectedClan, nameof(CanDismissSelectedClan));
             OnPropertyChangedWithValue(CanPoachSelectedClan, nameof(CanPoachSelectedClan));
@@ -207,6 +221,10 @@ internal sealed class MercenaryClansVM : ViewModel
     [DataSourceProperty]
     public string InfluencePriceText => new TextObject(
         "{=MercenaryManagement_InfluencePrice}Denars per influence").ToString();
+
+    [DataSourceProperty]
+    public string StrategicPriorityText => new TextObject(
+        "{=MercenaryManagement_StrategicPriority}Strategic priority").ToString();
 
     [DataSourceProperty]
     public string ClanInformationText => new TextObject(
@@ -284,6 +302,7 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(RelationToRulerText, nameof(RelationToRulerText));
         OnPropertyChangedWithValue(RelationColumnText, nameof(RelationColumnText));
         OnPropertyChangedWithValue(InfluencePriceText, nameof(InfluencePriceText));
+        OnPropertyChangedWithValue(StrategicPriorityText, nameof(StrategicPriorityText));
         OnPropertyChangedWithValue(ClanInformationText, nameof(ClanInformationText));
         OnPropertyChangedWithValue(ContractSettingsText, nameof(ContractSettingsText));
         OnPropertyChangedWithValue(AccumulatedInfluenceText, nameof(AccumulatedInfluenceText));
@@ -299,6 +318,12 @@ internal sealed class MercenaryClansVM : ViewModel
         OnPropertyChangedWithValue(NoHiredClansText, nameof(NoHiredClansText));
         OnPropertyChangedWithValue(NoAvailableClansText, nameof(NoAvailableClansText));
         OnPropertyChangedWithValue(NoOtherKingdomClansText, nameof(NoOtherKingdomClansText));
+        OnPropertyChangedWithValue(
+            CanEditSelectedClanStrategicPriority,
+            nameof(CanEditSelectedClanStrategicPriority));
+        OnPropertyChangedWithValue(
+            IsSelectedClanStrategicPriorityReadOnly,
+            nameof(IsSelectedClanStrategicPriorityReadOnly));
 
         foreach (MercenaryClanItemVM clan in Clans)
         {

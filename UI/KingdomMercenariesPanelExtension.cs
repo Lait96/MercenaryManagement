@@ -404,7 +404,7 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
 
                                 <BrushListPanel WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="CoverChildren"
-                                                MinHeight="190"
+                                                MinHeight="330"
                                                 MarginBottom="18"
                                                 Brush="Frame1Brush"
                                                 StackLayout.LayoutMethod="VerticalTopToBottom"
@@ -591,6 +591,65 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                         </Widget>
                                       </Children>
                                     </Widget>
+                                    <Widget WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="Fixed"
+                                            SuggestedHeight="2"
+                                            MarginLeft="12"
+                                            MarginRight="12"
+                                            Sprite="GradientDivider_9"
+                                            AlphaFactor="0.4" />
+                                    <ListPanel WidthSizePolicy="StretchToParent"
+                                               HeightSizePolicy="Fixed"
+                                               SuggestedHeight="58"
+                                               MarginLeft="18"
+                                               MarginRight="18">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent"
+                                                    HeightSizePolicy="StretchToParent"
+                                                    Brush="Kingdom.ParagraphSmall.Text"
+                                                    Brush.FontSize="23"
+                                                    Text="@StrategicPriorityText" />
+                                        <Widget WidthSizePolicy="Fixed"
+                                                HeightSizePolicy="StretchToParent"
+                                                SuggestedWidth="360"
+                                                HorizontalAlignment="Right"
+                                                IsVisible="@CanEditSelectedClanStrategicPriority">
+                                          <Children>
+                                            <Standard.DropdownWithHorizontalControl HorizontalAlignment="Right"
+                                                                                     VerticalAlignment="Center"
+                                                                                     Parameter.IsCustomWidth="true"
+                                                                                     Parameter.CustomWidth="270"
+                                                                                     Parameter.SelectorDataSource="{SelectedClan\PrioritySelector}"
+                                                                                     Parameter.IsEnabled="true" />
+                                          </Children>
+                                        </Widget>
+                                        <Widget WidthSizePolicy="Fixed"
+                                                HeightSizePolicy="StretchToParent"
+                                                SuggestedWidth="360"
+                                                HorizontalAlignment="Right"
+                                                IsVisible="@IsSelectedClanStrategicPriorityReadOnly">
+                                          <Children>
+                                            <TextWidget DataSource="{SelectedClan}"
+                                                        WidthSizePolicy="StretchToParent"
+                                                        HeightSizePolicy="StretchToParent"
+                                                        HorizontalAlignment="Right"
+                                                        Brush="ArmyManagement.Army.Tuple.Name"
+                                                        Text="@StrategicPriorityName" />
+                                          </Children>
+                                        </Widget>
+                                      </Children>
+                                    </ListPanel>
+                                    <RichTextWidget DataSource="{SelectedClan}"
+                                                    WidthSizePolicy="StretchToParent"
+                                                    HeightSizePolicy="CoverChildren"
+                                                    MinHeight="62"
+                                                    MarginLeft="24"
+                                                    MarginRight="24"
+                                                    MarginBottom="12"
+                                                    Brush="Kingdom.ParagraphSmall.Text"
+                                                    Brush.FontSize="18"
+                                                    Brush.TextHorizontalAlignment="Left"
+                                                    Text="@StrategicPriorityDescription" />
                                   </Children>
                                 </BrushListPanel>
 

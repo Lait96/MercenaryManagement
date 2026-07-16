@@ -21,6 +21,7 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
     protected override void DefineEnumTypes()
     {
         AddEnumDefinition(typeof(MercenaryContractState), 2);
+        AddEnumDefinition(typeof(MercenaryStrategicPriority), 3);
     }
 
     protected override void DefineContainerDefinitions()

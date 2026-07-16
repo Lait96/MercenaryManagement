@@ -19,6 +19,7 @@ internal sealed class MercenaryContract
         ServiceStartTime = CampaignTime.Now;
         EndTime = endTime;
         State = MercenaryContractState.Active;
+        StrategicPriority = MercenaryStrategicPriority.IndependentOperations;
     }
 
     [SaveableProperty(1)]
@@ -44,6 +45,9 @@ internal sealed class MercenaryContract
 
     [SaveableProperty(8)]
     public MercenaryContractState State { get; private set; }
+
+    [SaveableProperty(9)]
+    public MercenaryStrategicPriority StrategicPriority { get; private set; }
 
     public bool IsActive => State == MercenaryContractState.Active;
 
@@ -73,6 +77,26 @@ internal sealed class MercenaryContract
     public void SetEndTime(CampaignTime endTime)
     {
         EndTime = endTime;
+    }
+
+    public void SetStrategicPriority(MercenaryStrategicPriority strategicPriority)
+    {
+        StrategicPriority = strategicPriority;
+    }
+
+    public void EnsureStrategicPriority()
+    {
+        switch (StrategicPriority)
+        {
+            case MercenaryStrategicPriority.IndependentOperations:
+            case MercenaryStrategicPriority.JoinArmies:
+            case MercenaryStrategicPriority.EconomicWarfare:
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return;
+            default:
+                StrategicPriority = MercenaryStrategicPriority.IndependentOperations;
+                return;
+        }
     }
 
     public void Complete(CampaignTime completionTime)

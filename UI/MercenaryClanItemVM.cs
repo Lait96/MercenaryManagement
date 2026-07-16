@@ -5,6 +5,7 @@ using MercenaryManagement.Contracts;
 using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
+using TaleWorlds.Core.ViewModelCollection.Selector;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -22,6 +23,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private int _influencePrice;
     private int _expectedPayment;
     private bool _isSelected;
+    private bool _isRefreshingPrioritySelector;
 
     public MercenaryClanItemVM(Clan clan, Kingdom kingdom, Action<MercenaryClanItemVM> onSelect)
     {
@@ -41,6 +43,11 @@ internal sealed class MercenaryClanItemVM : ViewModel
             ? clan.Leader.GetRelation(kingdom.Leader)
             : 0;
         _contract = GetActiveContract();
+        PrioritySelector = new SelectorVM<SelectorItemVM>(
+            GetStrategicPriorityNames(),
+            (int)StrategicPriority,
+            null!);
+        PrioritySelector.SetOnChangeAction(OnStrategicPrioritySelected);
         _influencePrice = MercenaryHiringService.IsFreeMercenaryClan(clan)
             ? MercenaryHiringService.CalculateHirePrice(clan, kingdom)
             : MercenaryPaymentService.GetInfluencePrice(clan);
@@ -160,6 +167,21 @@ internal sealed class MercenaryClanItemVM : ViewModel
     public bool IsInfluencePriceReadOnly => !CanEditInfluencePrice;
 
     [DataSourceProperty]
+    public SelectorVM<SelectorItemVM> PrioritySelector { get; }
+
+    [DataSourceProperty]
+    public string StrategicPriorityDescription => GetStrategicPriorityDescription(
+        StrategicPriority).ToString();
+
+    [DataSourceProperty]
+    public string StrategicPriorityName => GetStrategicPriorityName(
+        StrategicPriority).ToString();
+
+    [DataSourceProperty]
+    public bool CanEditStrategicPriority => IsServingPlayerKingdom
+                                             && MercenaryHiringService.IsPlayerRuler(_kingdom);
+
+    [DataSourceProperty]
     public string AccumulatedInfluence { get; }
 
     [DataSourceProperty]
@@ -257,10 +279,20 @@ internal sealed class MercenaryClanItemVM : ViewModel
             InfluencePricePercentageText,
             nameof(InfluencePricePercentageText));
         _contract = GetActiveContract();
+        RefreshPrioritySelector();
         OnPropertyChangedWithValue(ContractState, nameof(ContractState));
         OnPropertyChangedWithValue(ContractStart, nameof(ContractStart));
         OnPropertyChangedWithValue(ContractEnd, nameof(ContractEnd));
         OnPropertyChangedWithValue(HasActiveContract, nameof(HasActiveContract));
+        OnPropertyChangedWithValue(
+            StrategicPriorityDescription,
+            nameof(StrategicPriorityDescription));
+        OnPropertyChangedWithValue(
+            StrategicPriorityName,
+            nameof(StrategicPriorityName));
+        OnPropertyChangedWithValue(
+            CanEditStrategicPriority,
+            nameof(CanEditStrategicPriority));
         ClanName = _clan.Name.ToString();
         LeaderName = _clan.Leader?.Name.ToString() ?? string.Empty;
         TextObject serviceStatus;
@@ -290,6 +322,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
     public override void OnFinalize()
     {
+        PrioritySelector.OnFinalize();
         Banner.OnFinalize();
         base.OnFinalize();
     }
@@ -322,6 +355,111 @@ internal sealed class MercenaryClanItemVM : ViewModel
                && contractBehavior.GetOrCreateContract(_clan, out MercenaryContract contract)
             ? contract
             : null;
+    }
+
+    private MercenaryStrategicPriority StrategicPriority =>
+        _contract?.StrategicPriority ?? MercenaryStrategicPriority.IndependentOperations;
+
+    private void OnStrategicPrioritySelected(SelectorVM<SelectorItemVM> selector)
+    {
+        if (_isRefreshingPrioritySelector)
+        {
+            return;
+        }
+
+        MercenaryStrategicPriority selectedPriority = GetStrategicPriority(selector.SelectedIndex);
+        if (!MercenaryPriorityService.TrySetStrategicPriority(
+                _clan,
+                _kingdom,
+                selectedPriority))
+        {
+            RefreshPrioritySelector();
+            return;
+        }
+
+        _contract = GetActiveContract();
+        OnPropertyChangedWithValue(
+            StrategicPriorityDescription,
+            nameof(StrategicPriorityDescription));
+        OnPropertyChangedWithValue(
+            StrategicPriorityName,
+            nameof(StrategicPriorityName));
+    }
+
+    private void RefreshPrioritySelector()
+    {
+        _isRefreshingPrioritySelector = true;
+        PrioritySelector.Refresh(
+            GetStrategicPriorityNames(),
+            (int)StrategicPriority,
+            OnStrategicPrioritySelected);
+        _isRefreshingPrioritySelector = false;
+    }
+
+    private static TextObject[] GetStrategicPriorityNames()
+    {
+        return new[]
+        {
+            GetStrategicPriorityName(MercenaryStrategicPriority.IndependentOperations),
+            GetStrategicPriorityName(MercenaryStrategicPriority.JoinArmies),
+            GetStrategicPriorityName(MercenaryStrategicPriority.EconomicWarfare),
+            GetStrategicPriorityName(MercenaryStrategicPriority.TerritorialDefense)
+        };
+    }
+
+    private static TextObject GetStrategicPriorityName(
+        MercenaryStrategicPriority strategicPriority)
+    {
+        switch (strategicPriority)
+        {
+            case MercenaryStrategicPriority.JoinArmies:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityJoinArmies}Join armies");
+            case MercenaryStrategicPriority.EconomicWarfare:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityEconomicWarfare}Economic warfare");
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityTerritorialDefense}Territorial defense");
+            default:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityIndependentOperations}Independent operations");
+        }
+    }
+
+    private static MercenaryStrategicPriority GetStrategicPriority(int selectedIndex)
+    {
+        switch (selectedIndex)
+        {
+            case (int)MercenaryStrategicPriority.JoinArmies:
+                return MercenaryStrategicPriority.JoinArmies;
+            case (int)MercenaryStrategicPriority.EconomicWarfare:
+                return MercenaryStrategicPriority.EconomicWarfare;
+            case (int)MercenaryStrategicPriority.TerritorialDefense:
+                return MercenaryStrategicPriority.TerritorialDefense;
+            default:
+                return MercenaryStrategicPriority.IndependentOperations;
+        }
+    }
+
+    private static TextObject GetStrategicPriorityDescription(
+        MercenaryStrategicPriority strategicPriority)
+    {
+        switch (strategicPriority)
+        {
+            case MercenaryStrategicPriority.JoinArmies:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityJoinArmiesDescription}The clan is expected to join and support the kingdom's armies.");
+            case MercenaryStrategicPriority.EconomicWarfare:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityEconomicWarfareDescription}The clan is expected to pressure enemy villages and economic targets.");
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityTerritorialDefenseDescription}The clan is expected to defend friendly lands and respond to local threats.");
+            default:
+                return new TextObject(
+                    "{=MercenaryManagement_PriorityIndependentOperationsDescription}The clan chooses its own actions according to the current situation.");
+        }
     }
 
     private static string FormatPastTime(CampaignTime time)

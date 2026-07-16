@@ -20,6 +20,15 @@
     <string id="MercenaryManagement_RelationToRuler" text="Leader's relation to the ruler" />
     <string id="MercenaryManagement_RelationColumn" text="Relation" />
     <string id="MercenaryManagement_InfluencePrice" text="Denars per influence" />
+    <string id="MercenaryManagement_StrategicPriority" text="Strategic priority" />
+    <string id="MercenaryManagement_PriorityIndependentOperations" text="Independent operations" />
+    <string id="MercenaryManagement_PriorityIndependentOperationsDescription" text="The clan chooses its own actions according to the current situation." />
+    <string id="MercenaryManagement_PriorityJoinArmies" text="Join armies" />
+    <string id="MercenaryManagement_PriorityJoinArmiesDescription" text="The clan is expected to join and support the kingdom's armies." />
+    <string id="MercenaryManagement_PriorityEconomicWarfare" text="Economic warfare" />
+    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="The clan is expected to pressure enemy villages and economic targets." />
+    <string id="MercenaryManagement_PriorityTerritorialDefense" text="Territorial defense" />
+    <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="The clan is expected to defend friendly lands and respond to local threats." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="Base: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Clan information" />
     <string id="MercenaryManagement_ContractSettings" text="Contract settings" />
