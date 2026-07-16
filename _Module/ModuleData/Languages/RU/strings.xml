@@ -4,6 +4,17 @@
     <tag language="Русский" />
   </tags>
   <strings>
+    <string id="MercenaryManagement_PlayerMercenaryTab" text="Наёмник" />
+    <string id="MercenaryManagement_PlayerContractUnavailableVassal" text="Вассал не может служить наёмником." />
+    <string id="MercenaryManagement_PlayerContractUnavailableRuler" text="Правитель королевства не может служить наёмником." />
+    <string id="MercenaryManagement_PlayerContractUnavailableFiefs" text="Наёмничество недоступно, пока ваш клан владеет поселениями." />
+    <string id="MercenaryManagement_PlayerNoActiveContract" text="Ваш клан в настоящий момент не служит ни одному королевству." />
+    <string id="MercenaryManagement_EmployerTitle" text="Работодатель" />
+    <string id="MercenaryManagement_Kingdom" text="Королевство" />
+    <string id="MercenaryManagement_Ruler" text="Правитель" />
+    <string id="MercenaryManagement_ContractTitle" text="Контракт" />
+    <string id="MercenaryManagement_ContractAge" text="Возраст контракта" />
+    <string id="MercenaryManagement_ContractAgeValue" text="{DAYS} дн." />
     <string id="MercenaryManagement_Mercenaries" text="Наёмники" />
     <string id="MercenaryManagement_MercenaryClans" text="Наёмные кланы" />
     <string id="MercenaryManagement_HiredClans" text="Служат этому королевству" />

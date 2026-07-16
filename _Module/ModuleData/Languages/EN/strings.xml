@@ -4,6 +4,17 @@
     <tag language="English" />
   </tags>
   <strings>
+    <string id="MercenaryManagement_PlayerMercenaryTab" text="Mercenary" />
+    <string id="MercenaryManagement_PlayerContractUnavailableVassal" text="A vassal cannot serve as a mercenary." />
+    <string id="MercenaryManagement_PlayerContractUnavailableRuler" text="A kingdom ruler cannot serve as a mercenary." />
+    <string id="MercenaryManagement_PlayerContractUnavailableFiefs" text="Mercenary service is unavailable while your clan owns settlements." />
+    <string id="MercenaryManagement_PlayerNoActiveContract" text="Your clan is not currently serving any kingdom." />
+    <string id="MercenaryManagement_EmployerTitle" text="Employer" />
+    <string id="MercenaryManagement_Kingdom" text="Kingdom" />
+    <string id="MercenaryManagement_Ruler" text="Ruler" />
+    <string id="MercenaryManagement_ContractTitle" text="Contract" />
+    <string id="MercenaryManagement_ContractAge" text="Contract age" />
+    <string id="MercenaryManagement_ContractAgeValue" text="{DAYS} days" />
     <string id="MercenaryManagement_Mercenaries" text="Mercenaries" />
     <string id="MercenaryManagement_MercenaryClans" text="Mercenary clans" />
     <string id="MercenaryManagement_HiredClans" text="Serving this kingdom" />
