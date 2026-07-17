@@ -148,17 +148,30 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
             return;
         }
 
-        bool matches = contract.StrategicPriority == MercenaryStrategicPriority.JoinArmies
-            ? mobileParty.Army is not null
-            : contract.StrategicPriority == MercenaryStrategicPriority.EconomicWarfare
-                ? mobileParty.DefaultBehavior == AiBehavior.RaidSettlement
-                : contract.StrategicPriority == MercenaryStrategicPriority.IndependentOperations
-                  || contract.StrategicPriority == MercenaryStrategicPriority.TerritorialDefense
-                     && MercenaryPriorityService.IsInFriendlyTerritory(mobileParty);
-        if (matches)
+        PassiveContributionEvidence evidence = GetPassiveContributionEvidence(mobileParty);
+        if (MercenaryContributionPolicy.IsEligible(contract.StrategicPriority, evidence))
         {
-            contract.RecordContribution(1, GetDailyActivity(contract.StrategicPriority));
+            // Passive role evidence is capped at one point per clan-day. Multiple
+            // parties can still earn distinct event rewards for actual outcomes.
+            contract.TryRecordDailyContribution(
+                1,
+                GetDailyActivity(contract.StrategicPriority));
         }
+    }
+
+    internal static PassiveContributionEvidence GetPassiveContributionEvidence(
+        MobileParty mobileParty)
+    {
+        return mobileParty.Army is not null
+            ? PassiveContributionEvidence.ServingInArmy
+            : mobileParty.DefaultBehavior == AiBehavior.RaidSettlement
+                ? PassiveContributionEvidence.EconomicOperation
+                : MercenaryPriorityService.IsInFriendlyTerritory(mobileParty)
+                  && (mobileParty.DefaultBehavior == AiBehavior.DefendSettlement
+                      || mobileParty.DefaultBehavior == AiBehavior.PatrolAroundPoint
+                      || mobileParty.DefaultBehavior == AiBehavior.EngageParty)
+                    ? PassiveContributionEvidence.ActiveTerritorialDefense
+                    : PassiveContributionEvidence.None;
     }
 
     private static void OnPartyJoinedArmy(MobileParty party)

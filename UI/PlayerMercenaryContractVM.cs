@@ -16,10 +16,13 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     private MercenaryContract? _contract;
     private string _unavailableReason = string.Empty;
     private PlayerMercenaryOfferItemVM? _selectedOffer;
+    private PlayerServiceKingdomItemVM? _selectedServiceKingdom;
+    private bool _isOfferingServices;
 
     public PlayerMercenaryContractVM()
     {
         AvailableOffers = new MBBindingList<PlayerMercenaryOfferItemVM>();
+        ServiceKingdoms = new MBBindingList<PlayerServiceKingdomItemVM>();
     }
 
     [DataSourceProperty] public MBBindingList<PlayerMercenaryOfferItemVM> AvailableOffers { get; }
@@ -37,6 +40,40 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         }
     }
     [DataSourceProperty] public bool HasSelectedOffer => SelectedOffer is not null;
+    [DataSourceProperty] public MBBindingList<PlayerServiceKingdomItemVM> ServiceKingdoms { get; }
+    [DataSourceProperty] public bool HasServiceKingdoms => ServiceKingdoms.Count > 0;
+    [DataSourceProperty] public bool IsBrowsingOffers => HasNoActiveContract && !IsOfferingServices;
+    [DataSourceProperty] public bool CanOfferServices => IsBrowsingOffers && HasServiceKingdoms;
+    [DataSourceProperty] public bool ShouldShowAvailableOffers => IsBrowsingOffers && HasAvailableOffers;
+    [DataSourceProperty] public bool ShouldShowNoAvailableOffers => IsBrowsingOffers && HasNoAvailableOffers;
+    [DataSourceProperty]
+    public bool IsOfferingServices
+    {
+        get => _isOfferingServices;
+        private set
+        {
+            if (_isOfferingServices == value) return;
+            _isOfferingServices = value;
+            OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(IsBrowsingOffers, nameof(IsBrowsingOffers));
+            OnPropertyChangedWithValue(CanOfferServices, nameof(CanOfferServices));
+            OnPropertyChangedWithValue(ShouldShowAvailableOffers, nameof(ShouldShowAvailableOffers));
+            OnPropertyChangedWithValue(ShouldShowNoAvailableOffers, nameof(ShouldShowNoAvailableOffers));
+        }
+    }
+    [DataSourceProperty]
+    public PlayerServiceKingdomItemVM? SelectedServiceKingdom
+    {
+        get => _selectedServiceKingdom;
+        private set
+        {
+            if (_selectedServiceKingdom == value) return;
+            _selectedServiceKingdom = value;
+            OnPropertyChangedWithValue(value);
+            OnPropertyChangedWithValue(value is not null, nameof(HasSelectedServiceKingdom));
+        }
+    }
+    [DataSourceProperty] public bool HasSelectedServiceKingdom => SelectedServiceKingdom is not null;
 
     [DataSourceProperty]
     public bool IsUnavailable => !string.IsNullOrEmpty(_unavailableReason);
@@ -133,6 +170,11 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     [DataSourceProperty] public string CurrentActivity => _contract is null ? string.Empty : MercenaryEvaluationService.GetActivitySummary(_contract);
     [DataSourceProperty] public int RecentEarnings => _contract?.RecentEarnings ?? 0;
     [DataSourceProperty] public string AcceptOfferText => Localize("MercenaryManagement_AcceptOffer", "Accept offer");
+    [DataSourceProperty] public string OfferServicesText => Localize("MercenaryManagement_OfferServices", "Offer services");
+    [DataSourceProperty] public string OfferServicesTitleText => Localize("MercenaryManagement_OfferServicesTitle", "Offer services to a kingdom");
+    [DataSourceProperty] public string OfferServicesHintText => Localize("MercenaryManagement_OfferServicesHint", "Select a kingdom that has not made an offer. Its ruler will return calculated terms or refuse the request.");
+    [DataSourceProperty] public string SubmitServiceRequestText => Localize("MercenaryManagement_SubmitServiceRequest", "Send request");
+    [DataSourceProperty] public string BackToOffersText => Localize("MercenaryManagement_BackToOffers", "Back to offers");
     [DataSourceProperty] public string RequestRevisionText => Localize("MercenaryManagement_RequestRevision", "Request better terms");
     [DataSourceProperty] public string EndContractText => Localize("MercenaryManagement_EndContract", "End contract");
     [DataSourceProperty] public string ExpectedPaymentText => Localize("MercenaryManagement_ExpectedPayment", "Expected payment (dinars)");
@@ -165,6 +207,49 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         InformationManager.DisplayMessage(new InformationMessage(accepted
             ? Localize("MercenaryManagement_OfferAccepted", "Your clan entered the kingdom's service.")
             : Localize("MercenaryManagement_OfferAcceptFailed", "The offer is no longer available.")));
+        Refresh();
+    }
+
+    [DataSourceMethod]
+    public void ExecuteShowOfferServices()
+    {
+        if (!HasNoActiveContract || !HasServiceKingdoms) return;
+        IsOfferingServices = true;
+    }
+
+    [DataSourceMethod]
+    public void ExecuteBackToOffers()
+    {
+        IsOfferingServices = false;
+    }
+
+    [DataSourceMethod]
+    public void ExecuteSubmitServiceRequest()
+    {
+        PlayerServiceKingdomItemVM? selected = SelectedServiceKingdom;
+        MercenaryOfferBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryOfferBehavior>();
+        if (selected is null || behavior is null)
+        {
+            Display(Localize("MercenaryManagement_ServiceRequestUnavailable", "The service request is no longer available."));
+            Refresh();
+            return;
+        }
+
+        MercenaryOffer? offer = behavior.RequestOffer(Clan.PlayerClan, selected.Kingdom);
+        if (offer is null)
+        {
+            Display(Localize("MercenaryManagement_ServiceRequestDeclined", "The kingdom declined your request for service."));
+        }
+        else
+        {
+            TextObject response = new TextObject(
+                "{=MercenaryManagement_ServiceRequestCounteroffer}{KINGDOM} returned an offer of {RATE} dinars per influence. Review and accept it from the offer list.");
+            response.SetTextVariable("KINGDOM", selected.Kingdom.Name);
+            response.SetTextVariable("RATE", offer.InfluencePrice);
+            Display(response.ToString());
+        }
+
         Refresh();
     }
 
@@ -270,6 +355,8 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         _contract = null;
         _unavailableReason = GetUnavailableReason(clan);
         ClearOffers();
+        ClearServiceKingdoms();
+        IsOfferingServices = false;
 
         if (string.IsNullOrEmpty(_unavailableReason) && clan is not null)
         {
@@ -294,6 +381,16 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
                 }
 
                 if (AvailableOffers.Count > 0) SelectOffer(AvailableOffers[0]);
+
+                foreach (Kingdom kingdom in (offerBehavior?.GetServiceRequestKingdoms(clan)
+                             ?? Enumerable.Empty<Kingdom>())
+                         .OrderBy(kingdom => kingdom.Name.ToString()))
+                {
+                    ServiceKingdoms.Add(new PlayerServiceKingdomItemVM(
+                        kingdom,
+                        SelectServiceKingdom));
+                }
+                if (ServiceKingdoms.Count > 0) SelectServiceKingdom(ServiceKingdoms[0]);
             }
         }
 
@@ -313,6 +410,11 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         OnPropertyChangedWithValue(HasNoActiveContract, nameof(HasNoActiveContract));
         OnPropertyChangedWithValue(HasAvailableOffers, nameof(HasAvailableOffers));
         OnPropertyChangedWithValue(HasNoAvailableOffers, nameof(HasNoAvailableOffers));
+        OnPropertyChangedWithValue(HasServiceKingdoms, nameof(HasServiceKingdoms));
+        OnPropertyChangedWithValue(IsBrowsingOffers, nameof(IsBrowsingOffers));
+        OnPropertyChangedWithValue(CanOfferServices, nameof(CanOfferServices));
+        OnPropertyChangedWithValue(ShouldShowAvailableOffers, nameof(ShouldShowAvailableOffers));
+        OnPropertyChangedWithValue(ShouldShowNoAvailableOffers, nameof(ShouldShowNoAvailableOffers));
         OnPropertyChangedWithValue(UnavailableReason, nameof(UnavailableReason));
         OnPropertyChangedWithValue(EmployerKingdom, nameof(EmployerKingdom));
         OnPropertyChangedWithValue(EmployerRuler, nameof(EmployerRuler));
@@ -333,6 +435,7 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     public override void OnFinalize()
     {
         ClearOffers();
+        ClearServiceKingdoms();
         base.OnFinalize();
     }
 
@@ -349,6 +452,21 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         SelectedOffer = null;
         foreach (PlayerMercenaryOfferItemVM offer in AvailableOffers) offer.OnFinalize();
         AvailableOffers.Clear();
+    }
+
+    private void SelectServiceKingdom(PlayerServiceKingdomItemVM kingdom)
+    {
+        if (SelectedServiceKingdom == kingdom) return;
+        if (SelectedServiceKingdom is not null) SelectedServiceKingdom.IsSelected = false;
+        SelectedServiceKingdom = kingdom;
+        kingdom.IsSelected = true;
+    }
+
+    private void ClearServiceKingdoms()
+    {
+        SelectedServiceKingdom = null;
+        foreach (PlayerServiceKingdomItemVM kingdom in ServiceKingdoms) kingdom.OnFinalize();
+        ServiceKingdoms.Clear();
     }
 
     private static string GetUnavailableReason(Clan? clan)

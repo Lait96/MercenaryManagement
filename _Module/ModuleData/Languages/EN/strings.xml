@@ -167,6 +167,14 @@
     <string id="MercenaryManagement_PreferredRole" text="Preferred role" />
     <string id="MercenaryManagement_OfferAccepted" text="Your clan entered the kingdom's service." />
     <string id="MercenaryManagement_OfferAcceptFailed" text="The offer is no longer available." />
+    <string id="MercenaryManagement_OfferServices" text="Offer services" />
+    <string id="MercenaryManagement_OfferServicesTitle" text="Offer services to a kingdom" />
+    <string id="MercenaryManagement_OfferServicesHint" text="Select a kingdom that has not made an offer. Its ruler will return calculated terms or refuse the request." />
+    <string id="MercenaryManagement_SubmitServiceRequest" text="Send request" />
+    <string id="MercenaryManagement_BackToOffers" text="Back to offers" />
+    <string id="MercenaryManagement_ServiceRequestUnavailable" text="The service request is no longer available." />
+    <string id="MercenaryManagement_ServiceRequestDeclined" text="The kingdom declined your request for service." />
+    <string id="MercenaryManagement_ServiceRequestCounteroffer" text="{KINGDOM} returned an offer of {RATE} dinars per influence. Review and accept it from the offer list." />
     <string id="MercenaryManagement_PerformanceInitial" text="Initial assessment" />
     <string id="MercenaryManagement_PerformanceLimited" text="Limited results" />
     <string id="MercenaryManagement_EmployerTerminationRisk" text="Risk of employer termination" />

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\Contracts\MercenaryStrategicPriority.cs" Link="Production\MercenaryStrategicPriority.cs" />
+    <Compile Include="..\Services\MercenaryContributionPolicy.cs" Link="Production\MercenaryContributionPolicy.cs" />
+    <Compile Include="..\Services\MercenaryEvaluationModel.cs" Link="Production\MercenaryEvaluationModel.cs" />
+    <Compile Include="..\Services\MercenaryRiskModel.cs" Link="Production\MercenaryRiskModel.cs" />
+    <Compile Include="..\Services\MercenaryOfferModel.cs" Link="Production\MercenaryOfferModel.cs" />
+  </ItemGroup>
+</Project>

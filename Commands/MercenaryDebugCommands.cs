@@ -423,7 +423,7 @@ public static class MercenaryDebugCommands
         return clan.Kingdom is null ? "free" : "kingdom_member";
     }
 
-    private static bool TryValidateCampaign(out string error)
+    internal static bool TryValidateCampaign(out string error)
     {
         if (Campaign.Current is null)
         {
@@ -435,7 +435,7 @@ public static class MercenaryDebugCommands
         return true;
     }
 
-    private static bool TryFindKingdom(
+    internal static bool TryFindKingdom(
         string query,
         out Kingdom kingdom,
         out string error)
@@ -465,7 +465,7 @@ public static class MercenaryDebugCommands
         return false;
     }
 
-    private static bool TryFindClan(string query, out Clan clan, out string error)
+    internal static bool TryFindClan(string query, out Clan clan, out string error)
     {
         List<Clan> matches = FindExactMatches(
             Clan.All,
@@ -512,7 +512,7 @@ public static class MercenaryDebugCommands
             .ToList();
     }
 
-    private static bool TrySplitPair(
+    internal static bool TrySplitPair(
         IReadOnlyList<string> arguments,
         out string first,
         out string second)
@@ -552,7 +552,7 @@ public static class MercenaryDebugCommands
         return first.Length > 0 && second.Length > 0;
     }
 
-    private static string JoinArguments(IEnumerable<string> arguments)
+    internal static string JoinArguments(IEnumerable<string> arguments)
     {
         return NormalizeQuery(string.Join(" ", arguments));
     }

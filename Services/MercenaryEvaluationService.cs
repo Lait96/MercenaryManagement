@@ -20,21 +20,13 @@ internal static class MercenaryEvaluationService
 
         int baseRate = MercenaryPaymentService.GetBaseInfluencePrice(clan);
         float rateRatio = contract.InfluencePrice / (float)baseRate;
-        float target = 50f + (rateRatio - 1f) * 60f;
-        target += Math.Max(-10, Math.Min(10, clan.Leader.GetRelation(kingdom.Leader))) * 0.5f;
-        target -= Math.Max(0f, 0.65f - GetAveragePartySizeRatio(clan)) * 30f;
-        target -= Math.Min(15f, Math.Max(0, clan.DebtToKingdom) / 200f);
-        target += Math.Min(10f, contract.ContributionPoints / 20f);
-
-        float satisfaction = MoveTowards(contract.Satisfaction, target, 3f);
-        float reliabilityTarget = 50f + Math.Min(25f, contract.ContributionPoints / 10f);
-        float reliability = MoveTowards(contract.Reliability, reliabilityTarget, 0.5f);
-        contract.SetEvaluation(satisfaction, reliability, CampaignTime.Now);
-        float employerTarget = 40f + System.Math.Min(35f, contract.ContributionPoints / 8f)
-                               + (contract.Reliability - 50f) * 0.25f
-                               - System.Math.Max(0f, rateRatio - 1f) * 20f;
-        contract.SetEmployerSatisfaction(MoveTowards(
-            contract.EmployerSatisfaction, employerTarget, 2f));
+        DailyEvaluationResult result = MercenaryEvaluationModel.Evaluate(
+            new DailyEvaluationInputs(contract.Satisfaction, contract.Reliability,
+                contract.EmployerSatisfaction, rateRatio,
+                clan.Leader.GetRelation(kingdom.Leader), GetAveragePartySizeRatio(clan),
+                clan.DebtToKingdom, contract.ContributionPoints));
+        contract.SetEvaluation(result.Satisfaction, result.Reliability, CampaignTime.Now);
+        contract.SetEmployerSatisfaction(result.EmployerSatisfaction);
         if (contract.TryConsumeContributionMilestone())
         {
             contract.AdjustEvaluation(4f, 2f);
@@ -45,30 +37,78 @@ internal static class MercenaryEvaluationService
     }
 
     public static float CalculateDepartureRisk(MercenaryContract contract)
+        => GetDepartureRiskBreakdown(contract).Total;
+
+    public static RiskBreakdown GetDepartureRiskBreakdown(MercenaryContract contract)
     {
-        float risk = 65f - contract.Satisfaction * 0.45f - contract.Reliability * 0.2f;
-        if (contract.EndTime != CampaignTime.Zero && contract.EndTime != CampaignTime.Never)
+        Clan? clan = contract.Clan;
+        Kingdom? kingdom = contract.EmployerKingdom;
+        if (clan is null || kingdom is null)
         {
-            risk += Math.Max(0f, 10f - contract.EndTime.RemainingDaysFromNow);
+            return new RiskBreakdown { Total = 100f };
         }
-        return Clamp(risk);
+
+        int baseRate = MercenaryPaymentService.GetBaseInfluencePrice(clan);
+        float rateRatio = contract.InfluencePrice / (float)baseRate;
+        int relation = clan.Leader is not null && kingdom.Leader is not null
+            ? clan.Leader.GetRelation(kingdom.Leader)
+            : 0;
+        bool finite = contract.EndTime != CampaignTime.Zero
+                      && contract.EndTime != CampaignTime.Never;
+        return MercenaryRiskModel.CalculateDepartureRisk(new DepartureRiskInputs(
+            contract.Satisfaction, contract.Reliability, rateRatio, relation,
+            GetAveragePartySizeRatio(clan), MercenaryHiringService.CalculateMilitaryNeed(kingdom),
+            GetPriorityMismatchPenalty(contract, kingdom),
+            finite ? contract.EndTime.RemainingDaysFromNow : 0f, finite));
     }
 
     public static string GetPerformanceSummary(MercenaryContract contract)
     {
-        if (contract.ContributionPoints >= 30) return Localize("MercenaryManagement_PerformanceExcellent", "Excellent");
-        if (contract.ContributionPoints >= 15) return Localize("MercenaryManagement_PerformanceGood", "Good");
-        if (contract.ContributionPoints >= 3) return Localize("MercenaryManagement_PerformanceDeveloping", "Developing");
-        return contract.ServiceStartTime.ElapsedDaysUntilNow < 2f
-            ? Localize("MercenaryManagement_PerformanceInitial", "Initial assessment")
-            : Localize("MercenaryManagement_PerformanceLimited", "Limited results");
+        switch (MercenaryEvaluationModel.GetPerformanceBand(
+                    contract.ContributionPoints,
+                    contract.ServiceStartTime.ElapsedDaysUntilNow))
+        {
+            case 4: return Localize("MercenaryManagement_PerformanceExcellent", "Excellent");
+            case 3: return Localize("MercenaryManagement_PerformanceGood", "Good");
+            case 2: return Localize("MercenaryManagement_PerformanceDeveloping", "Developing");
+            case 1: return Localize("MercenaryManagement_PerformanceInitial", "Initial assessment");
+            default: return Localize("MercenaryManagement_PerformanceLimited", "Limited results");
+        }
     }
 
     public static float CalculateEmployerTerminationRisk(MercenaryContract contract)
+        => GetEmployerTerminationRiskBreakdown(contract).Total;
+
+    public static RiskBreakdown GetEmployerTerminationRiskBreakdown(MercenaryContract contract)
     {
-        float risk = 75f - contract.EmployerSatisfaction * 0.65f
-                     - contract.ContributionPoints * 0.5f;
-        return Clamp(risk);
+        Clan? clan = contract.Clan;
+        Kingdom? kingdom = contract.EmployerKingdom;
+        if (clan is null || kingdom is null)
+        {
+            return new RiskBreakdown { Total = 100f };
+        }
+
+        int baseRate = MercenaryPaymentService.GetBaseInfluencePrice(clan);
+        float rateRatio = contract.InfluencePrice / (float)baseRate;
+        return MercenaryRiskModel.CalculateEmployerTerminationRisk(
+            new EmployerTerminationRiskInputs(contract.EmployerSatisfaction, rateRatio,
+                MercenaryHiringService.CalculateMilitaryNeed(kingdom), contract.Reliability));
+    }
+
+    private static float GetPriorityMismatchPenalty(
+        MercenaryContract contract,
+        Kingdom kingdom)
+    {
+        switch (contract.StrategicPriority)
+        {
+            case MercenaryStrategicPriority.JoinArmies:
+                return kingdom.Armies.Count == 0 ? 8f : 0f;
+            case MercenaryStrategicPriority.EconomicWarfare:
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return MercenaryHiringService.CalculateMilitaryNeed(kingdom) <= 0f ? 6f : 0f;
+            default:
+                return 0f;
+        }
     }
 
     public static string GetActivitySummary(MercenaryContract contract)
@@ -101,12 +141,6 @@ internal static class MercenaryEvaluationService
             count++;
         }
         return count == 0 ? 1f : total / count;
-    }
-
-    private static float MoveTowards(float value, float target, float maximumDelta)
-    {
-        if (value < target) return Math.Min(value + maximumDelta, target);
-        return Math.Max(value - maximumDelta, target);
     }
 
     private static float Clamp(float value) => Math.Max(0f, Math.Min(100f, value));

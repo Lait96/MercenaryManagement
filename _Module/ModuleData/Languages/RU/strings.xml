@@ -167,6 +167,14 @@
     <string id="MercenaryManagement_PreferredRole" text="Предпочитаемая роль" />
     <string id="MercenaryManagement_OfferAccepted" text="Ваш клан поступил на службу королевству." />
     <string id="MercenaryManagement_OfferAcceptFailed" text="Это предложение больше недоступно." />
+    <string id="MercenaryManagement_OfferServices" text="Предложить услуги" />
+    <string id="MercenaryManagement_OfferServicesTitle" text="Предложить услуги королевству" />
+    <string id="MercenaryManagement_OfferServicesHint" text="Выберите королевство, которое ещё не прислало предложение. Правитель предложит рассчитанные условия или откажет." />
+    <string id="MercenaryManagement_SubmitServiceRequest" text="Отправить запрос" />
+    <string id="MercenaryManagement_BackToOffers" text="Назад к предложениям" />
+    <string id="MercenaryManagement_ServiceRequestUnavailable" text="Запрос на службу больше недоступен." />
+    <string id="MercenaryManagement_ServiceRequestDeclined" text="Королевство отклонило ваше предложение услуг." />
+    <string id="MercenaryManagement_ServiceRequestCounteroffer" text="{KINGDOM} предложило ставку {RATE} динаров за единицу влияния. Проверьте условия и примите их в списке предложений." />
     <string id="MercenaryManagement_PerformanceInitial" text="Первичная оценка" />
     <string id="MercenaryManagement_PerformanceLimited" text="Низкая результативность" />
     <string id="MercenaryManagement_EmployerTerminationRisk" text="Риск расторжения нанимателем" />

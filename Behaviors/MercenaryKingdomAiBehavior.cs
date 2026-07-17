@@ -99,18 +99,25 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
         {
             if (!behavior.GetOrCreateContract(clan, out MercenaryContract contract)) continue;
             float need = MercenaryHiringService.CalculateMilitaryNeed(kingdom);
+            float departureRisk = MercenaryEvaluationService.CalculateDepartureRisk(contract);
+            float terminationRisk = MercenaryEvaluationService.CalculateEmployerTerminationRisk(contract);
             if (clan != Clan.PlayerClan
                 && contract.EndTime != CampaignTime.Zero
                 && contract.EndTime.RemainingDaysFromNow <= 7f
                 && contract.Satisfaction >= 40f
                 && contract.Reliability >= 35f)
             {
-                float renewalChance = 0.25f + need * 0.5f + contract.Satisfaction / 400f;
-                if (MBRandom.RandomFloat < renewalChance)
+                float renewalChance = 0.2f + need * 0.45f
+                    + (100f - departureRisk) / 500f
+                    + (100f - terminationRisk) / 500f;
+                if (MBRandom.RandomFloat < System.Math.Min(0.95f, renewalChance))
                     behavior.SetContractEndTime(clan, CampaignTime.DaysFromNow(60f));
             }
-            if (contract.Satisfaction < 15f
-                || (need < 0.15f && contract.Satisfaction < 40f && MBRandom.RandomFloat < 0.08f))
+            float dailyTerminationChance = terminationRisk > 70f
+                ? (terminationRisk - 70f) / 500f
+                : 0f;
+            if (contract.EmployerSatisfaction < 10f
+                || MBRandom.RandomFloat < dailyTerminationChance)
             {
                 MercenaryDismissalService.EndService(clan);
                 continue;

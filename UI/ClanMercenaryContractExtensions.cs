@@ -53,8 +53,9 @@ internal sealed class ClanMercenaryContractPanelExtension : PrefabExtensionInser
                 <Widget DataSource="{MercenaryContract}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="35" MarginRight="430" MarginTop="45" MarginBottom="45">
                   <Children>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="30" Text="@UnavailableReason" IsVisible="@IsUnavailable" />
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="30" Text="@NoAvailableOffersText" IsVisible="@HasNoAvailableOffers" />
-                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasAvailableOffers">
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginBottom="90" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="30" Text="@NoAvailableOffersText" IsVisible="@ShouldShowNoAvailableOffers" />
+                    <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="48" MarginBottom="18" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="ButtonBrush2" Command.Click="ExecuteShowOfferServices" IsVisible="@CanOfferServices"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="19" Text="@OfferServicesText" /></Children></ButtonWidget>
+                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@ShouldShowAvailableOffers">
                       <Children>
                         <BrushListPanel WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="950" MarginRight="18" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
                           <Children>
@@ -124,11 +125,54 @@ internal sealed class ClanMercenaryContractPanelExtension : PrefabExtensionInser
                             <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MinHeight="44" MarginLeft="20" MarginRight="20" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@InterestReason" />
                             <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38" MarginLeft="20" MarginRight="20" MarginTop="6" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="21" Text="@StrategicPriority" />
                             <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MinHeight="54" MarginLeft="20" MarginRight="20" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@StrategicPriorityDescription" />
-                            <ButtonWidget DataSource="{..}" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="48" MarginTop="10" MarginBottom="18" HorizontalAlignment="Center" Brush="ButtonBrush2" Command.Click="ExecuteAcceptOffer"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="19" Text="@AcceptOfferText" /></Children></ButtonWidget>
+                            <ButtonWidget DataSource="{..}" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="48" MarginTop="10" HorizontalAlignment="Center" Brush="ButtonBrush2" Command.Click="ExecuteAcceptOffer"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="19" Text="@AcceptOfferText" /></Children></ButtonWidget>
+                            <ButtonWidget DataSource="{..}" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="42" MarginTop="6" MarginBottom="12" HorizontalAlignment="Center" Brush="ButtonBrush2" Command.Click="ExecuteShowOfferServices" IsVisible="@CanOfferServices"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="18" Text="@OfferServicesText" /></Children></ButtonWidget>
                           </Children>
                         </BrushListPanel>
                         </Children>
                         </Widget>
+                      </Children>
+                    </ListPanel>
+                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@IsOfferingServices">
+                      <Children>
+                        <BrushListPanel WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="720" MarginRight="18" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="52" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="26" Text="@OfferServicesTitleText" />
+                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MinHeight="55" MarginLeft="20" MarginRight="20" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@OfferServicesHintText" />
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                              <Children>
+                                <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="12" MarginRight="24" AutoHideScrollBars="true" MouseScrollAxis="Vertical" ClipRect="ServiceKingdomClipRect" InnerPanel="ServiceKingdomClipRect\ServiceKingdomList" VerticalScrollbar="..\ServiceKingdomScrollbar\Scrollbar">
+                                  <Children>
+                                    <Widget Id="ServiceKingdomClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                                      <Children>
+                                        <ListPanel Id="ServiceKingdomList" DataSource="{ServiceKingdoms}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                          <ItemTemplate>
+                                            <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginBottom="5" Brush="Clan.Item.Tuple" Command.Click="ExecuteSelect" IsSelected="@IsSelected" UpdateChildrenStates="true" DoNotPassEventsToChildren="true">
+                                              <Children>
+                                                <MaskedTextureWidget DataSource="{Banner}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="44" SuggestedHeight="56" MarginLeft="8" MarginTop="7" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="65" MarginRight="220" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="19" Text="@KingdomName" />
+                                                <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="150" MarginRight="55" HorizontalAlignment="Right" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@RulerName" />
+                                                <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="45" MarginRight="8" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="19" IntText="@RelationToRuler" />
+                                              </Children>
+                                            </ButtonWidget>
+                                          </ItemTemplate>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                  </Children>
+                                </ScrollablePanel>
+                                <Standard.VerticalScrollbar Id="ServiceKingdomScrollbar" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginTop="4" MarginBottom="4" />
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </BrushListPanel>
+                        <BrushListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <Children>
+                            <TextWidget DataSource="{SelectedServiceKingdom}" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="90" MarginTop="80" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="30" Text="@KingdomName" />
+                            <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="48" MarginTop="20" HorizontalAlignment="Center" Brush="ButtonBrush2" Command.Click="ExecuteSubmitServiceRequest" IsVisible="@HasSelectedServiceKingdom"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="19" Text="@SubmitServiceRequestText" /></Children></ButtonWidget>
+                            <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="42" MarginTop="10" HorizontalAlignment="Center" Brush="ButtonBrush2" Command.Click="ExecuteBackToOffers"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="18" Text="@BackToOffersText" /></Children></ButtonWidget>
+                          </Children>
+                        </BrushListPanel>
                       </Children>
                     </ListPanel>
                     <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" AutoHideScrollBars="true" MouseScrollAxis="Vertical" ClipRect="ContractClipRect" InnerPanel="ContractClipRect\ContractContent" VerticalScrollbar="..\ContractScrollbar\Scrollbar" IsVisible="@HasActiveContract">

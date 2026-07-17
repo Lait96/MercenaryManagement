@@ -28,6 +28,19 @@ internal sealed class MercenaryOfferBehavior : CampaignBehaviorBase
         return _offers.Values.Where(offer => offer.ClanId == clan.StringId && IsValid(offer));
     }
 
+    public IEnumerable<Kingdom> GetServiceRequestKingdoms(Clan clan)
+    {
+        if (clan.Kingdom is not null || clan.Fiefs.Count > 0 || clan.Leader != Hero.MainHero)
+        {
+            return Enumerable.Empty<Kingdom>();
+        }
+
+        return Kingdom.All.Where(kingdom =>
+            !MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, kingdom, out _)
+            && (!_offers.TryGetValue(GetKey(clan, kingdom), out MercenaryOffer existing)
+                || !IsValid(existing)));
+    }
+
     public void RefreshPlayerOffers()
     {
         Reconcile();
@@ -36,7 +49,14 @@ internal sealed class MercenaryOfferBehavior : CampaignBehaviorBase
 
     public MercenaryOffer? RequestOffer(Clan clan, Kingdom kingdom)
     {
-        if (MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, kingdom, out _)) return null;
+        if (clan.Kingdom is not null
+            || clan.Fiefs.Count > 0
+            || clan.Leader != Hero.MainHero
+            || MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, kingdom, out _))
+        {
+            return null;
+        }
+
         MercenaryOffer offer = CreateOffer(clan, kingdom, true);
         _offers[GetKey(clan, kingdom)] = offer;
         return offer;
@@ -55,6 +75,16 @@ internal sealed class MercenaryOfferBehavior : CampaignBehaviorBase
         MercenaryHiringService.Hire(clan, kingdom, offer);
         RemoveOffersFor(clan);
         return clan.IsUnderMercenaryService && clan.Kingdom == kingdom;
+    }
+
+    public bool RejectOffer(Clan clan, Kingdom kingdom)
+    {
+        return _offers.Remove(GetKey(clan, kingdom));
+    }
+
+    public IEnumerable<MercenaryOffer> GetSavedOffers()
+    {
+        return _offers.Values;
     }
 
     private void OnSessionLaunched(CampaignGameStarter starter)
@@ -96,16 +126,16 @@ internal sealed class MercenaryOfferBehavior : CampaignBehaviorBase
         MercenaryContractBehavior? contracts = Campaign.Current?
             .GetCampaignBehavior<MercenaryContractBehavior>();
         float reliability = contracts?.GetReliability(clan) ?? 50f;
-        float multiplier = 0.9f + need * 0.25f + (reliability - 50f) / 500f;
-        if (requested) multiplier -= 0.05f;
-        int price = System.Math.Max(
+        OfferTermsResult terms = MercenaryOfferModel.CalculateTerms(basePrice,
             MercenaryPaymentService.CalculateMinimumInfluencePrice(clan),
-            System.Math.Min(MercenaryPaymentService.CalculateMaximumInfluencePrice(clan),
-                (int)System.Math.Round(basePrice * multiplier)));
-        MercenaryContractDuration duration = need >= 0.75f
+            MercenaryPaymentService.CalculateMaximumInfluencePrice(clan),
+            need, reliability, requested);
+        MercenaryContractDuration duration = terms.DurationDays == 120
             ? MercenaryContractDuration.Days120
-            : need >= 0.4f ? MercenaryContractDuration.Days60 : MercenaryContractDuration.Days30;
-        return new MercenaryOffer(clan, kingdom, price,
+            : terms.DurationDays == 60
+                ? MercenaryContractDuration.Days60
+                : MercenaryContractDuration.Days30;
+        return new MercenaryOffer(clan, kingdom, terms.InfluencePrice,
             MercenaryHiringService.GetSuggestedPriority(kingdom), duration,
             CampaignTime.DaysFromNow(OfferLifetimeDays));
     }

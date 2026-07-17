@@ -83,6 +83,7 @@ internal sealed class MercenaryContract
     [SaveableProperty(24)] public CampaignTime LastSuccessfulRevisionTime { get; private set; }
     [SaveableProperty(25)] public int ContributionPointsAtLastSuccessfulRevision { get; private set; }
     [SaveableProperty(26)] public CampaignTime LastPriorityChangeTime { get; private set; }
+    [SaveableProperty(27)] public CampaignTime LastDailyContributionTime { get; private set; }
 
     public bool IsActive => State == MercenaryContractState.Active;
 
@@ -163,6 +164,21 @@ internal sealed class MercenaryContract
         AddContribution(points);
         LastActivity = activity ?? string.Empty;
         LastActivityTime = CampaignTime.Now;
+    }
+
+    public bool TryRecordDailyContribution(int points, string activity)
+    {
+        float elapsed = LastDailyContributionTime == CampaignTime.Zero
+            ? -1f
+            : LastDailyContributionTime.ElapsedDaysUntilNow;
+        if (points <= 0 || !Services.MercenaryContributionPolicy.CanRecordDaily(elapsed))
+        {
+            return false;
+        }
+
+        RecordContribution(points, activity);
+        LastDailyContributionTime = CampaignTime.Now;
+        return true;
     }
 
     public void RecordEarnings(int earnings)

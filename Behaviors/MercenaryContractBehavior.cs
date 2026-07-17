@@ -11,7 +11,7 @@ namespace MercenaryManagement.Behaviors;
 
 internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 {
-    private const int CurrentDataVersion = 3;
+    private const int CurrentDataVersion = 4;
 
     private Dictionary<string, MercenaryContract> _contracts =
         new Dictionary<string, MercenaryContract>();
@@ -238,6 +238,33 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         }
 
         contract.Complete(CampaignTime.Now);
+        return true;
+    }
+
+    public bool RunDiagnosticDailyEvaluation(Clan clan, int count)
+    {
+        if (count < 1 || !TryGetContract(clan, out MercenaryContract contract))
+        {
+            return false;
+        }
+
+        for (int index = 0; index < count; index++)
+        {
+            MercenaryEvaluationService.EvaluateDaily(contract);
+        }
+        return true;
+    }
+
+    public bool RunDiagnosticLifecycleCheck(Clan clan, bool forceWarEnded)
+    {
+        if (!TryGetContract(clan, out MercenaryContract contract)) return false;
+        bool expired = contract.EndTime != CampaignTime.Zero
+                       && contract.EndTime != CampaignTime.Never
+                       && contract.EndTime.IsPast;
+        bool warEnded = contract.Duration == MercenaryContractDuration.UntilCurrentWarEnds
+                        && (forceWarEnded || !IsWarStillActive(contract));
+        if (!expired && !warEnded) return false;
+        MercenaryDismissalService.EndService(clan);
         return true;
     }
 
