@@ -3,6 +3,7 @@ using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.Core;
 
 namespace MercenaryManagement.UI;
 
@@ -66,6 +67,18 @@ internal static class MercenaryClanActionController
         if (MercenaryHiringService.TryGetFailureReason(clan, kingdom, out TextObject reason))
         {
             Display(reason);
+            refresh(kingdom);
+            return;
+        }
+
+        int price = MercenaryHiringService.CalculateHirePrice(clan, kingdom);
+        int acceptanceChance = MercenaryHiringService.CalculateAcceptanceChance(clan, kingdom, price);
+        if (MBRandom.RandomInt(100) >= acceptanceChance)
+        {
+            TextObject declined = new TextObject(
+                "{=MercenaryManagement_HireDeclined}The {CLAN} clan declined your offer.");
+            declined.SetTextVariable("CLAN", clan.Name);
+            Display(declined);
             refresh(kingdom);
             return;
         }

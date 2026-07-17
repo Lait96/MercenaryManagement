@@ -12,11 +12,13 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
 {
     private readonly PlayerMercenaryContractVM _mercenaryContract = new PlayerMercenaryContractVM();
     private bool _isMercenaryContractSelected;
+    private string _mercenaryContractText = string.Empty;
 
     public ClanManagementVMMixin(ClanManagementVM viewModel)
         : base(viewModel)
     {
         ClanManagementSelectionPatch.SelectedCategoryChanged += OnSelectedCategoryChanged;
+        RefreshValues();
     }
 
     [DataSourceProperty]
@@ -43,8 +45,16 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
     }
 
     [DataSourceProperty]
-    public string MercenaryContractText => new TaleWorlds.Localization.TextObject(
-        "{=MercenaryManagement_PlayerMercenaryTab}Mercenary").ToString();
+    public string MercenaryContractText
+    {
+        get => _mercenaryContractText;
+        private set
+        {
+            if (_mercenaryContractText == value) return;
+            _mercenaryContractText = value;
+            OnPropertyChangedWithValue(value);
+        }
+    }
 
     [DataSourceMethod]
     public void ExecuteShowMercenaryContract()
@@ -66,9 +76,16 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
         IsMercenaryContractSelected = true;
     }
 
+    private void RefreshValues()
+    {
+        MercenaryContractText = new TaleWorlds.Localization.TextObject(
+            "{=MercenaryManagement_PlayerMercenaryTab}Mercenary").ToString();
+    }
+
     public override void OnRefresh()
     {
         base.OnRefresh();
+        RefreshValues();
         OnPropertyChangedWithValue(IsMercenaryContractTabVisible, nameof(IsMercenaryContractTabVisible));
         OnPropertyChangedWithValue(MercenaryContractText, nameof(MercenaryContractText));
 
@@ -88,9 +105,14 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
         base.OnFinalize();
     }
 
-    private void OnSelectedCategoryChanged(ClanManagementVM viewModel)
+    private void OnSelectedCategoryChanged(ClanManagementVM viewModel, int index)
     {
-        if (viewModel == ViewModel)
+        if (viewModel != ViewModel) return;
+        if (index == 4)
+        {
+            ExecuteShowMercenaryContract();
+        }
+        else
         {
             IsMercenaryContractSelected = false;
         }

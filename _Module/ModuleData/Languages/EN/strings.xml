@@ -37,7 +37,7 @@
     <string id="MercenaryManagement_PriorityJoinArmies" text="Join armies" />
     <string id="MercenaryManagement_PriorityJoinArmiesDescription" text="The clan is expected to join and support the kingdom's armies." />
     <string id="MercenaryManagement_PriorityEconomicWarfare" text="Economic warfare" />
-    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="The clan is expected to pressure enemy villages and economic targets." />
+    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="The clan is expected to raid enemy villages and attack caravans and villager parties." />
     <string id="MercenaryManagement_PriorityTerritorialDefense" text="Territorial defense" />
     <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="The clan is expected to defend friendly lands and respond to local threats." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="Base: {PRICE}" />
@@ -120,5 +120,78 @@
     <string id="MercenaryManagement_CurrentWarsSummary" text="Wars: {WARS}" />
     <string id="MercenaryManagement_NoCurrentWars" text="No current wars" />
     <string id="MercenaryManagement_OfferRate" text="Rate" />
+    <string id="MercenaryManagement_AcceptOffer" text="Accept offer" />
+    <string id="MercenaryManagement_RequestRevision" text="Request better terms" />
+    <string id="MercenaryManagement_EndContract" text="End contract" />
+    <string id="MercenaryManagement_Renew60Days" text="Renew for 60 days" />
+    <string id="MercenaryManagement_Satisfaction" text="Satisfaction" />
+    <string id="MercenaryManagement_Reliability" text="Reliability" />
+    <string id="MercenaryManagement_DepartureRisk" text="Departure risk" />
+    <string id="MercenaryManagement_Performance" text="Performance" />
+    <string id="MercenaryManagement_DangerHigh" text="High" />
+    <string id="MercenaryManagement_DangerMedium" text="Moderate" />
+    <string id="MercenaryManagement_DangerLow" text="Low" />
+    <string id="MercenaryManagement_OfferDurationValue" text="60 days" />
+    <string id="MercenaryManagement_InterestDefense" text="The kingdom needs help protecting its territory." />
+    <string id="MercenaryManagement_InterestReserve" text="The kingdom wants flexible forces available for emerging threats." />
+    <string id="MercenaryManagement_InterestWar" text="The kingdom needs additional strength for its current wars." />
+    <string id="MercenaryManagement_OfferKingdomUnavailable" text="The kingdom has no ruler available to make an offer." />
+    <string id="MercenaryManagement_OfferInsufficientFunds" text="The ruler cannot guarantee the clan's initial wages." />
+    <string id="MercenaryManagement_PerformanceExcellent" text="Excellent" />
+    <string id="MercenaryManagement_PerformanceGood" text="Good" />
+    <string id="MercenaryManagement_PerformanceDeveloping" text="Adequate" />
+    <string id="MercenaryManagement_PerformanceNone" text="No notable results yet" />
+    <string id="MercenaryManagement_CurrentActivity" text="Current activity" />
+    <string id="MercenaryManagement_AcceptanceChance" text="Estimated acceptance chance" />
+    <string id="MercenaryManagement_Duration" text="Duration" />
+    <string id="MercenaryManagement_Duration30" text="30 days" />
+    <string id="MercenaryManagement_Duration60" text="60 days" />
+    <string id="MercenaryManagement_Duration120" text="120 days" />
+    <string id="MercenaryManagement_DurationWar" text="Until the current war ends" />
+    <string id="MercenaryManagement_Danger" text="Estimated danger" />
+    <string id="MercenaryManagement_Interest" text="Why this kingdom is interested" />
+    <string id="MercenaryManagement_ActivityJoinedArmy" text="Recently joined an army" />
+    <string id="MercenaryManagement_ActivityCompletedRaid" text="Recently completed a raid" />
+    <string id="MercenaryManagement_ActivityServingArmy" text="Serving in an army" />
+    <string id="MercenaryManagement_ActivityEconomic" text="Conducting economic warfare" />
+    <string id="MercenaryManagement_ActivityDefense" text="Operating in friendly territory" />
+    <string id="MercenaryManagement_ActivityIndependent" text="Conducting independent operations" />
+    <string id="MercenaryManagement_ActivityUnknown" text="No recent activity reported" />
+    <string id="MercenaryManagement_RenewAccepted" text="The clan accepted the contract renewal." />
+    <string id="MercenaryManagement_RenewDeclined" text="The clan declined the contract renewal." />
+    <string id="MercenaryManagement_RevisionAccepted" text="Your employer accepted the revised rate." />
+    <string id="MercenaryManagement_RevisionDeclined" text="Your employer declined to revise the contract." />
+    <string id="MercenaryManagement_HireDeclined" text="The {CLAN} clan declined your offer." />
+    <string id="MercenaryManagement_RecentEarnings" text="Earnings in the last 7 days" />
+    <string id="MercenaryManagement_EmployerSatisfaction" text="Employer satisfaction" />
+    <string id="MercenaryManagement_PreferredRole" text="Preferred role" />
+    <string id="MercenaryManagement_OfferAccepted" text="Your clan entered the kingdom's service." />
+    <string id="MercenaryManagement_OfferAcceptFailed" text="The offer is no longer available." />
+    <string id="MercenaryManagement_PerformanceInitial" text="Initial assessment" />
+    <string id="MercenaryManagement_PerformanceLimited" text="Limited results" />
+    <string id="MercenaryManagement_EmployerTerminationRisk" text="Risk of employer termination" />
+    <string id="MercenaryManagement_ContractActionUnavailable" text="The contract is no longer active." />
+    <string id="MercenaryManagement_RevisionAtMaximum" text="Your contract already uses the maximum available rate." />
+    <string id="MercenaryManagement_EndContractTitle" text="End mercenary contract" />
+    <string id="MercenaryManagement_EndContractConfirmation" text="End your clan's current mercenary contract?" />
+    <string id="MercenaryManagement_PlayerContractEnded" text="Your mercenary contract has ended." />
+    <string id="MercenaryManagement_PlayerContractEndFailed" text="The contract could not be ended in the current situation." />
+    <string id="MercenaryManagement_PartyName" text="Party" />
+    <string id="MercenaryManagement_PartyLeader" text="Leader" />
+    <string id="MercenaryManagement_PartyTroops" text="Troops" />
+    <string id="MercenaryManagement_PartyActivity" text="Activity" />
+    <string id="MercenaryManagement_PartyActivityBattle" text="In battle" />
+    <string id="MercenaryManagement_PartyActivitySiege" text="Participating in a siege" />
+    <string id="MercenaryManagement_PartyActivityArmy" text="Serving in an army" />
+    <string id="MercenaryManagement_PartyActivityRaid" text="Raiding enemy lands" />
+    <string id="MercenaryManagement_PartyActivityPursuit" text="Pursuing another party" />
+    <string id="MercenaryManagement_PartyActivityTravel" text="Travelling to a settlement" />
+    <string id="MercenaryManagement_PartyActivityPatrol" text="Patrolling the area" />
+    <string id="MercenaryManagement_PartyActivityEscort" text="Escorting another party" />
+    <string id="MercenaryManagement_PartyActivityIndependent" text="Operating independently" />
+    <string id="MercenaryManagement_PlayerPriorityChanged" text="Your employer changed the clan's strategic priority to {PRIORITY}." />
+    <string id="MercenaryManagement_RevisionCooldown" text="Your employer will not consider another revision until one day after the previous request." />
+    <string id="MercenaryManagement_ActivityClearedBandits" text="Recently defeated bandits" />
+    <string id="MercenaryManagement_ActivityClearedHideout" text="Recently cleared a bandit hideout" />
   </strings>
 </base>

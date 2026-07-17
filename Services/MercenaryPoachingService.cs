@@ -92,10 +92,9 @@ internal static class MercenaryPoachingService
     public static void Poach(Clan clan, Kingdom targetKingdom)
     {
         int awardFactor = MercenaryHiringService.CalculateHirePrice(clan, targetKingdom);
-        CampaignTime serviceCommitment = CampaignTime.Zero;
+        CampaignTime serviceCommitment = CampaignTime.DaysFromNow(60f);
 
         // Bannerlord's native action ends the old service and starts the new one.
-        // The current contract scenario deliberately uses an indefinite commitment.
         ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
             clan,
             targetKingdom,

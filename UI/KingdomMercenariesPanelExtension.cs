@@ -225,7 +225,8 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                             <ListPanel WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="StretchToParent"
                                        MarginLeft="55"
-                                       MarginRight="35">
+                                       MarginRight="35"
+                                       IsVisible="@IsRulerMercenaryView">
                               <Children>
                                 <ScrollablePanel WidthSizePolicy="StretchToParent"
                                                  HeightSizePolicy="StretchToParent"
@@ -390,6 +391,26 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                   </Children>
                                 </ListPanel>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" IsVisible="@IsSelectedClanServingPlayerKingdom" />
+
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@SatisfactionText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@Satisfaction" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ReliabilityText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@Reliability" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@DepartureRiskText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@DepartureRisk" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@PerformanceText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@Performance" /></Children></ListPanel>
+                                <BrushListPanel DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="12" IsVisible="@HasActivePartyItems" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="23" Text="@ActivePartiesText" />
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="12" MarginRight="12" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="240" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@PartyNameText" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="210" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@PartyLeaderText" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="90" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@PartyTroopsText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Text="@PartyActivityText" /></Children></ListPanel>
+                                    <ListPanel DataSource="{ActivePartyItems}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="12" MarginRight="12" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <ItemTemplate>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="240" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="18" Text="@PartyName" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="210" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="18" Text="@LeaderName" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="90" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="18" IntText="@TroopCount" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="18" Text="@Activity" /></Children></ListPanel>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                  </Children>
+                                </BrushListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@RecentEarningsText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@RecentEarnings" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanInfluencePriceVisible"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ReliabilityText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@Reliability" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanInfluencePriceVisible"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@AcceptanceChanceText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@AcceptanceChance" /></Children></ListPanel>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@IsSelectedClanInfluencePriceVisible"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@PreferredRoleText" /><TextWidget DataSource="{SelectedClan}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@PreferredRole" /></Children></ListPanel>
 
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44">
                                   <Children>
@@ -698,6 +719,25 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                               MarginTop="12"
                                               HorizontalAlignment="Center"
                                               Brush="ButtonBrush2"
+                                              Command.Click="ExecuteRenewSelectedClan"
+                                              IsVisible="@CanRenewSelectedClan"
+                                              UpdateChildrenStates="true"
+                                              DoNotPassEventsToChildren="true">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="StretchToParent"
+                                                Brush="Kingdom.GeneralButtons.Text"
+                                                Text="@RenewText" />
+                                  </Children>
+                                </ButtonWidget>
+
+                                <ButtonWidget WidthSizePolicy="Fixed"
+                                              HeightSizePolicy="Fixed"
+                                              SuggestedWidth="227"
+                                              SuggestedHeight="40"
+                                              MarginTop="12"
+                                              HorizontalAlignment="Center"
+                                              Brush="ButtonBrush2"
                                               Command.Click="ExecuteDismissSelectedClan"
                                               IsVisible="@CanDismissSelectedClan"
                                               UpdateChildrenStates="true"
@@ -716,6 +756,109 @@ internal sealed class KingdomMercenariesPanelExtension : PrefabExtensionInsertPa
                                   </Children>
                                 </ScrollablePanel>
                                 <Standard.VerticalScrollbar Id="MercenaryDetailsScrollbar"
+                                                            HeightSizePolicy="StretchToParent"
+                                                            HorizontalAlignment="Right"
+                                                            MarginLeft="4"
+                                                            MarginRight="4" />
+                              </Children>
+                            </ListPanel>
+
+                            <ListPanel WidthSizePolicy="StretchToParent"
+                                       HeightSizePolicy="StretchToParent"
+                                       MarginLeft="55"
+                                       MarginRight="35"
+                                       IsVisible="@IsReadOnlyMercenaryView">
+                              <Children>
+                                <ScrollablePanel WidthSizePolicy="StretchToParent"
+                                                 HeightSizePolicy="StretchToParent"
+                                                 MarginRight="20"
+                                                 AutoHideScrollBars="true"
+                                                 MouseScrollAxis="Vertical"
+                                                 ClipRect="ReadOnlyMercenaryClipRect"
+                                                 InnerPanel="ReadOnlyMercenaryClipRect\ReadOnlyMercenaryContent"
+                                                 VerticalScrollbar="..\ReadOnlyMercenaryScrollbar\Scrollbar">
+                                  <Children>
+                                    <Widget Id="ReadOnlyMercenaryClipRect"
+                                            WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="StretchToParent"
+                                            ClipContents="true">
+                                      <Children>
+                                        <ListPanel Id="ReadOnlyMercenaryContent"
+                                                   WidthSizePolicy="StretchToParent"
+                                                   HeightSizePolicy="CoverChildren"
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom">
+                                          <Children>
+                                <TextWidget WidthSizePolicy="StretchToParent"
+                                            HeightSizePolicy="Fixed"
+                                            SuggestedHeight="55"
+                                            HorizontalAlignment="Center"
+                                            Brush="Kingdom.TitleMedium.Text"
+                                            Text="@ReadOnlyClanName" />
+                                <BrushListPanel WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="CoverChildren"
+                                                MarginTop="8"
+                                                MarginBottom="18"
+                                                Brush="Frame1Brush"
+                                                StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="24" Text="@ClanInformationText" />
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginLeft="12" MarginRight="12" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="18" MarginRight="18" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <Children>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@LeaderText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyLeaderName" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ClanLevelText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyClanLevel" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@StrengthText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyStrength" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ActivePartiesText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyActiveParties" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ClanMembersText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyClanMembers" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@RelationToRulerText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyRelationToRuler" /></Children></ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" IsVisible="@ReadOnlyShouldShowInfluencePrice"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@InfluencePriceText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyInfluencePrice" /></Children></ListPanel>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="25" Text="@ServiceStatusText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyServiceStatus" /></Children></ListPanel>
+                                      </Children>
+                                    </ListPanel>
+                                  </Children>
+                                </BrushListPanel>
+                                <BrushListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginBottom="18" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@ReadOnlyIsServingPlayerKingdom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="24" Text="@ContractSettingsText" />
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginLeft="12" MarginRight="12" Sprite="GradientDivider_9" AlphaFactor="0.4" />
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@StrategicPriorityText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyStrategicPriorityName" /></Children></ListPanel>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MinHeight="62" MarginLeft="24" MarginRight="24" MarginBottom="12" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Text="@ReadOnlyStrategicPriorityDescription" />
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18" IsVisible="@ReadOnlyIsServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@ContractStateText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyContractState" /></Children></ListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18" IsVisible="@ReadOnlyIsServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@ContractStartText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyContractStart" /></Children></ListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18" IsVisible="@ReadOnlyIsServingPlayerKingdom"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@ContractEndText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyContractEnd" /></Children></ListPanel>
+                                    <ListPanel IsVisible="@ReadOnlyIsNotPlayerClan" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@SatisfactionText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlySatisfaction" /></Children></ListPanel>
+                                    <ListPanel IsVisible="@ReadOnlyIsNotPlayerClan" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@ReliabilityText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyReliability" /></Children></ListPanel>
+                                    <ListPanel IsVisible="@ReadOnlyIsNotPlayerClan" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@DepartureRiskText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyDepartureRisk" /></Children></ListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@EmployerSatisfactionText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyEmployerSatisfaction" /></Children></ListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@EmployerTerminationRiskText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyEmployerTerminationRisk" /></Children></ListPanel>
+                                    <BrushListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="12" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="23" Text="@ActivePartiesText" />
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="12" MarginRight="12" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="210" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@PartyNameText" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="180" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@PartyLeaderText" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="75" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@PartyTroopsText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="17" Text="@PartyActivityText" /></Children></ListPanel>
+                                        <ListPanel DataSource="{ReadOnlyActivePartyItems}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="12" MarginRight="12" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                          <ItemTemplate>
+                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="210" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="17" Text="@PartyName" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="180" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="17" Text="@LeaderName" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="75" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="17" IntText="@TroopCount" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="17" Text="@Activity" /></Children></ListPanel>
+                                          </ItemTemplate>
+                                        </ListPanel>
+                                      </Children>
+                                    </BrushListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@PerformanceText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" Text="@ReadOnlyPerformance" /></Children></ListPanel>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="18" MarginRight="18"><Children><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="23" Text="@RecentEarningsText" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Brush="ArmyManagement.Army.Tuple.Name" IntText="@ReadOnlyRecentEarnings" /></Children></ListPanel>
+                                  </Children>
+                                </BrushListPanel>
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                  </Children>
+                                </ScrollablePanel>
+                                <Standard.VerticalScrollbar Id="ReadOnlyMercenaryScrollbar"
                                                             HeightSizePolicy="StretchToParent"
                                                             HorizontalAlignment="Right"
                                                             MarginLeft="4"

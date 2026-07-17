@@ -4,6 +4,7 @@ using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
+using TaleWorlds.CampaignSystem.MapEvents;
 
 namespace MercenaryManagement.Behaviors;
 
@@ -25,6 +26,12 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
         CampaignEvents.DailyTickPartyEvent.AddNonSerializedListener(
             this,
             OnDailyTickParty);
+        CampaignEvents.OnPartyJoinedArmyEvent.AddNonSerializedListener(this, OnPartyJoinedArmy);
+        CampaignEvents.RaidCompletedEvent.AddNonSerializedListener(this, OnRaidCompleted);
+        CampaignEvents.MapEventEnded.AddNonSerializedListener(this, OnMapEventEnded);
+        CampaignEvents.OnHideoutBattleCompletedEvent.AddNonSerializedListener(
+            this,
+            OnHideoutBattleCompleted);
     }
 
     public override void SyncData(IDataStore dataStore)
@@ -60,6 +67,7 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
 
     private void OnDailyTickParty(MobileParty mobileParty)
     {
+        RecordDailyContribution(mobileParty);
         Army? army = mobileParty.Army;
         if (army is null
             || mobileParty.IsMainParty
@@ -123,6 +131,119 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
         _armyRejoinCooldowns[mobileParty.StringId] = CampaignTime.DaysFromNow(
             ArmyRejoinCooldownDays);
         RecordEvent(mobileParty, priority, "ArmyLeaveCompleted");
+    }
+
+    private static void RecordDailyContribution(MobileParty mobileParty)
+    {
+        Clan? clan = mobileParty.ActualClan;
+        if (!mobileParty.IsActive || clan is null || clan.Kingdom is null)
+        {
+            return;
+        }
+
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (behavior?.TryGetContract(clan, out MercenaryContract contract) != true)
+        {
+            return;
+        }
+
+        bool matches = contract.StrategicPriority == MercenaryStrategicPriority.JoinArmies
+            ? mobileParty.Army is not null
+            : contract.StrategicPriority == MercenaryStrategicPriority.EconomicWarfare
+                ? mobileParty.DefaultBehavior == AiBehavior.RaidSettlement
+                : contract.StrategicPriority == MercenaryStrategicPriority.IndependentOperations
+                  || contract.StrategicPriority == MercenaryStrategicPriority.TerritorialDefense
+                     && MercenaryPriorityService.IsInFriendlyTerritory(mobileParty);
+        if (matches)
+        {
+            contract.RecordContribution(1, GetDailyActivity(contract.StrategicPriority));
+        }
+    }
+
+    private static void OnPartyJoinedArmy(MobileParty party)
+    {
+        RecordContribution(party, MercenaryStrategicPriority.JoinArmies, 5, "JoinedArmy");
+    }
+
+    private static void OnRaidCompleted(BattleSideEnum winnerSide, RaidEventComponent raid)
+    {
+        if (winnerSide != BattleSideEnum.Attacker) return;
+        MobileParty? party = raid.AttackerSide.LeaderParty?.MobileParty;
+        if (party is not null)
+            RecordContribution(party, MercenaryStrategicPriority.EconomicWarfare, 15, "CompletedRaid");
+    }
+
+    private static void OnMapEventEnded(MapEvent mapEvent)
+    {
+        if (!mapEvent.HasWinner
+            || mapEvent.IsHideoutBattle
+            || mapEvent.Winner.OtherSide.MapFaction?.IsBanditFaction != true)
+        {
+            return;
+        }
+
+        RecordTerritorialDefenseContribution(
+            mapEvent,
+            5,
+            "ClearedBandits");
+    }
+
+    private static void OnHideoutBattleCompleted(
+        BattleSideEnum winnerSide,
+        HideoutEventComponent hideout,
+        HideoutEventComponent.HideoutBattleEndState endState)
+    {
+        if (winnerSide != BattleSideEnum.Attacker) return;
+        RecordTerritorialDefenseContribution(
+            hideout.MapEvent,
+            15,
+            "ClearedHideout");
+    }
+
+    private static void RecordTerritorialDefenseContribution(
+        MapEvent mapEvent,
+        int points,
+        string activity)
+    {
+        if (!mapEvent.HasWinner) return;
+        var creditedClans = new HashSet<string>();
+        foreach (MapEventParty eventParty in mapEvent.Winner.Parties)
+        {
+            Clan? clan = eventParty.Party.MobileParty?.ActualClan;
+            if (clan is null || !creditedClans.Add(clan.StringId)) continue;
+            MercenaryContractBehavior? behavior = Campaign.Current?
+                .GetCampaignBehavior<MercenaryContractBehavior>();
+            if (behavior?.TryGetContract(clan, out MercenaryContract contract) == true
+                && contract.StrategicPriority == MercenaryStrategicPriority.TerritorialDefense)
+            {
+                contract.RecordContribution(points, activity);
+            }
+        }
+    }
+
+    private static void RecordContribution(MobileParty party,
+        MercenaryStrategicPriority expectedPriority, int points, string activity)
+    {
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (party.ActualClan is not null
+            && behavior?.TryGetContract(party.ActualClan, out MercenaryContract contract) == true
+            && contract.StrategicPriority == expectedPriority)
+        {
+            contract.RecordContribution(points, activity);
+        }
+    }
+
+    private static string GetDailyActivity(MercenaryStrategicPriority priority)
+    {
+        switch (priority)
+        {
+            case MercenaryStrategicPriority.JoinArmies: return "ServingInArmy";
+            case MercenaryStrategicPriority.EconomicWarfare: return "EconomicOperation";
+            case MercenaryStrategicPriority.TerritorialDefense: return "DefendingTerritory";
+            default: return "IndependentOperation";
+        }
     }
 
     private static float GetDailyLeaveChance(

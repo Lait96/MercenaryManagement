@@ -1,9 +1,11 @@
 using System.Linq;
 using Bannerlord.UIExtenderEx.Attributes;
 using MercenaryManagement.Services;
+using MercenaryManagement.Behaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.Core;
 
 namespace MercenaryManagement.UI;
 
@@ -14,6 +16,9 @@ internal sealed class MercenaryClansVM : ViewModel
     private bool _hasAvailableClans;
     private bool _hasOtherKingdomClans;
     private MercenaryClanItemVM? _selectedClan;
+    private MercenaryClanItemVM? _readOnlySelectedClan;
+    private readonly MBBindingList<MercenaryPartyItemVM> _emptyActivePartyItems =
+        new MBBindingList<MercenaryPartyItemVM>();
 
     public MercenaryClansVM()
     {
@@ -104,6 +109,78 @@ internal sealed class MercenaryClansVM : ViewModel
     public bool AreOtherKingdomClansEmpty => !HasOtherKingdomClans;
 
     [DataSourceProperty]
+    public bool IsRulerMercenaryView => _kingdom is not null
+                                         && MercenaryHiringService.IsPlayerRuler(_kingdom);
+
+    [DataSourceProperty]
+    public bool IsReadOnlyMercenaryView => _kingdom is not null && !IsRulerMercenaryView;
+
+    [DataSourceProperty]
+    public string ReadOnlyClanName => _readOnlySelectedClan?.ClanName ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyLeaderName => _readOnlySelectedClan?.LeaderName ?? string.Empty;
+
+    [DataSourceProperty]
+    public int ReadOnlyClanLevel => _readOnlySelectedClan?.ClanLevel ?? 0;
+
+    [DataSourceProperty]
+    public int ReadOnlyStrength => _readOnlySelectedClan?.Strength ?? 0;
+
+    [DataSourceProperty]
+    public int ReadOnlyActiveParties => _readOnlySelectedClan?.ActiveParties ?? 0;
+
+    [DataSourceProperty]
+    public int ReadOnlyClanMembers => _readOnlySelectedClan?.ClanMembers ?? 0;
+
+    [DataSourceProperty]
+    public int ReadOnlyRelationToRuler => _readOnlySelectedClan?.RelationToRuler ?? 0;
+
+    [DataSourceProperty]
+    public int ReadOnlyInfluencePrice => _readOnlySelectedClan?.InfluencePrice ?? 0;
+
+    [DataSourceProperty]
+    public string ReadOnlyServiceStatus => _readOnlySelectedClan?.ServiceStatus ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyContractState => _readOnlySelectedClan?.ContractState ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyContractStart => _readOnlySelectedClan?.ContractStart ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyContractEnd => _readOnlySelectedClan?.ContractEnd ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyStrategicPriorityName =>
+        _readOnlySelectedClan?.StrategicPriorityName ?? string.Empty;
+
+    [DataSourceProperty]
+    public string ReadOnlyStrategicPriorityDescription =>
+        _readOnlySelectedClan?.StrategicPriorityDescription ?? string.Empty;
+
+    [DataSourceProperty]
+    public bool ReadOnlyShouldShowInfluencePrice =>
+        _readOnlySelectedClan?.ShouldShowInfluencePrice == true;
+
+    [DataSourceProperty]
+    public bool ReadOnlyIsServingPlayerKingdom =>
+        _readOnlySelectedClan?.IsServingPlayerKingdom == true;
+
+    [DataSourceProperty] public int ReadOnlySatisfaction => _readOnlySelectedClan?.Satisfaction ?? 0;
+    [DataSourceProperty] public int ReadOnlyReliability => _readOnlySelectedClan?.Reliability ?? 0;
+    [DataSourceProperty] public int ReadOnlyDepartureRisk => _readOnlySelectedClan?.DepartureRisk ?? 0;
+    [DataSourceProperty] public int ReadOnlyEmployerSatisfaction => _readOnlySelectedClan?.EmployerSatisfaction ?? 0;
+    [DataSourceProperty] public int ReadOnlyEmployerTerminationRisk => _readOnlySelectedClan?.EmployerTerminationRisk ?? 0;
+    [DataSourceProperty] public bool ReadOnlyIsPlayerClan => _readOnlySelectedClan?.Clan == Clan.PlayerClan;
+    [DataSourceProperty] public bool ReadOnlyIsNotPlayerClan => !ReadOnlyIsPlayerClan;
+    [DataSourceProperty] public string ReadOnlyPerformance => _readOnlySelectedClan?.Performance ?? string.Empty;
+    [DataSourceProperty] public string ReadOnlyCurrentActivity => _readOnlySelectedClan?.CurrentActivity ?? string.Empty;
+    [DataSourceProperty] public int ReadOnlyRecentEarnings => _readOnlySelectedClan?.RecentEarnings ?? 0;
+    [DataSourceProperty] public MBBindingList<MercenaryPartyItemVM> ReadOnlyActivePartyItems =>
+        _readOnlySelectedClan?.ActivePartyItems ?? _emptyActivePartyItems;
+
+    [DataSourceProperty]
     public bool IsSelectedClanServingPlayerKingdom => SelectedClan?.IsServingPlayerKingdom == true;
 
     [DataSourceProperty]
@@ -129,6 +206,9 @@ internal sealed class MercenaryClansVM : ViewModel
     public bool CanDismissSelectedClan => _kingdom is not null
                                           && MercenaryHiringService.IsPlayerRuler(_kingdom)
                                           && SelectedClan?.IsServingPlayerKingdom == true;
+
+    [DataSourceProperty]
+    public bool CanRenewSelectedClan => CanDismissSelectedClan;
 
     [DataSourceProperty]
     public bool CanPoachSelectedClan => _kingdom is not null
@@ -165,6 +245,7 @@ internal sealed class MercenaryClansVM : ViewModel
                 nameof(IsSelectedClanStrategicPriorityReadOnly));
             OnPropertyChangedWithValue(CanHireSelectedClan, nameof(CanHireSelectedClan));
             OnPropertyChangedWithValue(CanDismissSelectedClan, nameof(CanDismissSelectedClan));
+            OnPropertyChangedWithValue(CanRenewSelectedClan, nameof(CanRenewSelectedClan));
             OnPropertyChangedWithValue(CanPoachSelectedClan, nameof(CanPoachSelectedClan));
         }
     }
@@ -265,6 +346,51 @@ internal sealed class MercenaryClansVM : ViewModel
     public string DismissText => new TextObject("{=MercenaryManagement_Dismiss}Dismiss clan").ToString();
 
     [DataSourceProperty]
+    public string RenewText => new TextObject("{=MercenaryManagement_Renew60Days}Renew for 60 days").ToString();
+
+    [DataSourceProperty]
+    public string SatisfactionText => new TextObject("{=MercenaryManagement_Satisfaction}Satisfaction").ToString();
+
+    [DataSourceProperty]
+    public string ReliabilityText => new TextObject("{=MercenaryManagement_Reliability}Reliability").ToString();
+
+    [DataSourceProperty]
+    public string DepartureRiskText => new TextObject("{=MercenaryManagement_DepartureRisk}Departure risk").ToString();
+
+    [DataSourceProperty]
+    public string EmployerSatisfactionText => new TextObject("{=MercenaryManagement_EmployerSatisfaction}Employer satisfaction").ToString();
+
+    [DataSourceProperty]
+    public string EmployerTerminationRiskText => new TextObject("{=MercenaryManagement_EmployerTerminationRisk}Risk of employer termination").ToString();
+
+    [DataSourceProperty]
+    public string PerformanceText => new TextObject("{=MercenaryManagement_Performance}Performance").ToString();
+
+    [DataSourceProperty]
+    public string CurrentActivityText => new TextObject("{=MercenaryManagement_CurrentActivity}Current activity").ToString();
+
+    [DataSourceProperty]
+    public string PartyNameText => new TextObject("{=MercenaryManagement_PartyName}Party").ToString();
+
+    [DataSourceProperty]
+    public string PartyLeaderText => new TextObject("{=MercenaryManagement_PartyLeader}Leader").ToString();
+
+    [DataSourceProperty]
+    public string PartyTroopsText => new TextObject("{=MercenaryManagement_PartyTroops}Troops").ToString();
+
+    [DataSourceProperty]
+    public string PartyActivityText => new TextObject("{=MercenaryManagement_PartyActivity}Activity").ToString();
+
+    [DataSourceProperty]
+    public string AcceptanceChanceText => new TextObject("{=MercenaryManagement_AcceptanceChance}Estimated acceptance chance").ToString();
+
+    [DataSourceProperty]
+    public string PreferredRoleText => new TextObject("{=MercenaryManagement_PreferredRole}Preferred role").ToString();
+
+    [DataSourceProperty]
+    public string RecentEarningsText => new TextObject("{=MercenaryManagement_RecentEarnings}Earnings in the last 7 days").ToString();
+
+    [DataSourceProperty]
     public string PoachText => new TextObject("{=MercenaryManagement_Poach}Poach clan").ToString();
 
     [DataSourceProperty]
@@ -339,12 +465,17 @@ internal sealed class MercenaryClansVM : ViewModel
         {
             clan.RefreshValues();
         }
+
+        NotifyReadOnlySelectedClanChanged();
     }
 
     public void Refresh(Kingdom? kingdom)
     {
         _kingdom = kingdom;
         SelectedClan = null;
+        SetReadOnlySelectedClan(null);
+        OnPropertyChangedWithValue(IsRulerMercenaryView, nameof(IsRulerMercenaryView));
+        OnPropertyChangedWithValue(IsReadOnlyMercenaryView, nameof(IsReadOnlyMercenaryView));
 
         foreach (MercenaryClanItemVM clan in Clans)
         {
@@ -400,7 +531,12 @@ internal sealed class MercenaryClansVM : ViewModel
         HasAvailableClans = AvailableClans.Count > 0;
         HasOtherKingdomClans = OtherKingdomClans.Count > 0;
 
-        if (HasClans)
+        MercenaryClanItemVM? playerMercenary = Clans.FirstOrDefault(item => item.Clan == Clan.PlayerClan);
+        if (playerMercenary is not null)
+        {
+            SelectClan(playerMercenary);
+        }
+        else if (HasClans)
         {
             SelectClan(Clans[0]);
         }
@@ -450,9 +586,29 @@ internal sealed class MercenaryClansVM : ViewModel
         MercenaryClanActionController.ShowPoach(selectedClan.Clan, _kingdom, Refresh);
     }
 
+    [DataSourceMethod]
+    public void ExecuteRenewSelectedClan()
+    {
+        if (_kingdom is null || !CanRenewSelectedClan || SelectedClan is null) return;
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (behavior?.TryGetContract(SelectedClan.Clan, out var contract) != true) return;
+        float acceptance = 0.25f + contract.Satisfaction / 200f + contract.Reliability / 400f;
+        if (MBRandom.RandomFloat <= System.Math.Min(0.95f, acceptance)
+            && behavior.SetContractEndTime(SelectedClan.Clan, CampaignTime.DaysFromNow(60f)))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(new TextObject(
+                "{=MercenaryManagement_RenewAccepted}The clan accepted the contract renewal.").ToString()));
+        }
+        else InformationManager.DisplayMessage(new InformationMessage(new TextObject(
+            "{=MercenaryManagement_RenewDeclined}The clan declined the contract renewal.").ToString()));
+        Refresh(_kingdom);
+    }
+
     public override void OnFinalize()
     {
         SelectedClan = null;
+        SetReadOnlySelectedClan(null);
 
         foreach (MercenaryClanItemVM clan in Clans)
         {
@@ -479,6 +635,12 @@ internal sealed class MercenaryClansVM : ViewModel
 
     private void SelectClan(MercenaryClanItemVM clan)
     {
+        if (IsReadOnlyMercenaryView)
+        {
+            SetReadOnlySelectedClan(clan);
+            return;
+        }
+
         if (SelectedClan == clan)
         {
             return;
@@ -491,5 +653,65 @@ internal sealed class MercenaryClansVM : ViewModel
 
         SelectedClan = clan;
         clan.IsSelected = true;
+    }
+
+    private void SetReadOnlySelectedClan(MercenaryClanItemVM? clan)
+    {
+        if (_readOnlySelectedClan == clan)
+        {
+            return;
+        }
+
+        if (_readOnlySelectedClan is not null)
+        {
+            _readOnlySelectedClan.IsSelected = false;
+        }
+
+        _readOnlySelectedClan = clan;
+        if (clan is not null)
+        {
+            clan.IsSelected = true;
+        }
+
+        NotifyReadOnlySelectedClanChanged();
+    }
+
+    private void NotifyReadOnlySelectedClanChanged()
+    {
+        OnPropertyChangedWithValue(ReadOnlyClanName, nameof(ReadOnlyClanName));
+        OnPropertyChangedWithValue(ReadOnlyLeaderName, nameof(ReadOnlyLeaderName));
+        OnPropertyChangedWithValue(ReadOnlyClanLevel, nameof(ReadOnlyClanLevel));
+        OnPropertyChangedWithValue(ReadOnlyStrength, nameof(ReadOnlyStrength));
+        OnPropertyChangedWithValue(ReadOnlyActiveParties, nameof(ReadOnlyActiveParties));
+        OnPropertyChangedWithValue(ReadOnlyClanMembers, nameof(ReadOnlyClanMembers));
+        OnPropertyChangedWithValue(ReadOnlyRelationToRuler, nameof(ReadOnlyRelationToRuler));
+        OnPropertyChangedWithValue(ReadOnlyInfluencePrice, nameof(ReadOnlyInfluencePrice));
+        OnPropertyChangedWithValue(ReadOnlyServiceStatus, nameof(ReadOnlyServiceStatus));
+        OnPropertyChangedWithValue(ReadOnlyContractState, nameof(ReadOnlyContractState));
+        OnPropertyChangedWithValue(ReadOnlyContractStart, nameof(ReadOnlyContractStart));
+        OnPropertyChangedWithValue(ReadOnlyContractEnd, nameof(ReadOnlyContractEnd));
+        OnPropertyChangedWithValue(
+            ReadOnlyStrategicPriorityName,
+            nameof(ReadOnlyStrategicPriorityName));
+        OnPropertyChangedWithValue(
+            ReadOnlyStrategicPriorityDescription,
+            nameof(ReadOnlyStrategicPriorityDescription));
+        OnPropertyChangedWithValue(
+            ReadOnlyShouldShowInfluencePrice,
+            nameof(ReadOnlyShouldShowInfluencePrice));
+        OnPropertyChangedWithValue(
+            ReadOnlyIsServingPlayerKingdom,
+            nameof(ReadOnlyIsServingPlayerKingdom));
+        OnPropertyChangedWithValue(ReadOnlySatisfaction, nameof(ReadOnlySatisfaction));
+        OnPropertyChangedWithValue(ReadOnlyReliability, nameof(ReadOnlyReliability));
+        OnPropertyChangedWithValue(ReadOnlyDepartureRisk, nameof(ReadOnlyDepartureRisk));
+        OnPropertyChangedWithValue(ReadOnlyEmployerSatisfaction, nameof(ReadOnlyEmployerSatisfaction));
+        OnPropertyChangedWithValue(ReadOnlyEmployerTerminationRisk, nameof(ReadOnlyEmployerTerminationRisk));
+        OnPropertyChangedWithValue(ReadOnlyIsPlayerClan, nameof(ReadOnlyIsPlayerClan));
+        OnPropertyChangedWithValue(ReadOnlyIsNotPlayerClan, nameof(ReadOnlyIsNotPlayerClan));
+        OnPropertyChangedWithValue(ReadOnlyPerformance, nameof(ReadOnlyPerformance));
+        OnPropertyChangedWithValue(ReadOnlyCurrentActivity, nameof(ReadOnlyCurrentActivity));
+        OnPropertyChangedWithValue(ReadOnlyRecentEarnings, nameof(ReadOnlyRecentEarnings));
+        OnPropertyChangedWithValue(ReadOnlyActivePartyItems, nameof(ReadOnlyActivePartyItems));
     }
 }

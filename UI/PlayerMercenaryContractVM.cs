@@ -6,6 +6,7 @@ using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.Core;
 using MercenaryManagement.Services;
 
 namespace MercenaryManagement.UI;
@@ -124,6 +125,144 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     [DataSourceProperty] public string RelationToRulerText => Localize("MercenaryManagement_RelationColumn", "Relation");
     [DataSourceProperty] public string CurrentWarsText => Localize("MercenaryManagement_CurrentWars", "Current wars");
     [DataSourceProperty] public string OfferRateText => Localize("MercenaryManagement_OfferRate", "Rate");
+    [DataSourceProperty] public int ExpectedPayment => MercenaryPaymentService.CalculateExpectedPayment(Clan.PlayerClan);
+    [DataSourceProperty] public int Satisfaction => (int)Math.Round(_contract?.EmployerSatisfaction ?? 0f);
+    [DataSourceProperty] public int EmployerTerminationRisk => (int)Math.Round(
+        _contract is null ? 0f : MercenaryEvaluationService.CalculateEmployerTerminationRisk(_contract));
+    [DataSourceProperty] public string Performance => _contract is null ? string.Empty : MercenaryEvaluationService.GetPerformanceSummary(_contract);
+    [DataSourceProperty] public string CurrentActivity => _contract is null ? string.Empty : MercenaryEvaluationService.GetActivitySummary(_contract);
+    [DataSourceProperty] public int RecentEarnings => _contract?.RecentEarnings ?? 0;
+    [DataSourceProperty] public string AcceptOfferText => Localize("MercenaryManagement_AcceptOffer", "Accept offer");
+    [DataSourceProperty] public string RequestRevisionText => Localize("MercenaryManagement_RequestRevision", "Request better terms");
+    [DataSourceProperty] public string EndContractText => Localize("MercenaryManagement_EndContract", "End contract");
+    [DataSourceProperty] public string ExpectedPaymentText => Localize("MercenaryManagement_ExpectedPayment", "Expected payment (dinars)");
+    [DataSourceProperty] public string SatisfactionText => Localize("MercenaryManagement_EmployerSatisfaction", "Employer satisfaction");
+    [DataSourceProperty] public string EmployerTerminationRiskText => Localize(
+        "MercenaryManagement_EmployerTerminationRisk", "Risk of employer termination");
+    [DataSourceProperty] public string PerformanceText => Localize("MercenaryManagement_Performance", "Performance");
+    [DataSourceProperty] public string CurrentActivityText => Localize("MercenaryManagement_CurrentActivity", "Current activity");
+    [DataSourceProperty] public string RecentEarningsText => Localize("MercenaryManagement_RecentEarnings", "Earnings in the last 7 days");
+
+    [DataSourceMethod]
+    public void ExecuteAcceptOffer()
+    {
+        PlayerMercenaryOfferItemVM? offer = SelectedOffer;
+        Clan clan = Clan.PlayerClan;
+        if (offer is null)
+        {
+            Refresh();
+            return;
+        }
+        if (MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, offer.Kingdom, out TextObject reason))
+        {
+            InformationManager.DisplayMessage(new InformationMessage(reason.ToString()));
+            Refresh();
+            return;
+        }
+
+        bool accepted = Campaign.Current?.GetCampaignBehavior<MercenaryOfferBehavior>()?
+            .TryAccept(offer.Offer) == true;
+        InformationManager.DisplayMessage(new InformationMessage(accepted
+            ? Localize("MercenaryManagement_OfferAccepted", "Your clan entered the kingdom's service.")
+            : Localize("MercenaryManagement_OfferAcceptFailed", "The offer is no longer available.")));
+        Refresh();
+    }
+
+    [DataSourceMethod]
+    public void ExecuteRequestRevision()
+    {
+        if (_contract is null)
+        {
+            Display(Localize("MercenaryManagement_ContractActionUnavailable", "The contract is no longer active."));
+            Refresh();
+            return;
+        }
+        if (_contract.LastRevisionRequestTime != CampaignTime.Zero
+            && _contract.LastRevisionRequestTime.ElapsedDaysUntilNow < 1f)
+        {
+            Display(Localize(
+                "MercenaryManagement_RevisionCooldown",
+                "Your employer will not consider another revision until one day after the previous request."));
+            return;
+        }
+        int revisedRate = Math.Min(
+            MercenaryPaymentService.CalculateMaximumInfluencePrice(Clan.PlayerClan),
+            _contract.InfluencePrice + Math.Max(1, _contract.InfluencePrice / 10));
+        if (revisedRate <= _contract.InfluencePrice)
+        {
+            Display(Localize("MercenaryManagement_RevisionAtMaximum", "Your contract already uses the maximum available rate."));
+            return;
+        }
+        _contract.RecordRevisionRequest();
+        float acceptance = 0.2f + _contract.Reliability / 200f
+                           + MercenaryHiringService.CalculateMilitaryNeed(_contract.EmployerKingdom!) * 0.3f;
+        acceptance += CalculateRevisionProgressModifier(_contract);
+        if (MBRandom.RandomFloat < Math.Min(0.9f, acceptance))
+        {
+            bool changed = MercenaryPaymentService.TrySetInfluencePrice(
+                Clan.PlayerClan, revisedRate, out TextObject reason);
+            if (changed)
+            {
+                _contract.RecordSuccessfulRevision();
+                Display(Localize("MercenaryManagement_RevisionAccepted", "Your employer accepted the revised rate."));
+            }
+            else Display(reason.ToString());
+        }
+        else Display(Localize(
+            "MercenaryManagement_RevisionDeclined", "Your employer declined to revise the contract."));
+        Refresh();
+    }
+
+    private static float CalculateRevisionProgressModifier(MercenaryContract contract)
+    {
+        if (contract.LastSuccessfulRevisionTime == CampaignTime.Zero) return 0f;
+        int progress = contract.ContributionPoints
+                       - contract.ContributionPointsAtLastSuccessfulRevision;
+        if (progress < 0) return -0.3f;
+        if (progress < 3) return -0.2f;
+        if (progress < 10) return -0.1f;
+        if (progress >= 20) return 0.1f;
+        return 0f;
+    }
+
+    [DataSourceMethod]
+    public void ExecuteEndContract()
+    {
+        if (_contract?.Clan != Clan.PlayerClan)
+        {
+            Display(Localize("MercenaryManagement_ContractActionUnavailable", "The contract is no longer active."));
+            Refresh();
+            return;
+        }
+
+        InformationManager.ShowInquiry(new InquiryData(
+            Localize("MercenaryManagement_EndContractTitle", "End mercenary contract"),
+            Localize("MercenaryManagement_EndContractConfirmation", "End your clan's current mercenary contract?"),
+            true, true,
+            Localize("MercenaryManagement_EndContract", "End contract"),
+            Localize("MercenaryManagement_Cancel", "Cancel"),
+            ConfirmEndContract,
+            null), true);
+    }
+
+    private void ConfirmEndContract()
+    {
+        MercenaryContract? contract = _contract;
+        if (contract?.Clan != Clan.PlayerClan) return;
+        if (contract.EndTime != CampaignTime.Zero && !contract.EndTime.IsPast)
+            contract.AdjustEvaluation(-10f, -8f);
+        MercenaryDismissalService.EndService(Clan.PlayerClan);
+        bool ended = !Clan.PlayerClan.IsUnderMercenaryService || Clan.PlayerClan.Kingdom is null;
+        Display(ended
+            ? Localize("MercenaryManagement_PlayerContractEnded", "Your mercenary contract has ended.")
+            : Localize("MercenaryManagement_PlayerContractEndFailed", "The contract could not be ended in the current situation."));
+        Refresh();
+    }
+
+    private static void Display(string text)
+    {
+        InformationManager.DisplayMessage(new InformationMessage(text));
+    }
 
     public void Refresh()
     {
@@ -143,11 +282,15 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
 
             if (_contract?.IsActive != true)
             {
-                foreach (Kingdom kingdom in Kingdom.All
-                             .Where(kingdom => !MercenaryHiringService.TryGetPlayerOfferFailureReason(clan, kingdom, out _))
-                             .OrderBy(kingdom => kingdom.Name.ToString()))
+                MercenaryOfferBehavior? offerBehavior = Campaign.Current?
+                    .GetCampaignBehavior<MercenaryOfferBehavior>();
+                offerBehavior?.RefreshPlayerOffers();
+                foreach (MercenaryOffer offer in (offerBehavior?.GetOffersFor(clan)
+                             ?? Enumerable.Empty<MercenaryOffer>())
+                             .OrderByDescending(offer => offer.InfluencePrice)
+                             .ThenBy(offer => offer.Kingdom?.Name.ToString()))
                 {
-                    AvailableOffers.Add(new PlayerMercenaryOfferItemVM(clan, kingdom, SelectOffer));
+                    AvailableOffers.Add(new PlayerMercenaryOfferItemVM(offer, SelectOffer));
                 }
 
                 if (AvailableOffers.Count > 0) SelectOffer(AvailableOffers[0]);
@@ -179,6 +322,12 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         OnPropertyChangedWithValue(InfluencePrice, nameof(InfluencePrice));
         OnPropertyChangedWithValue(StrategicPriority, nameof(StrategicPriority));
         OnPropertyChangedWithValue(StrategicPriorityDescription, nameof(StrategicPriorityDescription));
+        OnPropertyChangedWithValue(ExpectedPayment, nameof(ExpectedPayment));
+        OnPropertyChangedWithValue(Satisfaction, nameof(Satisfaction));
+        OnPropertyChangedWithValue(EmployerTerminationRisk, nameof(EmployerTerminationRisk));
+        OnPropertyChangedWithValue(Performance, nameof(Performance));
+        OnPropertyChangedWithValue(CurrentActivity, nameof(CurrentActivity));
+        OnPropertyChangedWithValue(RecentEarnings, nameof(RecentEarnings));
     }
 
     public override void OnFinalize()

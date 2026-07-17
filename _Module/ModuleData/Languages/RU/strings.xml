@@ -37,7 +37,7 @@
     <string id="MercenaryManagement_PriorityJoinArmies" text="Участие в армиях" />
     <string id="MercenaryManagement_PriorityJoinArmiesDescription" text="От клана ожидается вступление в армии королевства и их поддержка." />
     <string id="MercenaryManagement_PriorityEconomicWarfare" text="Экономическая война" />
-    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="От клана ожидается давление на вражеские деревни и экономические цели." />
+    <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="От клана ожидаются набеги на вражеские деревни и нападения на караваны и отряды крестьян." />
     <string id="MercenaryManagement_PriorityTerritorialDefense" text="Защита территории" />
     <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="От клана ожидается защита земель королевства и реакция на местные угрозы." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="База: {PRICE}" />
@@ -120,5 +120,78 @@
     <string id="MercenaryManagement_CurrentWarsSummary" text="Войны: {WARS}" />
     <string id="MercenaryManagement_NoCurrentWars" text="Нет текущих войн" />
     <string id="MercenaryManagement_OfferRate" text="Ставка" />
+    <string id="MercenaryManagement_AcceptOffer" text="Принять предложение" />
+    <string id="MercenaryManagement_RequestRevision" text="Запросить улучшение условий" />
+    <string id="MercenaryManagement_EndContract" text="Расторгнуть контракт" />
+    <string id="MercenaryManagement_Renew60Days" text="Продлить на 60 дней" />
+    <string id="MercenaryManagement_Satisfaction" text="Удовлетворённость" />
+    <string id="MercenaryManagement_Reliability" text="Надёжность" />
+    <string id="MercenaryManagement_DepartureRisk" text="Риск ухода" />
+    <string id="MercenaryManagement_Performance" text="Результативность" />
+    <string id="MercenaryManagement_DangerHigh" text="Высокая" />
+    <string id="MercenaryManagement_DangerMedium" text="Средняя" />
+    <string id="MercenaryManagement_DangerLow" text="Низкая" />
+    <string id="MercenaryManagement_OfferDurationValue" text="60 дней" />
+    <string id="MercenaryManagement_InterestDefense" text="Королевству нужна помощь в защите своей территории." />
+    <string id="MercenaryManagement_InterestReserve" text="Королевству нужны мобильные силы для реагирования на новые угрозы." />
+    <string id="MercenaryManagement_InterestWar" text="Королевству нужны дополнительные силы для текущих войн." />
+    <string id="MercenaryManagement_OfferKingdomUnavailable" text="У королевства нет доступного правителя, способного сделать предложение." />
+    <string id="MercenaryManagement_OfferInsufficientFunds" text="Правитель не может гарантировать первоначальные выплаты клану." />
+    <string id="MercenaryManagement_PerformanceExcellent" text="Отличная" />
+    <string id="MercenaryManagement_PerformanceGood" text="Хорошая" />
+    <string id="MercenaryManagement_PerformanceDeveloping" text="Удовлетворительная" />
+    <string id="MercenaryManagement_PerformanceNone" text="Заметных результатов пока нет" />
+    <string id="MercenaryManagement_CurrentActivity" text="Текущая активность" />
+    <string id="MercenaryManagement_AcceptanceChance" text="Ожидаемая вероятность принятия" />
+    <string id="MercenaryManagement_Duration" text="Срок" />
+    <string id="MercenaryManagement_Duration30" text="30 дней" />
+    <string id="MercenaryManagement_Duration60" text="60 дней" />
+    <string id="MercenaryManagement_Duration120" text="120 дней" />
+    <string id="MercenaryManagement_DurationWar" text="До окончания текущей войны" />
+    <string id="MercenaryManagement_Danger" text="Ожидаемая опасность" />
+    <string id="MercenaryManagement_Interest" text="Причина интереса королевства" />
+    <string id="MercenaryManagement_ActivityJoinedArmy" text="Недавно присоединился к армии" />
+    <string id="MercenaryManagement_ActivityCompletedRaid" text="Недавно завершил набег" />
+    <string id="MercenaryManagement_ActivityServingArmy" text="Участвует в армии" />
+    <string id="MercenaryManagement_ActivityEconomic" text="Ведёт экономическую войну" />
+    <string id="MercenaryManagement_ActivityDefense" text="Действует на дружественной территории" />
+    <string id="MercenaryManagement_ActivityIndependent" text="Ведёт самостоятельные операции" />
+    <string id="MercenaryManagement_ActivityUnknown" text="Нет сведений о недавней активности" />
+    <string id="MercenaryManagement_RenewAccepted" text="Клан согласился продлить контракт." />
+    <string id="MercenaryManagement_RenewDeclined" text="Клан отказался продлевать контракт." />
+    <string id="MercenaryManagement_RevisionAccepted" text="Наниматель согласился повысить ставку." />
+    <string id="MercenaryManagement_RevisionDeclined" text="Наниматель отказался пересматривать контракт." />
+    <string id="MercenaryManagement_HireDeclined" text="Клан {CLAN} отклонил ваше предложение." />
+    <string id="MercenaryManagement_RecentEarnings" text="Доход за последние 7 дней" />
+    <string id="MercenaryManagement_EmployerSatisfaction" text="Оценка нанимателя" />
+    <string id="MercenaryManagement_PreferredRole" text="Предпочитаемая роль" />
+    <string id="MercenaryManagement_OfferAccepted" text="Ваш клан поступил на службу королевству." />
+    <string id="MercenaryManagement_OfferAcceptFailed" text="Это предложение больше недоступно." />
+    <string id="MercenaryManagement_PerformanceInitial" text="Первичная оценка" />
+    <string id="MercenaryManagement_PerformanceLimited" text="Низкая результативность" />
+    <string id="MercenaryManagement_EmployerTerminationRisk" text="Риск расторжения нанимателем" />
+    <string id="MercenaryManagement_ContractActionUnavailable" text="Контракт больше не действует." />
+    <string id="MercenaryManagement_RevisionAtMaximum" text="В контракте уже установлена максимально доступная ставка." />
+    <string id="MercenaryManagement_EndContractTitle" text="Расторжение контракта" />
+    <string id="MercenaryManagement_EndContractConfirmation" text="Расторгнуть текущий контракт вашего клана?" />
+    <string id="MercenaryManagement_PlayerContractEnded" text="Ваш наёмнический контракт завершён." />
+    <string id="MercenaryManagement_PlayerContractEndFailed" text="В текущей ситуации контракт невозможно расторгнуть." />
+    <string id="MercenaryManagement_PartyName" text="Отряд" />
+    <string id="MercenaryManagement_PartyLeader" text="Командир" />
+    <string id="MercenaryManagement_PartyTroops" text="Бойцы" />
+    <string id="MercenaryManagement_PartyActivity" text="Текущая активность" />
+    <string id="MercenaryManagement_PartyActivityBattle" text="Участвует в сражении" />
+    <string id="MercenaryManagement_PartyActivitySiege" text="Участвует в осаде" />
+    <string id="MercenaryManagement_PartyActivityArmy" text="Находится в составе армии" />
+    <string id="MercenaryManagement_PartyActivityRaid" text="Совершает набег на земли противника" />
+    <string id="MercenaryManagement_PartyActivityPursuit" text="Преследует другой отряд" />
+    <string id="MercenaryManagement_PartyActivityTravel" text="Следует к поселению" />
+    <string id="MercenaryManagement_PartyActivityPatrol" text="Патрулирует местность" />
+    <string id="MercenaryManagement_PartyActivityEscort" text="Сопровождает другой отряд" />
+    <string id="MercenaryManagement_PartyActivityIndependent" text="Действует самостоятельно" />
+    <string id="MercenaryManagement_PlayerPriorityChanged" text="Наниматель изменил стратегический приоритет клана: {PRIORITY}." />
+    <string id="MercenaryManagement_RevisionCooldown" text="Наниматель рассмотрит новый запрос не раньше чем через один день после предыдущего." />
+    <string id="MercenaryManagement_ActivityClearedBandits" text="Недавно разгромил бандитов" />
+    <string id="MercenaryManagement_ActivityClearedHideout" text="Недавно зачистил убежище бандитов" />
   </strings>
 </base>

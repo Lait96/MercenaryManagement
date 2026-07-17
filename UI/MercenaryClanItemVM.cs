@@ -4,6 +4,7 @@ using MercenaryManagement.Behaviors;
 using MercenaryManagement.Contracts;
 using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
 using TaleWorlds.Core.ViewModelCollection.Selector;
 using TaleWorlds.Library;
@@ -30,6 +31,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
         _clan = clan;
         _kingdom = kingdom;
         _onSelect = onSelect;
+        ActivePartyItems = new MBBindingList<MercenaryPartyItemVM>();
         Banner = new BannerImageIdentifierVM(clan.Banner, true);
         ClanLevel = clan.Tier;
         Strength = (int)Math.Round(clan.CurrentTotalStrength);
@@ -58,6 +60,23 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
     [DataSourceProperty]
     public BannerImageIdentifierVM Banner { get; }
+
+    [DataSourceProperty]
+    public MBBindingList<MercenaryPartyItemVM> ActivePartyItems { get; }
+
+    [DataSourceProperty]
+    public bool HasActivePartyItems => ActivePartyItems.Count > 0;
+
+    [DataSourceProperty] public string ActivePartiesText =>
+        new TextObject("{=MercenaryManagement_ActiveParties}Active parties").ToString();
+    [DataSourceProperty] public string PartyNameText =>
+        new TextObject("{=MercenaryManagement_PartyName}Party").ToString();
+    [DataSourceProperty] public string PartyLeaderText =>
+        new TextObject("{=MercenaryManagement_PartyLeader}Leader").ToString();
+    [DataSourceProperty] public string PartyTroopsText =>
+        new TextObject("{=MercenaryManagement_PartyTroops}Troops").ToString();
+    [DataSourceProperty] public string PartyActivityText =>
+        new TextObject("{=MercenaryManagement_PartyActivity}Activity").ToString();
 
     internal Clan Clan => _clan;
 
@@ -136,7 +155,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     }
 
     [DataSourceProperty]
-    public int BaseInfluencePrice => _clan.MercenaryAwardMultiplier;
+    public int BaseInfluencePrice => MercenaryPaymentService.GetBaseInfluencePrice(_clan);
 
     [DataSourceProperty]
     public string BaseInfluencePriceText
@@ -234,6 +253,18 @@ internal sealed class MercenaryClanItemVM : ViewModel
     [DataSourceProperty]
     public bool HasActiveContract => _contract?.IsActive == true;
 
+    [DataSourceProperty] public int Satisfaction => (int)Math.Round(_contract?.Satisfaction ?? 0f);
+    [DataSourceProperty] public int EmployerSatisfaction => (int)Math.Round(_contract?.EmployerSatisfaction ?? 0f);
+    [DataSourceProperty] public int Reliability => (int)Math.Round(GetReliability());
+    [DataSourceProperty] public int DepartureRisk => (int)Math.Round(_contract is null ? 0f : MercenaryEvaluationService.CalculateDepartureRisk(_contract));
+    [DataSourceProperty] public int EmployerTerminationRisk => (int)Math.Round(
+        _contract is null ? 0f : MercenaryEvaluationService.CalculateEmployerTerminationRisk(_contract));
+    [DataSourceProperty] public string Performance => _contract is null ? string.Empty : MercenaryEvaluationService.GetPerformanceSummary(_contract);
+    [DataSourceProperty] public string CurrentActivity => _contract is null ? string.Empty : MercenaryEvaluationService.GetActivitySummary(_contract);
+    [DataSourceProperty] public int RecentEarnings => _contract?.RecentEarnings ?? 0;
+    [DataSourceProperty] public int AcceptanceChance => CalculateAcceptanceChance();
+    [DataSourceProperty] public string PreferredRole => GetPreferredRole();
+
     [DataSourceProperty]
     public bool IsServingPlayerKingdom => _contract?.EmployerKingdom == _kingdom;
 
@@ -279,11 +310,23 @@ internal sealed class MercenaryClanItemVM : ViewModel
             InfluencePricePercentageText,
             nameof(InfluencePricePercentageText));
         _contract = GetActiveContract();
+        RefreshActiveParties();
         RefreshPrioritySelector();
         OnPropertyChangedWithValue(ContractState, nameof(ContractState));
         OnPropertyChangedWithValue(ContractStart, nameof(ContractStart));
         OnPropertyChangedWithValue(ContractEnd, nameof(ContractEnd));
         OnPropertyChangedWithValue(HasActiveContract, nameof(HasActiveContract));
+        OnPropertyChangedWithValue(Satisfaction, nameof(Satisfaction));
+        OnPropertyChangedWithValue(EmployerSatisfaction, nameof(EmployerSatisfaction));
+        OnPropertyChangedWithValue(Reliability, nameof(Reliability));
+        OnPropertyChangedWithValue(DepartureRisk, nameof(DepartureRisk));
+        OnPropertyChangedWithValue(EmployerTerminationRisk, nameof(EmployerTerminationRisk));
+        OnPropertyChangedWithValue(Performance, nameof(Performance));
+        OnPropertyChangedWithValue(CurrentActivity, nameof(CurrentActivity));
+        OnPropertyChangedWithValue(RecentEarnings, nameof(RecentEarnings));
+        OnPropertyChangedWithValue(AcceptanceChance, nameof(AcceptanceChance));
+        OnPropertyChangedWithValue(PreferredRole, nameof(PreferredRole));
+        OnPropertyChangedWithValue(HasActivePartyItems, nameof(HasActivePartyItems));
         OnPropertyChangedWithValue(
             StrategicPriorityDescription,
             nameof(StrategicPriorityDescription));
@@ -322,9 +365,24 @@ internal sealed class MercenaryClanItemVM : ViewModel
 
     public override void OnFinalize()
     {
+        foreach (MercenaryPartyItemVM party in ActivePartyItems) party.OnFinalize();
+        ActivePartyItems.Clear();
         PrioritySelector.OnFinalize();
         Banner.OnFinalize();
         base.OnFinalize();
+    }
+
+    private void RefreshActiveParties()
+    {
+        foreach (MercenaryPartyItemVM party in ActivePartyItems) party.OnFinalize();
+        ActivePartyItems.Clear();
+        foreach (MobileParty party in _clan.WarPartyComponents
+                     .Select(component => component.MobileParty)
+                     .Where(party => party.IsActive && !party.IsDisbanding)
+                     .OrderByDescending(party => party.MemberRoster.TotalManCount))
+        {
+            ActivePartyItems.Add(new MercenaryPartyItemVM(party));
+        }
     }
 
     private static string FormatInfluence(float influence)
@@ -456,5 +514,27 @@ internal sealed class MercenaryClanItemVM : ViewModel
             : time.RemainingDaysFromNow;
         text.SetTextVariable("DAYS", Math.Max(0f, days).ToString("0.#"));
         return text.ToString();
+    }
+
+    private int CalculateAcceptanceChance()
+    {
+        if (!IsFreeMercenaryClan || _clan.Leader is null || _kingdom.Leader is null) return 0;
+        return MercenaryHiringService.CalculateAcceptanceChance(_clan, _kingdom, InfluencePrice);
+    }
+
+    private float GetReliability()
+    {
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        return _contract?.Reliability ?? behavior?.GetReliability(_clan) ?? 50f;
+    }
+
+    private string GetPreferredRole()
+    {
+        MercenaryStrategicPriority priority = ActiveParties >= 3
+            ? MercenaryStrategicPriority.EconomicWarfare
+            : Strength >= 300 ? MercenaryStrategicPriority.JoinArmies
+            : MercenaryStrategicPriority.IndependentOperations;
+        return MercenaryPriorityText.GetName(priority).ToString();
     }
 }

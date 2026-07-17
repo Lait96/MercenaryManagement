@@ -3,12 +3,15 @@ using MercenaryManagement.Contracts;
 using MercenaryManagement.Services;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.Core;
+using TaleWorlds.Library;
+using TaleWorlds.Localization;
 
 namespace MercenaryManagement.Behaviors;
 
 internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 {
-    private const int CurrentDataVersion = 1;
+    private const int CurrentDataVersion = 3;
 
     private Dictionary<string, MercenaryContract> _contracts =
         new Dictionary<string, MercenaryContract>();
@@ -23,6 +26,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(
             this,
             OnClanChangedKingdom);
+        CampaignEvents.DailyTickClanEvent.AddNonSerializedListener(this, OnDailyTickClan);
     }
 
     public override void SyncData(IDataStore dataStore)
@@ -58,12 +62,20 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
             contract.EnsureServiceStartTime();
             contract.EnsureStrategicPriority();
+            contract.EnsureEvaluationDefaults();
             contract.SetInfluencePrice(NormalizeInfluencePrice(clan, contract.InfluencePrice));
             return true;
         }
 
         contract = null!;
         return false;
+    }
+
+    public float GetReliability(Clan clan)
+    {
+        return _contracts.TryGetValue(clan.StringId, out MercenaryContract contract)
+            ? contract.Reliability
+            : 50f;
     }
 
     public bool GetOrCreateContract(Clan clan, out MercenaryContract contract)
@@ -115,8 +127,10 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return true;
         }
 
+        float previousReliability = GetReliability(clan);
         CompleteContract(clan);
         contract = new MercenaryContract(clan, kingdom, influencePrice, endTime);
+        contract.SetEvaluation(50f, previousReliability, CampaignTime.Now);
         _contracts[clan.StringId] = contract;
         _legacyInfluencePrices.Remove(clan.StringId);
         return true;
@@ -126,7 +140,10 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
     {
         if (GetOrCreateContract(clan, out MercenaryContract contract))
         {
-            contract.SetInfluencePrice(NormalizeInfluencePrice(clan, influencePrice));
+            int normalized = NormalizeInfluencePrice(clan, influencePrice);
+            if (normalized > contract.InfluencePrice)
+                contract.AdjustEvaluation(System.Math.Min(8f, normalized - contract.InfluencePrice), 0f);
+            contract.SetInfluencePrice(normalized);
         }
     }
 
@@ -171,8 +188,31 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return false;
         }
 
+        MercenaryStrategicPriority previousPriority = contract.StrategicPriority;
         contract.SetStrategicPriority(strategicPriority);
+        if (clan == Clan.PlayerClan && previousPriority != strategicPriority)
+        {
+            TextObject message = new TextObject(
+                "{=MercenaryManagement_PlayerPriorityChanged}Your employer changed the clan's strategic priority to {PRIORITY}.");
+            message.SetTextVariable("PRIORITY", GetPriorityName(strategicPriority));
+            InformationManager.DisplayMessage(new InformationMessage(message.ToString()));
+        }
         return true;
+    }
+
+    private static TextObject GetPriorityName(MercenaryStrategicPriority priority)
+    {
+        switch (priority)
+        {
+            case MercenaryStrategicPriority.JoinArmies:
+                return new TextObject("{=MercenaryManagement_PriorityJoinArmies}Join armies");
+            case MercenaryStrategicPriority.EconomicWarfare:
+                return new TextObject("{=MercenaryManagement_PriorityEconomicWarfare}Economic warfare");
+            case MercenaryStrategicPriority.TerritorialDefense:
+                return new TextObject("{=MercenaryManagement_PriorityTerritorialDefense}Territorial defense");
+            default:
+                return new TextObject("{=MercenaryManagement_PriorityIndependentOperations}Independent operations");
+        }
     }
 
     public bool CompleteContract(Clan clan)
@@ -209,7 +249,6 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return;
         }
 
-        bool migrateToVersion1 = _dataVersion < 1;
         var knownClanIds = new HashSet<string>();
         foreach (Clan clan in Clan.All)
         {
@@ -239,12 +278,15 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
         _legacyInfluencePrices.Clear();
 
-        if (migrateToVersion1)
+        if (_dataVersion < 3)
         {
-            // Reconciliation above migrates legacy prices and supplies defaults for
-            // contract fields that did not exist before schema version 1.
-            _dataVersion = 1;
+            foreach (MercenaryContract contract in _contracts.Values)
+                contract.MigrateDuration();
         }
+
+        // Reconciliation above migrates legacy prices and supplies defaults for
+        // contract fields added by later schema versions.
+        _dataVersion = CurrentDataVersion;
     }
 
     private static int NormalizeInfluencePrice(Clan clan, int influencePrice)
@@ -298,5 +340,69 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
                 clan.ShouldStayInKingdomUntil,
                 out _);
         }
+    }
+
+    private void OnDailyTickClan(Clan clan)
+    {
+        if (!TryGetContract(clan, out MercenaryContract contract))
+        {
+            return;
+        }
+
+        if (clan.IsEliminated
+            || contract.EmployerKingdom?.IsEliminated == true
+            || contract.EmployerKingdom?.Leader is null
+            || !contract.EmployerKingdom.Leader.IsAlive)
+        {
+            MercenaryDismissalService.EndService(clan);
+            return;
+        }
+
+        if (contract.EndTime != CampaignTime.Zero
+            && contract.EndTime != CampaignTime.Never
+            && contract.EndTime.IsPast)
+        {
+            MercenaryDismissalService.EndService(clan);
+            return;
+        }
+
+        if (contract.Duration == MercenaryContractDuration.UntilCurrentWarEnds
+            && !IsWarStillActive(contract))
+        {
+            MercenaryDismissalService.EndService(clan);
+            return;
+        }
+
+        MercenaryEvaluationService.EvaluateDaily(contract);
+        TryVoluntaryDeparture(clan, contract);
+    }
+
+    private static void TryVoluntaryDeparture(Clan clan, MercenaryContract contract)
+    {
+        if (contract.ServiceStartTime.ElapsedDaysUntilNow < 30f || HasPartyInMapEvent(clan)) return;
+        float risk = MercenaryEvaluationService.CalculateDepartureRisk(contract);
+        if (risk <= 70f) return;
+        float dailyChance = (risk - 70f) / 3000f;
+        if (MBRandom.RandomFloat < dailyChance)
+            MercenaryDismissalService.EndService(clan);
+    }
+
+    private static bool HasPartyInMapEvent(Clan clan)
+    {
+        foreach (var component in clan.WarPartyComponents)
+            if (component.MobileParty.MapEvent is not null) return true;
+        return false;
+    }
+
+    private static bool IsWarStillActive(MercenaryContract contract)
+    {
+        Kingdom? employer = contract.EmployerKingdom;
+        if (employer is null || string.IsNullOrEmpty(contract.WarTargetKingdomId)) return false;
+        foreach (Kingdom kingdom in Kingdom.All)
+        {
+            if (kingdom.StringId == contract.WarTargetKingdomId)
+                return !kingdom.IsEliminated && FactionManager.IsAtWarAgainstFaction(employer, kingdom);
+        }
+        return false;
     }
 }

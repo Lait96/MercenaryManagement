@@ -168,8 +168,11 @@ internal static class MercenaryHiringService
 
     public static int CalculateHirePrice(Clan clan, Kingdom kingdom)
     {
-        return Campaign.Current.Models.MinorFactionsModel
+        int nativePrice = Campaign.Current.Models.MinorFactionsModel
             .GetMercenaryAwardFactorToJoinKingdom(clan, kingdom, true);
+        return nativePrice > 0
+            ? nativePrice
+            : MercenaryPaymentService.GetBaseInfluencePrice(clan);
     }
 
     public static bool TryGetPlayerOfferFailureReason(Clan clan, Kingdom kingdom, out TextObject reason)
@@ -249,12 +252,65 @@ internal static class MercenaryHiringService
             : MercenaryStrategicPriority.JoinArmies;
     }
 
+    public static bool CanAiKingdomHire(Clan clan, Kingdom kingdom)
+    {
+        if (kingdom.IsEliminated
+            || kingdom.Leader is null
+            || !kingdom.Leader.IsAlive
+            || TryGetInherentFailureReason(clan, kingdom, out _))
+        {
+            return false;
+        }
+
+        int hiredCount = kingdom.Clans.Count(candidate => candidate.IsUnderMercenaryService);
+        int price = CalculateHirePrice(clan, kingdom);
+        return hiredCount < MaximumHiredMercenaryClans
+               && clan.Leader!.GetRelation(kingdom.Leader) > -10
+               && kingdom.Leader.Gold >= price * RequiredGoldInDailyWages
+               && (kingdom.RulingClan is null || kingdom.RulingClan.DebtToKingdom <= MaximumKingdomDebt);
+    }
+
+    public static float CalculateMilitaryNeed(Kingdom kingdom)
+    {
+        Kingdom[] enemies = Kingdom.All.Where(other => other != kingdom
+            && !other.IsEliminated
+            && FactionManager.IsAtWarAgainstFaction(kingdom, other)).ToArray();
+        if (enemies.Length == 0) return 0f;
+        float enemyStrength = enemies.Sum(enemy => enemy.CurrentTotalStrength);
+        float ratio = enemyStrength / System.Math.Max(1f, kingdom.CurrentTotalStrength);
+        return System.Math.Min(1f, 0.25f * enemies.Length + ratio * 0.5f);
+    }
+
+    public static int CalculateAcceptanceChance(Clan clan, Kingdom kingdom, int offeredRate)
+    {
+        int relation = clan.Leader?.GetRelation(kingdom.Leader) ?? 0;
+        int baseRate = MercenaryPaymentService.GetBaseInfluencePrice(clan);
+        int rateBonus = (offeredRate - baseRate) * 50 / baseRate;
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        int reliabilityBonus = (int)System.Math.Round(((behavior?.GetReliability(clan) ?? 50f) - 50f) * 0.3f);
+        return System.Math.Max(5, System.Math.Min(95, 55 + relation + rateBonus + reliabilityBonus));
+    }
+
     public static void Hire(Clan clan, Kingdom kingdom)
     {
-        int awardFactor = CalculateHirePrice(clan, kingdom);
-        CampaignTime serviceCommitment = CampaignTime.Zero;
+        Hire(clan, kingdom, CalculateHirePrice(clan, kingdom),
+            MercenaryContractDuration.Days60,
+            MercenaryStrategicPriority.IndependentOperations);
+    }
 
-        // The current contract scenario follows Bannerlord's indefinite mercenary service.
+    public static void Hire(Clan clan, Kingdom kingdom, MercenaryOffer offer)
+    {
+        Hire(clan, kingdom, offer.InfluencePrice, offer.Duration, offer.StrategicPriority);
+    }
+
+    private static void Hire(Clan clan, Kingdom kingdom, int awardFactor,
+        MercenaryContractDuration duration, MercenaryStrategicPriority priority)
+    {
+        CampaignTime serviceCommitment = GetEndTime(duration);
+
+        // A finite default keeps renewal meaningful while preserving Bannerlord's
+        // native kingdom membership and payment lifecycle.
         ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
             clan,
             kingdom,
@@ -271,7 +327,29 @@ internal static class MercenaryHiringService
                 kingdom,
                 awardFactor,
                 serviceCommitment,
-                out _);
+                out MercenaryContract contract);
+            contract.SetDuration(duration, serviceCommitment, GetWarTargetId(kingdom, duration));
+            contract.SetStrategicPriority(priority);
         }
+    }
+
+    private static CampaignTime GetEndTime(MercenaryContractDuration duration)
+    {
+        switch (duration)
+        {
+            case MercenaryContractDuration.Days30: return CampaignTime.DaysFromNow(30f);
+            case MercenaryContractDuration.Days120: return CampaignTime.DaysFromNow(120f);
+            case MercenaryContractDuration.UntilCurrentWarEnds:
+            case MercenaryContractDuration.Indefinite: return CampaignTime.Zero;
+            default: return CampaignTime.DaysFromNow(60f);
+        }
+    }
+
+    private static string GetWarTargetId(Kingdom kingdom, MercenaryContractDuration duration)
+    {
+        if (duration != MercenaryContractDuration.UntilCurrentWarEnds) return string.Empty;
+        return Kingdom.All.FirstOrDefault(other => other != kingdom
+            && !other.IsEliminated && FactionManager.IsAtWarAgainstFaction(kingdom, other))?.StringId
+               ?? string.Empty;
     }
 }

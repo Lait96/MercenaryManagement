@@ -27,7 +27,7 @@ internal static class MercenaryPriorityText
             case MercenaryStrategicPriority.JoinArmies:
                 return new TextObject("{=MercenaryManagement_PriorityJoinArmiesDescription}The clan is expected to join and support the kingdom's armies.");
             case MercenaryStrategicPriority.EconomicWarfare:
-                return new TextObject("{=MercenaryManagement_PriorityEconomicWarfareDescription}The clan is expected to pressure enemy villages and economic targets.");
+                return new TextObject("{=MercenaryManagement_PriorityEconomicWarfareDescription}The clan is expected to raid enemy villages and attack caravans and villager parties.");
             case MercenaryStrategicPriority.TerritorialDefense:
                 return new TextObject("{=MercenaryManagement_PriorityTerritorialDefenseDescription}The clan is expected to defend friendly lands and respond to local threats.");
             default:

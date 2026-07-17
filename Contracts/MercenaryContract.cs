@@ -20,6 +20,11 @@ internal sealed class MercenaryContract
         EndTime = endTime;
         State = MercenaryContractState.Active;
         StrategicPriority = MercenaryStrategicPriority.IndependentOperations;
+        Duration = GetDuration(endTime);
+        Satisfaction = 50f;
+        EmployerSatisfaction = 50f;
+        Reliability = 50f;
+        LastEvaluationTime = CampaignTime.Now;
     }
 
     [SaveableProperty(1)]
@@ -49,6 +54,36 @@ internal sealed class MercenaryContract
     [SaveableProperty(9)]
     public MercenaryStrategicPriority StrategicPriority { get; private set; }
 
+    [SaveableProperty(10)]
+    public float Satisfaction { get; private set; }
+
+    [SaveableProperty(11)]
+    public float Reliability { get; private set; }
+
+    [SaveableProperty(12)]
+    public int ContributionPoints { get; private set; }
+
+    [SaveableProperty(13)]
+    public CampaignTime LastEvaluationTime { get; private set; }
+
+    [SaveableProperty(14)]
+    public MercenaryContractDuration Duration { get; private set; }
+
+    [SaveableProperty(15)]
+    public string WarTargetKingdomId { get; private set; } = string.Empty;
+
+    [SaveableProperty(16)] public string LastActivity { get; private set; } = string.Empty;
+    [SaveableProperty(17)] public CampaignTime LastActivityTime { get; private set; }
+    [SaveableProperty(18)] public int RecentEarnings { get; private set; }
+    [SaveableProperty(19)] public CampaignTime EarningsPeriodStart { get; private set; }
+    [SaveableProperty(20)] public int RewardedContributionMilestones { get; private set; }
+    [SaveableProperty(21)] public float EmployerSatisfaction { get; private set; }
+    [SaveableProperty(22)] public CampaignTime LastContributionDecayTime { get; private set; }
+    [SaveableProperty(23)] public CampaignTime LastRevisionRequestTime { get; private set; }
+    [SaveableProperty(24)] public CampaignTime LastSuccessfulRevisionTime { get; private set; }
+    [SaveableProperty(25)] public int ContributionPointsAtLastSuccessfulRevision { get; private set; }
+    [SaveableProperty(26)] public CampaignTime LastPriorityChangeTime { get; private set; }
+
     public bool IsActive => State == MercenaryContractState.Active;
 
     public bool Matches(string clanId, string kingdomId)
@@ -77,11 +112,126 @@ internal sealed class MercenaryContract
     public void SetEndTime(CampaignTime endTime)
     {
         EndTime = endTime;
+        Duration = GetDuration(endTime);
+    }
+
+    public void SetDuration(MercenaryContractDuration duration, CampaignTime endTime, string warTargetKingdomId = "")
+    {
+        Duration = duration;
+        EndTime = endTime;
+        WarTargetKingdomId = warTargetKingdomId ?? string.Empty;
     }
 
     public void SetStrategicPriority(MercenaryStrategicPriority strategicPriority)
     {
+        if (StrategicPriority == strategicPriority)
+        {
+            if (LastPriorityChangeTime == CampaignTime.Zero)
+                LastPriorityChangeTime = CampaignTime.Now;
+            return;
+        }
         StrategicPriority = strategicPriority;
+        LastPriorityChangeTime = CampaignTime.Now;
+    }
+
+    public void SetEvaluation(float satisfaction, float reliability, CampaignTime evaluationTime)
+    {
+        Satisfaction = Clamp(satisfaction);
+        Reliability = Clamp(reliability);
+        LastEvaluationTime = evaluationTime;
+    }
+
+    public void AdjustEvaluation(float satisfactionDelta, float reliabilityDelta)
+    {
+        Satisfaction = Clamp(Satisfaction + satisfactionDelta);
+        Reliability = Clamp(Reliability + reliabilityDelta);
+        LastEvaluationTime = CampaignTime.Now;
+    }
+
+    public void SetEmployerSatisfaction(float value)
+    {
+        EmployerSatisfaction = Clamp(value);
+    }
+
+    public void AddContribution(int points)
+    {
+        ContributionPoints = System.Math.Max(0, ContributionPoints + points);
+    }
+
+    public void RecordContribution(int points, string activity)
+    {
+        AddContribution(points);
+        LastActivity = activity ?? string.Empty;
+        LastActivityTime = CampaignTime.Now;
+    }
+
+    public void RecordEarnings(int earnings)
+    {
+        if (EarningsPeriodStart == CampaignTime.Zero
+            || EarningsPeriodStart.ElapsedDaysUntilNow >= 7f)
+        {
+            RecentEarnings = 0;
+            EarningsPeriodStart = CampaignTime.Now;
+        }
+        RecentEarnings = System.Math.Max(0, RecentEarnings + earnings);
+    }
+
+    public void RecordRevisionRequest()
+    {
+        LastRevisionRequestTime = CampaignTime.Now;
+    }
+
+    public void RecordSuccessfulRevision()
+    {
+        LastSuccessfulRevisionTime = CampaignTime.Now;
+        ContributionPointsAtLastSuccessfulRevision = ContributionPoints;
+    }
+
+    public bool TryConsumeContributionMilestone()
+    {
+        int milestones = ContributionPoints / 100;
+        if (milestones <= RewardedContributionMilestones) return false;
+        RewardedContributionMilestones++;
+        return true;
+    }
+
+    public void DecayContribution()
+    {
+        if (LastContributionDecayTime == CampaignTime.Zero)
+        {
+            LastContributionDecayTime = CampaignTime.Now;
+            return;
+        }
+        if (LastContributionDecayTime.ElapsedDaysUntilNow < 7f) return;
+        ContributionPoints = System.Math.Max(0, ContributionPoints - 10);
+        LastContributionDecayTime = CampaignTime.Now;
+    }
+
+    public void EnsureEvaluationDefaults()
+    {
+        if (LastEvaluationTime == CampaignTime.Zero)
+        {
+            if (Satisfaction <= 0f && Reliability <= 0f)
+            {
+                Satisfaction = 50f;
+                Reliability = 50f;
+            }
+            EmployerSatisfaction = 50f;
+            LastEvaluationTime = CampaignTime.Now;
+        }
+    }
+
+    public void MigrateDuration()
+    {
+        if (EndTime == CampaignTime.Zero || EndTime == CampaignTime.Never)
+        {
+            Duration = MercenaryContractDuration.Indefinite;
+            return;
+        }
+        double totalDays = System.Math.Max(0d, EndTime.ToDays - ServiceStartTime.ToDays);
+        Duration = totalDays <= 45d ? MercenaryContractDuration.Days30
+            : totalDays <= 90d ? MercenaryContractDuration.Days60
+            : MercenaryContractDuration.Days120;
     }
 
     public void EnsureStrategicPriority()
@@ -116,5 +266,20 @@ internal sealed class MercenaryContract
         {
             ServiceStartTime = CampaignTime.Now;
         }
+    }
+
+    private static float Clamp(float value)
+    {
+        return System.Math.Max(0f, System.Math.Min(100f, value));
+    }
+
+    private static MercenaryContractDuration GetDuration(CampaignTime endTime)
+    {
+        if (endTime == CampaignTime.Zero || endTime == CampaignTime.Never)
+            return MercenaryContractDuration.Indefinite;
+        float days = endTime.RemainingDaysFromNow;
+        if (days <= 45f) return MercenaryContractDuration.Days30;
+        if (days <= 90f) return MercenaryContractDuration.Days60;
+        return MercenaryContractDuration.Days120;
     }
 }

@@ -68,6 +68,7 @@ internal static class MercenaryPriorityService
             priority,
             MercenaryAiDecision.ArmyCandidateRank,
             nativeWeight);
+        finalWeight = ApplyContractCompliance(mobileParty, nativeWeight, finalWeight);
         if (priority == MercenaryStrategicPriority.EconomicWarfare
             || priority == MercenaryStrategicPriority.TerritorialDefense)
         {
@@ -102,6 +103,7 @@ internal static class MercenaryPriorityService
             priority,
             MercenaryAiDecision.ArmyCallDistance,
             nativeMaximumDistance);
+        finalDistance = ApplyContractCompliance(mobileParty, nativeMaximumDistance, finalDistance);
         if (MercenaryAiDiagnostics.IsEnabled)
         {
             MercenaryAiDiagnostics.Record(
@@ -154,6 +156,11 @@ internal static class MercenaryPriorityService
 
             p.SetBehaviorScore(in behaviorData, adjustedWeight);
         }
+    }
+
+    public static bool IsInFriendlyTerritory(MobileParty party)
+    {
+        return IsInsideFriendlyTerritory(party, party.Position);
     }
 
     private static float GetBehaviorWeight(
@@ -252,8 +259,7 @@ internal static class MercenaryPriorityService
                     adjustedWeight,
                     JoinArmiesMaximumFollowingWeight));
         }
-
-        return adjustedWeight;
+        return ApplyContractCompliance(mobileParty, nativeWeight, adjustedWeight);
     }
 
     private static float GetEngagePartyWeight(
@@ -521,5 +527,23 @@ internal static class MercenaryPriorityService
             default:
                 return false;
         }
+    }
+
+    private static float ApplyContractCompliance(MobileParty party, float nativeWeight, float priorityWeight)
+    {
+        Clan? clan = party.ActualClan;
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (clan is null || behavior?.TryGetContract(clan, out MercenaryContract contract) != true)
+            return nativeWeight;
+
+        float compliance = 0.35f + contract.Satisfaction / 100f * 0.55f;
+        if (clan.Leader is not null && clan.Kingdom?.Leader is not null)
+            compliance += System.Math.Max(-0.1f,
+                System.Math.Min(0.1f, clan.Leader.GetRelation(clan.Kingdom.Leader) / 200f));
+        if (party.PartySizeRatio < 0.5f || party.GetNumDaysForFoodToLast() < 3)
+            compliance *= 0.5f;
+        compliance = System.Math.Max(0.2f, System.Math.Min(1f, compliance));
+        return nativeWeight + (priorityWeight - nativeWeight) * compliance;
     }
 }

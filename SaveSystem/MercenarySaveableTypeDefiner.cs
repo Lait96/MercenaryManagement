@@ -17,17 +17,20 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
     protected override void DefineClassTypes()
     {
         AddClassDefinition(typeof(MercenaryContract), 1);
+        AddClassDefinition(typeof(MercenaryOffer), 4);
     }
 
     protected override void DefineEnumTypes()
     {
         AddEnumDefinition(typeof(MercenaryContractState), 2);
         AddEnumDefinition(typeof(MercenaryStrategicPriority), 3);
+        AddEnumDefinition(typeof(MercenaryContractDuration), 5);
     }
 
     protected override void DefineContainerDefinitions()
     {
         ConstructContainerDefinition(typeof(Dictionary<string, MercenaryContract>));
         ConstructContainerDefinition(typeof(Dictionary<string, CampaignTime>));
+        ConstructContainerDefinition(typeof(Dictionary<string, MercenaryOffer>));
     }
 }

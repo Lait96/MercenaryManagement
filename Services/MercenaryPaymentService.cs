@@ -38,14 +38,21 @@ internal static class MercenaryPaymentService
 
     public static int CalculateMinimumInfluencePrice(Clan clan)
     {
-        return Math.Max(0, (int)Math.Ceiling(clan.MercenaryAwardMultiplier * 0.85d));
+        return Math.Max(1, (int)Math.Ceiling(GetBaseInfluencePrice(clan) * 0.85d));
     }
 
     public static int CalculateMaximumInfluencePrice(Clan clan)
     {
         return Math.Max(
             CalculateMinimumInfluencePrice(clan),
-            (int)Math.Floor(clan.MercenaryAwardMultiplier * 1.5d));
+            (int)Math.Floor(GetBaseInfluencePrice(clan) * 1.5d));
+    }
+
+    public static int GetBaseInfluencePrice(Clan clan)
+    {
+        if (clan.MercenaryAwardMultiplier > 0) return clan.MercenaryAwardMultiplier;
+        return Math.Max(100, 80 + clan.Tier * 25
+            + (int)Math.Round(Math.Sqrt(Math.Max(0f, clan.CurrentTotalStrength)) * 5d));
     }
 
     public static bool TrySetInfluencePrice(Clan clan, Kingdom kingdom, int influencePrice)

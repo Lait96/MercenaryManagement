@@ -61,6 +61,8 @@ public sealed class SubModule : MBSubModuleBase
             MercenaryAiDiagnostics.Stop();
             campaignGameStarter.AddBehavior(new MercenaryContractBehavior());
             campaignGameStarter.AddBehavior(new MercenaryPriorityBehavior());
+            campaignGameStarter.AddBehavior(new MercenaryOfferBehavior());
+            campaignGameStarter.AddBehavior(new MercenaryKingdomAiBehavior());
 
             if (_harmonies.Count == 0)
             {
