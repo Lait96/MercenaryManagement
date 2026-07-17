@@ -35,10 +35,11 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
         }
     }
 
-    private static void OnArmyCreated(Army army)
+    private static void OnArmyCreated(Army? army)
     {
-        Kingdom kingdom = army.Kingdom;
-        if (!CanManageKingdom(kingdom)) return;
+        Kingdom? kingdom = GetManageableKingdom(army);
+        if (kingdom is null) return;
+
         MercenaryStrategicPriority desiredPriority =
             MercenaryHiringService.GetSuggestedPriority(kingdom, true);
         if (desiredPriority == MercenaryStrategicPriority.JoinArmies)
@@ -46,12 +47,15 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
     }
 
     private static void OnArmyDispersed(
-        Army army,
+        Army? army,
         Army.ArmyDispersionReason reason,
         bool isPlayersArmy)
     {
-        Kingdom kingdom = army.Kingdom;
-        if (!CanManageKingdom(kingdom)
+        // Bannerlord may clear Army.Kingdom before dispatching ArmyDispersed
+        // when the leader party is destroyed. There is no safe kingdom context
+        // left in that state, so the priority update must be skipped.
+        Kingdom? kingdom = GetManageableKingdom(army);
+        if (kingdom is null
             || kingdom.Armies.Any(candidate => candidate != army))
         {
             return;
@@ -63,10 +67,19 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
             MercenaryStrategicPriority.JoinArmies);
     }
 
-    private static bool CanManageKingdom(Kingdom kingdom)
+    private static Kingdom? GetManageableKingdom(Army? army)
     {
-        return !kingdom.IsEliminated
-               && (kingdom != Clan.PlayerClan.Kingdom
+        Kingdom? kingdom = army?.Kingdom;
+        return CanManageKingdom(kingdom) ? kingdom : null;
+    }
+
+    private static bool CanManageKingdom(Kingdom? kingdom)
+    {
+        Clan? playerClan = Clan.PlayerClan;
+        return kingdom is not null
+               && !kingdom.IsEliminated
+               && (playerClan is null
+                   || kingdom != playerClan.Kingdom
                    || !MercenaryHiringService.IsPlayerRuler(kingdom));
     }
 

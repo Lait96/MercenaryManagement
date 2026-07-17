@@ -69,11 +69,13 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
     {
         RecordDailyContribution(mobileParty);
         Army? army = mobileParty.Army;
+        MobileParty? armyLeaderParty = army?.LeaderParty;
         if (army is null
+            || armyLeaderParty is null
             || mobileParty.IsMainParty
             || !mobileParty.IsActive
             || mobileParty.IsDisbanding
-            || army.LeaderParty == mobileParty
+            || armyLeaderParty == mobileParty
             || !MercenaryPriorityService.TryGetStrategicPriority(
                 mobileParty.ActualClan,
                 out MercenaryStrategicPriority priority))
@@ -88,13 +90,13 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
         }
 
         RecordEvent(mobileParty, priority, "ArmyLeaveCheck");
-        if (mobileParty.MapEvent is not null || army.LeaderParty.MapEvent is not null)
+        if (mobileParty.MapEvent is not null || armyLeaderParty.MapEvent is not null)
         {
             RecordEvent(mobileParty, priority, "ArmyLeaveBlockedBattle");
             return;
         }
 
-        if (mobileParty.SiegeEvent is not null || army.LeaderParty.SiegeEvent is not null)
+        if (mobileParty.SiegeEvent is not null || armyLeaderParty.SiegeEvent is not null)
         {
             RecordEvent(mobileParty, priority, "ArmyLeaveBlockedSiege");
             return;
