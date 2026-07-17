@@ -13,6 +13,8 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
     public override void RegisterEvents()
     {
         CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
+        CampaignEvents.ArmyCreated.AddNonSerializedListener(this, OnArmyCreated);
+        CampaignEvents.ArmyDispersed.AddNonSerializedListener(this, OnArmyDispersed);
     }
 
     public override void SyncData(IDataStore dataStore)
@@ -23,13 +25,67 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
     {
         foreach (Kingdom kingdom in Kingdom.All)
         {
-            if (kingdom.IsEliminated || kingdom == Clan.PlayerClan.Kingdom && MercenaryHiringService.IsPlayerRuler(kingdom))
+            if (!CanManageKingdom(kingdom))
             {
                 continue;
             }
 
             ManageExistingContracts(kingdom);
             TryHireForKingdom(kingdom);
+        }
+    }
+
+    private static void OnArmyCreated(Army army)
+    {
+        Kingdom kingdom = army.Kingdom;
+        if (!CanManageKingdom(kingdom)) return;
+        MercenaryStrategicPriority desiredPriority =
+            MercenaryHiringService.GetSuggestedPriority(kingdom, true);
+        if (desiredPriority == MercenaryStrategicPriority.JoinArmies)
+            SetPriorityForMercenaries(kingdom, desiredPriority);
+    }
+
+    private static void OnArmyDispersed(
+        Army army,
+        Army.ArmyDispersionReason reason,
+        bool isPlayersArmy)
+    {
+        Kingdom kingdom = army.Kingdom;
+        if (!CanManageKingdom(kingdom)
+            || kingdom.Armies.Any(candidate => candidate != army))
+        {
+            return;
+        }
+
+        SetPriorityForMercenaries(
+            kingdom,
+            MercenaryHiringService.GetSuggestedPriority(kingdom, false),
+            MercenaryStrategicPriority.JoinArmies);
+    }
+
+    private static bool CanManageKingdom(Kingdom kingdom)
+    {
+        return !kingdom.IsEliminated
+               && (kingdom != Clan.PlayerClan.Kingdom
+                   || !MercenaryHiringService.IsPlayerRuler(kingdom));
+    }
+
+    private static void SetPriorityForMercenaries(
+        Kingdom kingdom,
+        MercenaryStrategicPriority priority,
+        MercenaryStrategicPriority? requiredCurrentPriority = null)
+    {
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (behavior is null) return;
+        foreach (Clan clan in kingdom.Clans.Where(clan => clan.IsUnderMercenaryService))
+        {
+            if (behavior.GetOrCreateContract(clan, out MercenaryContract contract)
+                && (requiredCurrentPriority is null
+                    || contract.StrategicPriority == requiredCurrentPriority.Value))
+            {
+                behavior.SetStrategicPriority(clan, priority);
+            }
         }
     }
 
@@ -60,12 +116,24 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
                 continue;
             }
 
-            if (contract.LastPriorityChangeTime == CampaignTime.Zero
+            bool hasActiveArmy = kingdom.Armies.Count > 0;
+            MercenaryStrategicPriority desiredPriority =
+                MercenaryHiringService.GetSuggestedPriority(kingdom, true);
+            MercenaryStrategicPriority availablePriority =
+                MercenaryHiringService.GetSuggestedPriority(kingdom, hasActiveArmy);
+            bool armyAvailabilityException =
+                (contract.StrategicPriority == MercenaryStrategicPriority.JoinArmies
+                 && !hasActiveArmy)
+                || (desiredPriority == MercenaryStrategicPriority.JoinArmies
+                    && hasActiveArmy
+                    && contract.StrategicPriority != MercenaryStrategicPriority.JoinArmies);
+            if (armyAvailabilityException
+                || contract.LastPriorityChangeTime == CampaignTime.Zero
                 || contract.LastPriorityChangeTime.ElapsedDaysUntilNow >= MinimumPriorityDurationDays)
             {
                 behavior.SetStrategicPriority(
                     clan,
-                    MercenaryHiringService.GetSuggestedPriority(kingdom));
+                    availablePriority);
             }
             int targetRate = MercenaryHiringService.CalculateHirePrice(clan, kingdom);
             int currentRate = contract.InfluencePrice;

@@ -226,6 +226,13 @@ internal static class MercenaryHiringService
 
     public static MercenaryStrategicPriority GetSuggestedPriority(Kingdom kingdom)
     {
+        return GetSuggestedPriority(kingdom, kingdom.Armies.Count > 0);
+    }
+
+    internal static MercenaryStrategicPriority GetSuggestedPriority(
+        Kingdom kingdom,
+        bool allowArmyPriority)
+    {
         Kingdom[] enemies = Kingdom.All
             .Where(other => !other.IsEliminated
                             && other != kingdom
@@ -244,12 +251,18 @@ internal static class MercenaryHiringService
 
         if (enemies.Length > 1)
         {
-            return MercenaryStrategicPriority.JoinArmies;
+            return allowArmyPriority
+                ? MercenaryStrategicPriority.JoinArmies
+                : kingdom.CurrentTotalStrength < enemyStrength
+                    ? MercenaryStrategicPriority.TerritorialDefense
+                    : MercenaryStrategicPriority.EconomicWarfare;
         }
 
         return kingdom.CurrentTotalStrength < enemyStrength
             ? MercenaryStrategicPriority.EconomicWarfare
-            : MercenaryStrategicPriority.JoinArmies;
+            : allowArmyPriority
+                ? MercenaryStrategicPriority.JoinArmies
+                : MercenaryStrategicPriority.EconomicWarfare;
     }
 
     public static bool CanAiKingdomHire(Clan clan, Kingdom kingdom)
