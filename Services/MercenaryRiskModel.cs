@@ -65,20 +65,27 @@ internal static class MercenaryRiskModel
 {
     public static RiskBreakdown CalculateDepartureRisk(DepartureRiskInputs input)
     {
+        float satisfaction = Percentage(input.Satisfaction, 50f);
+        float reliability = Percentage(input.Reliability, 50f);
+        float rateRatio = Bounded(input.RateRatio, 0f, 10f, 1f);
+        float partySizeRatio = Bounded(input.AveragePartySizeRatio, 0f, 1f, 1f);
+        float militaryNeed = Bounded(input.MilitaryNeed, 0f, 1f, 0.5f);
+        float mismatch = Bounded(input.PriorityMismatchPenalty, 0f, 100f, 0f);
+        float remainingDays = NonNegative(input.RemainingDays, 0f);
         var result = new RiskBreakdown
         {
             Base = 50f,
-            Satisfaction = (50f - input.Satisfaction) * 0.6f,
-            Reliability = (50f - input.Reliability) * 0.2f,
-            Rate = input.RateRatio < 1f
-                ? Math.Min(12f, (1f - input.RateRatio) * 40f)
-                : -Math.Min(8f, (input.RateRatio - 1f) * 16f),
+            Satisfaction = (50f - satisfaction) * 0.6f,
+            Reliability = (50f - reliability) * 0.2f,
+            Rate = rateRatio < 1f
+                ? Math.Min(12f, (1f - rateRatio) * 40f)
+                : -Math.Min(8f, (rateRatio - 1f) * 16f),
             Relation = -Math.Max(-20, Math.Min(20, input.RulerRelation)) * 0.35f,
-            Losses = Math.Max(0f, 0.65f - input.AveragePartySizeRatio) * 30f,
-            MilitaryNeed = input.MilitaryNeed * 8f,
-            PriorityMismatch = input.PriorityMismatchPenalty,
+            Losses = Math.Max(0f, 0.65f - partySizeRatio) * 30f,
+            MilitaryNeed = militaryNeed * 8f,
+            PriorityMismatch = mismatch,
             RemainingTerm = input.HasFiniteTerm
-                ? Math.Max(0f, 10f - Math.Max(0f, input.RemainingDays))
+                ? Math.Max(0f, 10f - remainingDays)
                 : 0f
         };
         result.Total = Clamp(result.Base + result.Satisfaction + result.Reliability
@@ -90,13 +97,17 @@ internal static class MercenaryRiskModel
     public static RiskBreakdown CalculateEmployerTerminationRisk(
         EmployerTerminationRiskInputs input)
     {
+        float employerSatisfaction = Percentage(input.EmployerSatisfaction, 50f);
+        float rateRatio = Bounded(input.RateRatio, 0f, 10f, 1f);
+        float militaryNeed = Bounded(input.MilitaryNeed, 0f, 1f, 0.5f);
+        float reliability = Percentage(input.Reliability, 50f);
         var result = new RiskBreakdown
         {
             Base = 50f,
-            Satisfaction = (50f - input.EmployerSatisfaction) * 0.7f,
-            Rate = Math.Max(0f, input.RateRatio - 1f) * 20f,
-            MilitaryNeed = (0.5f - input.MilitaryNeed) * 16f,
-            Reliability = (50f - input.Reliability) * 0.1f
+            Satisfaction = (50f - employerSatisfaction) * 0.7f,
+            Rate = Math.Max(0f, rateRatio - 1f) * 20f,
+            MilitaryNeed = (0.5f - militaryNeed) * 16f,
+            Reliability = (50f - reliability) * 0.1f
         };
         result.Total = Clamp(result.Base + result.Satisfaction + result.Rate
             + result.MilitaryNeed + result.Reliability);
@@ -104,4 +115,16 @@ internal static class MercenaryRiskModel
     }
 
     private static float Clamp(float value) => Math.Max(0f, Math.Min(100f, value));
+
+    private static float Percentage(float value, float fallback) =>
+        Bounded(value, 0f, 100f, fallback);
+
+    private static float NonNegative(float value, float fallback) =>
+        Math.Max(0f, Finite(value, fallback));
+
+    private static float Bounded(float value, float minimum, float maximum, float fallback) =>
+        Math.Max(minimum, Math.Min(maximum, Finite(value, fallback)));
+
+    private static float Finite(float value, float fallback) =>
+        float.IsNaN(value) || float.IsInfinity(value) ? fallback : value;
 }

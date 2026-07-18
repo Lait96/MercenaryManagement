@@ -71,6 +71,31 @@ foreach ($constant in @('Header.Tab.Left.Width.Scaled', 'Header.Tab.Center.Width
     Assert-True ($clanTabWidths.Contains($constant)) "Clan tab width adjusts $constant"
 }
 
+$kingdomAiBehavior = Get-Content -Raw (Join-Path $root 'Behaviors/MercenaryKingdomAiBehavior.cs')
+$priorityBehavior = Get-Content -Raw (Join-Path $root 'Behaviors/MercenaryPriorityBehavior.cs')
+Assert-True ($kingdomAiBehavior.Contains('MercenaryArmyLifecyclePolicy.OnArmyCreated')) 'army creation uses tested lifecycle policy'
+Assert-True ($kingdomAiBehavior.Contains('MercenaryArmyLifecyclePolicy.OnArmyDispersed')) 'army dispersal uses tested lifecycle policy'
+Assert-True ($priorityBehavior.Contains('MercenaryArmyLifecyclePolicy.CanEvaluatePartyExit')) 'party daily tick uses tested lifecycle policy'
+Assert-True ($kingdomAiBehavior.Contains('private static void OnArmyCreated(Army? army)')) 'army creation accepts missing runtime army'
+Assert-True ($kingdomAiBehavior.Contains('Army? army,')) 'army dispersal accepts missing runtime army'
+Assert-True ($kingdomAiBehavior.Contains('Kingdom? kingdom = army?.Kingdom;')) 'army handlers read cleared kingdom safely'
+Assert-True ($kingdomAiBehavior.Contains('Clan? playerClan = Clan.PlayerClan;')) 'army handlers tolerate missing player clan'
+Assert-True ($priorityBehavior.Contains('MobileParty? armyLeaderParty = army?.LeaderParty;')) 'party tick tolerates cleared army leader'
+
+$contractSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContract.cs')
+Assert-True ($contractSource.Contains('MercenaryValuePolicy.NormalizePercentage')) 'saveable evaluation values use finite percentage normalization'
+Assert-True ($contractSource.Contains('MercenaryValuePolicy.AdjustPercentage')) 'saveable evaluation deltas reject non-finite values'
+Assert-True ($contractSource.Contains('MercenaryValuePolicy.AccumulateNonNegative')) 'persistent counters use overflow-safe accumulation'
+
+$runtimeTests = Get-Content -Raw (Join-Path $root 'Commands/MercenaryRuntimeTestCommands.cs')
+Assert-True ($runtimeTests.Contains('CommandLineArgumentFunction("mm_runtime_test", "campaign")')) 'runtime test command is registered'
+foreach ($role in @('free', 'vassal', 'mercenary', 'ruler')) {
+    Assert-True ($runtimeTests.Contains("case `"$role`"")) "runtime test supports $role save"
+}
+Assert-True ($runtimeTests.Contains('RunDiagnosticNullArmyCallbacks')) 'runtime test executes null army callbacks'
+Assert-True ($runtimeTests.Contains('Harmony.GetAllPatchedMethods')) 'runtime test inspects applied Harmony patches'
+Assert-True ($runtimeTests.Contains('RunDiagnosticDailyEvaluation')) 'runtime test executes contract-only daily evaluation'
+
 $requiredLocalization = @('MercenaryManagement_OfferServices',
     'MercenaryManagement_OfferServicesTitle', 'MercenaryManagement_OfferServicesHint',
     'MercenaryManagement_SubmitServiceRequest', 'MercenaryManagement_BackToOffers',

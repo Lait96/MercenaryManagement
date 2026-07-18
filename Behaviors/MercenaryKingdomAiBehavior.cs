@@ -37,8 +37,15 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
 
     private static void OnArmyCreated(Army? army)
     {
-        Kingdom? kingdom = GetManageableKingdom(army);
-        if (kingdom is null) return;
+        ArmyLifecycleDecision decision = EvaluateArmyLifecycle(
+            army,
+            countOtherArmies: false);
+        Kingdom? kingdom = army?.Kingdom;
+        if (decision != ArmyLifecycleDecision.ProcessCreatedArmy
+            || kingdom is null)
+        {
+            return;
+        }
 
         MercenaryStrategicPriority desiredPriority =
             MercenaryHiringService.GetSuggestedPriority(kingdom, true);
@@ -54,9 +61,12 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
         // Bannerlord may clear Army.Kingdom before dispatching ArmyDispersed
         // when the leader party is destroyed. There is no safe kingdom context
         // left in that state, so the priority update must be skipped.
-        Kingdom? kingdom = GetManageableKingdom(army);
-        if (kingdom is null
-            || kingdom.Armies.Any(candidate => candidate != army))
+        ArmyLifecycleDecision decision = EvaluateArmyLifecycle(
+            army,
+            countOtherArmies: true);
+        Kingdom? kingdom = army?.Kingdom;
+        if (decision != ArmyLifecycleDecision.ReevaluateAfterLastArmyDispersed
+            || kingdom is null)
         {
             return;
         }
@@ -67,10 +77,39 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
             MercenaryStrategicPriority.JoinArmies);
     }
 
-    private static Kingdom? GetManageableKingdom(Army? army)
+    private static ArmyLifecycleDecision EvaluateArmyLifecycle(
+        Army? army,
+        bool countOtherArmies)
     {
         Kingdom? kingdom = army?.Kingdom;
-        return CanManageKingdom(kingdom) ? kingdom : null;
+        Clan? playerClan = Clan.PlayerClan;
+        int otherActiveArmyCount = countOtherArmies && kingdom is not null
+            ? kingdom.Armies.Count(candidate => candidate != army)
+            : 0;
+        var snapshot = new ArmyLifecycleSnapshot(
+            army is not null,
+            kingdom is not null,
+            kingdom?.IsEliminated == true,
+            kingdom is not null
+            && playerClan?.Kingdom == kingdom
+            && MercenaryHiringService.IsPlayerRuler(kingdom),
+            otherActiveArmyCount);
+        return countOtherArmies
+            ? MercenaryArmyLifecyclePolicy.OnArmyDispersed(snapshot)
+            : MercenaryArmyLifecyclePolicy.OnArmyCreated(snapshot);
+    }
+
+    internal static ArmyLifecycleDecision RunDiagnosticArmyProbe(
+        Army? army,
+        bool dispersed)
+    {
+        return EvaluateArmyLifecycle(army, dispersed);
+    }
+
+    internal static void RunDiagnosticNullArmyCallbacks()
+    {
+        OnArmyCreated(null);
+        OnArmyDispersed(null, default, false);
     }
 
     private static bool CanManageKingdom(Kingdom? kingdom)

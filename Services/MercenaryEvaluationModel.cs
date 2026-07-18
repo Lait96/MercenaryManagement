@@ -47,20 +47,28 @@ internal static class MercenaryEvaluationModel
 {
     public static DailyEvaluationResult Evaluate(DailyEvaluationInputs input)
     {
-        float target = 50f + (input.RateRatio - 1f) * 60f;
-        target += Math.Max(-10, Math.Min(10, input.RulerRelation)) * 0.5f;
-        target -= Math.Max(0f, 0.65f - input.AveragePartySizeRatio) * 30f;
-        target -= Math.Min(15f, Math.Max(0, input.DebtToKingdom) / 200f);
-        target += Math.Min(10f, input.ContributionPoints / 20f);
+        float currentSatisfaction = Percentage(input.Satisfaction, 50f);
+        float currentReliability = Percentage(input.Reliability, 50f);
+        float currentEmployerSatisfaction = Percentage(input.EmployerSatisfaction, 50f);
+        float rateRatio = Finite(input.RateRatio, 1f);
+        float averagePartySizeRatio = Finite(input.AveragePartySizeRatio, 1f);
+        int contributionPoints = Math.Max(0, input.ContributionPoints);
 
-        float satisfaction = MoveTowards(input.Satisfaction, target, 3f);
-        float reliabilityTarget = 50f + Math.Min(25f, input.ContributionPoints / 10f);
-        float reliability = MoveTowards(input.Reliability, reliabilityTarget, 0.5f);
-        float employerTarget = 40f + Math.Min(35f, input.ContributionPoints / 2f)
+        float target = 50f + (rateRatio - 1f) * 60f;
+        target += Math.Max(-10, Math.Min(10, input.RulerRelation)) * 0.5f;
+        target -= Math.Max(0f, 0.65f - averagePartySizeRatio) * 30f;
+        target -= Math.Min(15f, Math.Max(0, input.DebtToKingdom) / 200f);
+        target += Math.Min(10f, contributionPoints / 20f);
+
+        float satisfaction = Percentage(MoveTowards(currentSatisfaction, target, 3f), 50f);
+        float reliabilityTarget = 50f + Math.Min(25f, contributionPoints / 10f);
+        float reliability = Percentage(
+            MoveTowards(currentReliability, reliabilityTarget, 0.5f), 50f);
+        float employerTarget = 40f + Math.Min(35f, contributionPoints / 2f)
                                + (reliability - 50f) * 0.25f
-                               - Math.Max(0f, input.RateRatio - 1f) * 20f;
-        float employerSatisfaction = MoveTowards(
-            input.EmployerSatisfaction, employerTarget, 2f);
+                               - Math.Max(0f, rateRatio - 1f) * 20f;
+        float employerSatisfaction = Percentage(MoveTowards(
+            currentEmployerSatisfaction, employerTarget, 2f), 50f);
         return new DailyEvaluationResult(satisfaction, reliability, employerSatisfaction);
     }
 
@@ -76,5 +84,15 @@ internal static class MercenaryEvaluationModel
     {
         if (value < target) return Math.Min(value + maximumDelta, target);
         return Math.Max(value - maximumDelta, target);
+    }
+
+    private static float Percentage(float value, float fallback)
+    {
+        return Math.Max(0f, Math.Min(100f, Finite(value, fallback)));
+    }
+
+    private static float Finite(float value, float fallback)
+    {
+        return float.IsNaN(value) || float.IsInfinity(value) ? fallback : value;
     }
 }

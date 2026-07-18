@@ -14,6 +14,13 @@ internal static class Program
         TestEvaluationProgression();
         TestRiskBoundariesAndBusinessScenarios();
         TestOfferTerms();
+        TestArmyLifecycleScenarios();
+        TestArmyPartyLifecycleSafety();
+        TestUnexpectedContributionInputs();
+        TestEvaluationInputRobustness();
+        TestRiskInputRobustnessAndMonotonicity();
+        TestOfferInputRobustness();
+        TestPersistentValueRobustness();
         Console.WriteLine($"PASS: {_passed} deterministic business assertions.");
     }
 
@@ -91,6 +98,365 @@ internal static class Program
             "military need and reliability improve calculated offer terms");
         Assert(highNeed.InfluencePrice <= 150,
             "offer terms respect maximum price");
+    }
+
+    private static void TestArmyLifecycleScenarios()
+    {
+        Assert(CreatedArmy(hasArmy: false, hasKingdom: false)
+               == ArmyLifecycleDecision.Ignore,
+            "missing army event is ignored without failure");
+        Assert(CreatedArmy(hasArmy: true, hasKingdom: false)
+               == ArmyLifecycleDecision.Ignore,
+            "created army with cleared kingdom is ignored without failure");
+        Assert(CreatedArmy(kingdomIsEliminated: true)
+               == ArmyLifecycleDecision.Ignore,
+            "eliminated kingdom cannot trigger army priority updates");
+        Assert(CreatedArmy(playerRulesKingdom: true)
+               == ArmyLifecycleDecision.Ignore,
+            "AI army lifecycle does not manage the player ruler kingdom");
+        Assert(CreatedArmy(playerRulesKingdom: false)
+               == ArmyLifecycleDecision.ProcessCreatedArmy,
+            "player-aligned kingdom remains AI-managed when the player is not its ruler");
+        Assert(CreatedArmy(hasArmy: false, hasKingdom: true)
+               == ArmyLifecycleDecision.Ignore,
+            "contradictory creation snapshot cannot reach kingdom processing");
+        Assert(CreatedArmy()
+               == ArmyLifecycleDecision.ProcessCreatedArmy,
+            "valid AI army creation is processed");
+
+        Assert(DispersedArmy(otherActiveArmyCount: 1)
+               == ArmyLifecycleDecision.Ignore,
+            "dispersing one of two armies keeps army priorities unchanged");
+        Assert(DispersedArmy(otherActiveArmyCount: 0)
+               == ArmyLifecycleDecision.ReevaluateAfterLastArmyDispersed,
+            "dispersing the last army triggers priority reevaluation");
+        Assert(DispersedArmy(hasKingdom: false)
+               == ArmyLifecycleDecision.Ignore,
+            "leader destruction with cleared kingdom is ignored without failure");
+        Assert(DispersedArmy(hasArmy: false, hasKingdom: false)
+               == ArmyLifecycleDecision.Ignore,
+            "repeated dispersal after full cleanup is idempotently ignored");
+        Assert(DispersedArmy(kingdomIsEliminated: true)
+               == ArmyLifecycleDecision.Ignore,
+            "last army of an eliminated kingdom cannot update contracts");
+        Assert(DispersedArmy(otherActiveArmyCount: 3)
+               == ArmyLifecycleDecision.Ignore,
+            "multiple remaining armies never cause false last-army handling");
+        Assert(DispersedArmy(otherActiveArmyCount: -1)
+               == ArmyLifecycleDecision.Ignore,
+            "invalid negative army count fails closed without a priority update");
+        Assert(DispersedArmy(hasArmy: false, hasKingdom: true)
+               == ArmyLifecycleDecision.Ignore,
+            "contradictory dispersal snapshot is ignored without failure");
+    }
+
+    private static void TestArmyPartyLifecycleSafety()
+    {
+        Assert(!CanEvaluatePartyExit(hasArmy: false, hasArmyLeader: false),
+            "party tick without an army exits safely");
+        Assert(!CanEvaluatePartyExit(hasArmy: false, hasArmyLeader: true),
+            "stale leader reference without an army exits safely");
+        Assert(!CanEvaluatePartyExit(hasArmyLeader: false),
+            "partially dispersed army without a leader exits safely");
+        Assert(!CanEvaluatePartyExit(isMainParty: true),
+            "main party is never detached by daily AI policy");
+        Assert(!CanEvaluatePartyExit(isActive: false),
+            "inactive party is ignored during army cleanup");
+        Assert(!CanEvaluatePartyExit(isDisbanding: true),
+            "disbanding party is ignored during army cleanup");
+        Assert(!CanEvaluatePartyExit(isArmyLeader: true),
+            "army leader is never detached by member leave policy");
+        Assert(!CanEvaluatePartyExit(
+                hasArmy: false,
+                hasArmyLeader: false,
+                isMainParty: true,
+                isActive: false,
+                isDisbanding: true,
+                isArmyLeader: true),
+            "fully inconsistent party cleanup state exits safely");
+        Assert(CanEvaluatePartyExit(),
+            "healthy non-leader army member can reach normal leave evaluation");
+    }
+
+    private static void TestUnexpectedContributionInputs()
+    {
+        MercenaryStrategicPriority[] priorities =
+        {
+            MercenaryStrategicPriority.IndependentOperations,
+            MercenaryStrategicPriority.JoinArmies,
+            MercenaryStrategicPriority.EconomicWarfare,
+            MercenaryStrategicPriority.TerritorialDefense,
+            (MercenaryStrategicPriority)(-1),
+            (MercenaryStrategicPriority)int.MaxValue
+        };
+        PassiveContributionEvidence[] evidenceValues =
+        {
+            PassiveContributionEvidence.None,
+            PassiveContributionEvidence.ServingInArmy,
+            PassiveContributionEvidence.EconomicOperation,
+            PassiveContributionEvidence.ActiveTerritorialDefense,
+            (PassiveContributionEvidence)(-1),
+            (PassiveContributionEvidence)int.MaxValue
+        };
+        int eligiblePairs = 0;
+        foreach (MercenaryStrategicPriority priority in priorities)
+        foreach (PassiveContributionEvidence evidence in evidenceValues)
+        {
+            if (MercenaryContributionPolicy.IsEligible(priority, evidence))
+                eligiblePairs++;
+        }
+
+        Assert(eligiblePairs == 3,
+            "only the three explicit priority/evidence pairs can earn passive contribution");
+        Assert(!MercenaryContributionPolicy.CanRecordDaily(float.NaN)
+               && !MercenaryContributionPolicy.CanRecordDaily(float.PositiveInfinity)
+               && !MercenaryContributionPolicy.CanRecordDaily(float.NegativeInfinity),
+            "non-finite elapsed time cannot create contribution");
+        Assert(MercenaryContributionPolicy.CanRecordDaily(-1f)
+               && !MercenaryContributionPolicy.CanRecordDaily(0f)
+               && !MercenaryContributionPolicy.CanRecordDaily(0.999999f)
+               && MercenaryContributionPolicy.CanRecordDaily(1f),
+            "daily contribution boundary is deterministic");
+    }
+
+    private static void TestEvaluationInputRobustness()
+    {
+        float[] hostileFloats =
+        {
+            float.NaN,
+            float.PositiveInfinity,
+            float.NegativeInfinity,
+            float.MinValue,
+            float.MaxValue,
+            -10000f,
+            10000f
+        };
+        bool allResultsSafe = true;
+        foreach (float value in hostileFloats)
+        {
+            DailyEvaluationResult result = MercenaryEvaluationModel.Evaluate(
+                new DailyEvaluationInputs(
+                    value, value, value, value, int.MaxValue, value,
+                    int.MaxValue, int.MinValue));
+            allResultsSafe &= IsPercentage(result.Satisfaction)
+                              && IsPercentage(result.Reliability)
+                              && IsPercentage(result.EmployerSatisfaction);
+        }
+        Assert(allResultsSafe,
+            "evaluation returns finite percentages for malformed numeric inputs");
+
+        DailyEvaluationResult lowRate = MercenaryEvaluationModel.Evaluate(
+            new DailyEvaluationInputs(50, 50, 50, 0.8f, 0, 1f, 0, 0));
+        DailyEvaluationResult highRate = MercenaryEvaluationModel.Evaluate(
+            new DailyEvaluationInputs(50, 50, 50, 1.2f, 0, 1f, 0, 0));
+        Assert(highRate.Satisfaction >= lowRate.Satisfaction,
+            "raising valid pay cannot reduce mercenary satisfaction");
+
+        DailyEvaluationResult negativeContribution = MercenaryEvaluationModel.Evaluate(
+            new DailyEvaluationInputs(50, 50, 50, 1f, 0, 1f, 0, int.MinValue));
+        DailyEvaluationResult zeroContribution = MercenaryEvaluationModel.Evaluate(
+            new DailyEvaluationInputs(50, 50, 50, 1f, 0, 1f, 0, 0));
+        Assert(negativeContribution.Reliability == zeroContribution.Reliability
+               && negativeContribution.EmployerSatisfaction
+               == zeroContribution.EmployerSatisfaction,
+            "negative contribution is normalized to no contribution");
+
+        int[] bands =
+        {
+            MercenaryEvaluationModel.GetPerformanceBand(int.MinValue, float.NaN),
+            MercenaryEvaluationModel.GetPerformanceBand(-1, -100f),
+            MercenaryEvaluationModel.GetPerformanceBand(int.MaxValue, float.PositiveInfinity)
+        };
+        Assert(Array.TrueForAll(bands, band => band >= 0 && band <= 4),
+            "performance band remains valid for extreme service data");
+    }
+
+    private static void TestRiskInputRobustnessAndMonotonicity()
+    {
+        float[] hostileFloats =
+        {
+            float.NaN,
+            float.PositiveInfinity,
+            float.NegativeInfinity,
+            float.MinValue,
+            float.MaxValue,
+            -10000f,
+            10000f
+        };
+        bool allBreakdownsSafe = true;
+        foreach (float value in hostileFloats)
+        {
+            RiskBreakdown departure = MercenaryRiskModel.CalculateDepartureRisk(
+                new DepartureRiskInputs(value, value, value, int.MinValue,
+                    value, value, value, value, true));
+            RiskBreakdown termination = MercenaryRiskModel.CalculateEmployerTerminationRisk(
+                new EmployerTerminationRiskInputs(value, value, value, value));
+            allBreakdownsSafe &= IsSafeBreakdown(departure)
+                                 && IsSafeBreakdown(termination);
+        }
+        Assert(allBreakdownsSafe,
+            "risk totals and displayed factors stay finite for malformed inputs");
+
+        RiskBreakdown satisfied = MercenaryRiskModel.CalculateDepartureRisk(
+            new DepartureRiskInputs(90, 50, 1f, 0, 1f, 0.5f, 0, 60, true));
+        RiskBreakdown dissatisfied = MercenaryRiskModel.CalculateDepartureRisk(
+            new DepartureRiskInputs(10, 50, 1f, 0, 1f, 0.5f, 0, 60, true));
+        Assert(dissatisfied.Total > satisfied.Total,
+            "lower satisfaction strictly increases departure risk");
+
+        RiskBreakdown longTerm = MercenaryRiskModel.CalculateDepartureRisk(
+            new DepartureRiskInputs(50, 50, 1f, 0, 1f, 0.5f, 0, 60, true));
+        RiskBreakdown expiring = MercenaryRiskModel.CalculateDepartureRisk(
+            new DepartureRiskInputs(50, 50, 1f, 0, 1f, 0.5f, 0, 0, true));
+        Assert(expiring.Total > longTerm.Total,
+            "an expiring finite contract raises departure risk");
+
+        RiskBreakdown lowNeed = MercenaryRiskModel.CalculateEmployerTerminationRisk(
+            new EmployerTerminationRiskInputs(50, 1f, 0f, 50));
+        RiskBreakdown highNeed = MercenaryRiskModel.CalculateEmployerTerminationRisk(
+            new EmployerTerminationRiskInputs(50, 1f, 1f, 50));
+        Assert(lowNeed.Total > highNeed.Total,
+            "lower military need strictly increases employer termination risk");
+    }
+
+    private static void TestOfferInputRobustness()
+    {
+        OfferTermsResult reversedBounds = MercenaryOfferModel.CalculateTerms(
+            100, 150, 85, 0.5f, 50f, false);
+        Assert(reversedBounds.InfluencePrice >= 85
+               && reversedBounds.InfluencePrice <= 150,
+            "reversed offer bounds are normalized safely");
+
+        OfferTermsResult negativePrices = MercenaryOfferModel.CalculateTerms(
+            -100, -50, -10, 0.5f, 50f, false);
+        Assert(negativePrices.InfluencePrice == 0,
+            "negative offer prices cannot escape into a contract");
+
+        float[] hostileFloats =
+        {
+            float.NaN,
+            float.PositiveInfinity,
+            float.NegativeInfinity,
+            float.MinValue,
+            float.MaxValue
+        };
+        bool allOffersSafe = true;
+        foreach (float value in hostileFloats)
+        {
+            OfferTermsResult result = MercenaryOfferModel.CalculateTerms(
+                int.MaxValue, 85, 150, value, value, false);
+            allOffersSafe &= result.InfluencePrice >= 85
+                             && result.InfluencePrice <= 150
+                             && (result.DurationDays == 30
+                                 || result.DurationDays == 60
+                                 || result.DurationDays == 120);
+        }
+        Assert(allOffersSafe,
+            "offer calculation contains extreme and non-finite campaign inputs");
+
+        OfferTermsResult requested = MercenaryOfferModel.CalculateTerms(
+            100, 0, 200, 0.5f, 50f, true);
+        OfferTermsResult unsolicited = MercenaryOfferModel.CalculateTerms(
+            100, 0, 200, 0.5f, 50f, false);
+        Assert(requested.InfluencePrice <= unsolicited.InfluencePrice,
+            "requesting services cannot improve the calculated price over an unsolicited offer");
+    }
+
+    private static void TestPersistentValueRobustness()
+    {
+        Assert(MercenaryValuePolicy.NormalizePercentage(-1f) == 0f
+               && MercenaryValuePolicy.NormalizePercentage(101f) == 100f
+               && MercenaryValuePolicy.NormalizePercentage(42f) == 42f,
+            "saveable percentages retain valid values and clamp normal overflow");
+        Assert(MercenaryValuePolicy.NormalizePercentage(float.NaN) == 50f
+               && MercenaryValuePolicy.NormalizePercentage(float.PositiveInfinity) == 50f
+               && MercenaryValuePolicy.NormalizePercentage(25f, float.NaN) == 25f,
+            "non-finite saveable percentages recover to a finite neutral value");
+        Assert(MercenaryValuePolicy.AdjustPercentage(70f, float.NaN) == 70f
+               && MercenaryValuePolicy.AdjustPercentage(float.NaN, 5f) == 55f
+               && MercenaryValuePolicy.AdjustPercentage(99f, 5f) == 100f,
+            "malformed evaluation deltas cannot poison existing contract state");
+        Assert(MercenaryValuePolicy.AccumulateNonNegative(10, 5) == 15
+               && MercenaryValuePolicy.AccumulateNonNegative(10, -20) == 0,
+            "normal contribution accumulation preserves its non-negative invariant");
+        Assert(MercenaryValuePolicy.AccumulateNonNegative(int.MaxValue, 1) == int.MaxValue
+               && MercenaryValuePolicy.AccumulateNonNegative(int.MaxValue, int.MaxValue)
+               == int.MaxValue
+               && MercenaryValuePolicy.AccumulateNonNegative(int.MinValue, int.MinValue) == 0,
+            "contribution and earnings accumulation cannot wrap around integer limits");
+    }
+
+    private static bool IsPercentage(float value)
+    {
+        return IsFinite(value) && value >= 0f && value <= 100f;
+    }
+
+    private static bool IsSafeBreakdown(RiskBreakdown breakdown)
+    {
+        return IsPercentage(breakdown.Total)
+               && IsFinite(breakdown.Base)
+               && IsFinite(breakdown.Satisfaction)
+               && IsFinite(breakdown.Reliability)
+               && IsFinite(breakdown.Rate)
+               && IsFinite(breakdown.Relation)
+               && IsFinite(breakdown.Losses)
+               && IsFinite(breakdown.MilitaryNeed)
+               && IsFinite(breakdown.PriorityMismatch)
+               && IsFinite(breakdown.RemainingTerm);
+    }
+
+    private static bool IsFinite(float value)
+    {
+        return !float.IsNaN(value) && !float.IsInfinity(value);
+    }
+
+    private static ArmyLifecycleDecision CreatedArmy(
+        bool hasArmy = true,
+        bool hasKingdom = true,
+        bool kingdomIsEliminated = false,
+        bool playerRulesKingdom = false)
+    {
+        return MercenaryArmyLifecyclePolicy.OnArmyCreated(
+            new ArmyLifecycleSnapshot(
+                hasArmy,
+                hasKingdom,
+                kingdomIsEliminated,
+                playerRulesKingdom,
+                0));
+    }
+
+    private static ArmyLifecycleDecision DispersedArmy(
+        bool hasArmy = true,
+        bool hasKingdom = true,
+        bool kingdomIsEliminated = false,
+        bool playerRulesKingdom = false,
+        int otherActiveArmyCount = 0)
+    {
+        return MercenaryArmyLifecyclePolicy.OnArmyDispersed(
+            new ArmyLifecycleSnapshot(
+                hasArmy,
+                hasKingdom,
+                kingdomIsEliminated,
+                playerRulesKingdom,
+                otherActiveArmyCount));
+    }
+
+    private static bool CanEvaluatePartyExit(
+        bool hasArmy = true,
+        bool hasArmyLeader = true,
+        bool isMainParty = false,
+        bool isActive = true,
+        bool isDisbanding = false,
+        bool isArmyLeader = false)
+    {
+        return MercenaryArmyLifecyclePolicy.CanEvaluatePartyExit(
+            new ArmyPartyLifecycleSnapshot(
+                hasArmy,
+                hasArmyLeader,
+                isMainParty,
+                isActive,
+                isDisbanding,
+                isArmyLeader));
     }
 
     private static int SimulateParties(int partyCount)

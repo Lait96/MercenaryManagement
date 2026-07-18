@@ -1,5 +1,6 @@
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.SaveSystem;
+using MercenaryManagement.Services;
 
 namespace MercenaryManagement.Contracts;
 
@@ -144,8 +145,8 @@ internal sealed class MercenaryContract
 
     public void AdjustEvaluation(float satisfactionDelta, float reliabilityDelta)
     {
-        Satisfaction = Clamp(Satisfaction + satisfactionDelta);
-        Reliability = Clamp(Reliability + reliabilityDelta);
+        Satisfaction = MercenaryValuePolicy.AdjustPercentage(Satisfaction, satisfactionDelta);
+        Reliability = MercenaryValuePolicy.AdjustPercentage(Reliability, reliabilityDelta);
         LastEvaluationTime = CampaignTime.Now;
     }
 
@@ -156,7 +157,8 @@ internal sealed class MercenaryContract
 
     public void AddContribution(int points)
     {
-        ContributionPoints = System.Math.Max(0, ContributionPoints + points);
+        ContributionPoints = MercenaryValuePolicy.AccumulateNonNegative(
+            ContributionPoints, points);
     }
 
     public void RecordContribution(int points, string activity)
@@ -189,7 +191,8 @@ internal sealed class MercenaryContract
             RecentEarnings = 0;
             EarningsPeriodStart = CampaignTime.Now;
         }
-        RecentEarnings = System.Math.Max(0, RecentEarnings + earnings);
+        RecentEarnings = MercenaryValuePolicy.AccumulateNonNegative(
+            RecentEarnings, earnings);
     }
 
     public void RecordRevisionRequest()
@@ -286,7 +289,7 @@ internal sealed class MercenaryContract
 
     private static float Clamp(float value)
     {
-        return System.Math.Max(0f, System.Math.Min(100f, value));
+        return MercenaryValuePolicy.NormalizePercentage(value);
     }
 
     private static MercenaryContractDuration GetDuration(CampaignTime endTime)

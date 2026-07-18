@@ -1,3 +1,5 @@
+using System;
+
 namespace MercenaryManagement.Services;
 
 internal enum PassiveContributionEvidence
@@ -29,6 +31,12 @@ internal static class MercenaryContributionPolicy
 
     public static bool CanRecordDaily(float elapsedDaysSinceLastRecord)
     {
+        if (float.IsNaN(elapsedDaysSinceLastRecord)
+            || float.IsInfinity(elapsedDaysSinceLastRecord))
+        {
+            return false;
+        }
+
         return elapsedDaysSinceLastRecord < 0f || elapsedDaysSinceLastRecord >= 1f;
     }
 }

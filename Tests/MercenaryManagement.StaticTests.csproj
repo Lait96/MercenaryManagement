@@ -13,5 +13,7 @@
     <Compile Include="..\Services\MercenaryEvaluationModel.cs" Link="Production\MercenaryEvaluationModel.cs" />
     <Compile Include="..\Services\MercenaryRiskModel.cs" Link="Production\MercenaryRiskModel.cs" />
     <Compile Include="..\Services\MercenaryOfferModel.cs" Link="Production\MercenaryOfferModel.cs" />
+    <Compile Include="..\Services\MercenaryArmyLifecyclePolicy.cs" Link="Production\MercenaryArmyLifecyclePolicy.cs" />
+    <Compile Include="..\Services\MercenaryValuePolicy.cs" Link="Production\MercenaryValuePolicy.cs" />
   </ItemGroup>
 </Project>

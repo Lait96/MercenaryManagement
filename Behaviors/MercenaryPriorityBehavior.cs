@@ -70,12 +70,16 @@ internal sealed class MercenaryPriorityBehavior : CampaignBehaviorBase
         RecordDailyContribution(mobileParty);
         Army? army = mobileParty.Army;
         MobileParty? armyLeaderParty = army?.LeaderParty;
+        var lifecycleSnapshot = new ArmyPartyLifecycleSnapshot(
+            army is not null,
+            armyLeaderParty is not null,
+            mobileParty.IsMainParty,
+            mobileParty.IsActive,
+            mobileParty.IsDisbanding,
+            armyLeaderParty == mobileParty);
         if (army is null
             || armyLeaderParty is null
-            || mobileParty.IsMainParty
-            || !mobileParty.IsActive
-            || mobileParty.IsDisbanding
-            || armyLeaderParty == mobileParty
+            || !MercenaryArmyLifecyclePolicy.CanEvaluatePartyExit(lifecycleSnapshot)
             || !MercenaryPriorityService.TryGetStrategicPriority(
                 mobileParty.ActualClan,
                 out MercenaryStrategicPriority priority))

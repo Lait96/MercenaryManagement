@@ -31,7 +31,8 @@ public static class MercenaryReleaseTestCommands
             + "mm_offer_accept <kingdom>\nmm_offer_reject <kingdom>\n"
             + "mm_ai_evaluate <departure|dismissal|renewal> <preview|apply> <clan>\n"
             + "mm_ai_hire <preview|apply> <kingdom>\nmm_party_state <clan>\n"
-            + "mm_contribution_probe <clan>\nmm_harmony_status";
+            + "mm_contribution_probe <clan>\nmm_harmony_status\n"
+            + "mm_runtime_test <free|vassal|mercenary|ruler> confirm";
     }
 
     [CommandLineFunctionality.CommandLineArgumentFunction("mm_contract_state", "campaign")]
