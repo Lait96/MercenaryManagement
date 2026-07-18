@@ -11,11 +11,15 @@ namespace MercenaryManagement.Behaviors;
 
 internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 {
-    private const int CurrentDataVersion = 4;
+    private const int CurrentDataVersion = 5;
 
     private Dictionary<string, MercenaryContract> _contracts =
         new Dictionary<string, MercenaryContract>();
     private Dictionary<string, int> _legacyInfluencePrices = new Dictionary<string, int>();
+    private Dictionary<string, List<MercenaryContractHistoryEntry>> _contractHistory =
+        new Dictionary<string, List<MercenaryContractHistoryEntry>>();
+    private readonly Dictionary<string, MercenaryContractEndReason> _pendingEndReasons =
+        new Dictionary<string, MercenaryContractEndReason>();
     private int _dataVersion;
 
     public override void RegisterEvents()
@@ -33,6 +37,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
     {
         dataStore.SyncData("MercenaryManagement_Contracts", ref _contracts);
         dataStore.SyncData("MercenaryManagement_DataVersion", ref _dataVersion);
+        dataStore.SyncData("MercenaryManagement_ContractHistory", ref _contractHistory);
 
         // Keep reading the old key so campaigns saved before contracts were introduced
         // retain their individually configured prices.
@@ -42,6 +47,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
         _contracts ??= new Dictionary<string, MercenaryContract>();
         _legacyInfluencePrices ??= new Dictionary<string, int>();
+        _contractHistory ??= new Dictionary<string, List<MercenaryContractHistoryEntry>>();
     }
 
     public bool TryGetContract(Clan clan, out MercenaryContract contract)
@@ -73,9 +79,49 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
     public float GetReliability(Clan clan)
     {
-        return _contracts.TryGetValue(clan.StringId, out MercenaryContract contract)
-            ? contract.Reliability
-            : 50f;
+        if (_contracts.TryGetValue(clan.StringId, out MercenaryContract contract)
+            && contract.IsActive)
+            return contract.Reliability;
+        return GetReputation(clan, null);
+    }
+
+    public IReadOnlyList<MercenaryContractHistoryEntry> GetHistory(Clan clan)
+    {
+        return _contractHistory.TryGetValue(clan.StringId,
+            out List<MercenaryContractHistoryEntry> history)
+            ? history
+            : (IReadOnlyList<MercenaryContractHistoryEntry>)System.Array.Empty<MercenaryContractHistoryEntry>();
+    }
+
+    public float GetReputation(Clan clan, Kingdom? employer)
+    {
+        if (!_contractHistory.TryGetValue(clan.StringId,
+                out List<MercenaryContractHistoryEntry> history)
+            || history.Count == 0)
+            return 50f;
+
+        float total = 0f;
+        float employerTotal = 0f;
+        int employerCount = 0;
+        foreach (MercenaryContractHistoryEntry entry in history)
+        {
+            float days = (float)System.Math.Max(0d,
+                entry.ServiceEndTime.ToDays - entry.ServiceStartTime.ToDays);
+            float score = MercenaryReputationModel.Calculate(new ContractReputationInputs(
+                entry.Reliability, entry.EmployerSatisfaction, entry.ContributionPoints,
+                entry.FinalRelation, days));
+            total += score;
+            if (employer is not null && entry.KingdomId == employer.StringId)
+            {
+                employerTotal += score;
+                employerCount++;
+            }
+        }
+
+        float general = total / history.Count;
+        return MercenaryReputationModel.Combine(general,
+            employerCount == 0 ? 50f : employerTotal / employerCount,
+            employerCount > 0);
     }
 
     public bool GetOrCreateContract(Clan clan, out MercenaryContract contract)
@@ -127,8 +173,8 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return true;
         }
 
-        float previousReliability = GetReliability(clan);
-        CompleteContract(clan);
+        float previousReliability = GetReputation(clan, kingdom);
+        CompleteContract(clan, MercenaryContractEndReason.ChangedKingdom);
         contract = new MercenaryContract(clan, kingdom, influencePrice, endTime);
         contract.SetEvaluation(50f, previousReliability, CampaignTime.Now);
         _contracts[clan.StringId] = contract;
@@ -215,7 +261,8 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         }
     }
 
-    public bool CompleteContract(Clan clan)
+    public bool CompleteContract(Clan clan,
+        MercenaryContractEndReason reason = MercenaryContractEndReason.Unknown)
     {
         _legacyInfluencePrices.Remove(clan.StringId);
 
@@ -237,8 +284,35 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             }
         }
 
-        contract.Complete(CampaignTime.Now);
+        if (_pendingEndReasons.TryGetValue(clan.StringId,
+                out MercenaryContractEndReason pendingReason))
+            reason = pendingReason;
+        _pendingEndReasons.Remove(clan.StringId);
+
+        CampaignTime completionTime = CampaignTime.Now;
+        int relation = contract.Clan?.Leader is not null
+                       && contract.EmployerKingdom?.Leader is not null
+            ? contract.Clan.Leader.GetRelation(contract.EmployerKingdom.Leader)
+            : 0;
+        if (!_contractHistory.TryGetValue(clan.StringId,
+                out List<MercenaryContractHistoryEntry> history))
+        {
+            history = new List<MercenaryContractHistoryEntry>();
+            _contractHistory[clan.StringId] = history;
+        }
+        history.Add(new MercenaryContractHistoryEntry(contract, reason, completionTime, relation));
+        contract.Complete(completionTime);
         return true;
+    }
+
+    public void SetPendingEndReason(Clan clan, MercenaryContractEndReason reason)
+    {
+        _pendingEndReasons[clan.StringId] = reason;
+    }
+
+    public void ClearPendingEndReason(Clan clan)
+    {
+        _pendingEndReasons.Remove(clan.StringId);
     }
 
     public bool RunDiagnosticDailyEvaluation(Clan clan, int count)
@@ -350,13 +424,13 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         {
             if (!clan.IsUnderMercenaryService)
             {
-                CompleteContract(clan);
+                CompleteContract(clan, MercenaryContractEndReason.PartyUnavailable);
             }
 
             return;
         }
 
-        CompleteContract(clan);
+        CompleteContract(clan, MercenaryContractEndReason.ChangedKingdom);
 
         if (newKingdom is not null && clan.IsUnderMercenaryService)
         {
@@ -381,7 +455,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             || contract.EmployerKingdom?.Leader is null
             || !contract.EmployerKingdom.Leader.IsAlive)
         {
-            MercenaryDismissalService.EndService(clan);
+            MercenaryDismissalService.EndService(clan, MercenaryContractEndReason.PartyUnavailable);
             return;
         }
 
@@ -389,14 +463,14 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             && contract.EndTime != CampaignTime.Never
             && contract.EndTime.IsPast)
         {
-            MercenaryDismissalService.EndService(clan);
+            MercenaryDismissalService.EndService(clan, MercenaryContractEndReason.TermExpired);
             return;
         }
 
         if (contract.Duration == MercenaryContractDuration.UntilCurrentWarEnds
             && !IsWarStillActive(contract))
         {
-            MercenaryDismissalService.EndService(clan);
+            MercenaryDismissalService.EndService(clan, MercenaryContractEndReason.WarEnded);
             return;
         }
 
@@ -411,7 +485,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         if (risk <= 70f) return;
         float dailyChance = (risk - 70f) / 3000f;
         if (MBRandom.RandomFloat < dailyChance)
-            MercenaryDismissalService.EndService(clan);
+            MercenaryDismissalService.EndService(clan, MercenaryContractEndReason.MercenaryLeft);
     }
 
     private static bool HasPartyInMapEvent(Clan clan)

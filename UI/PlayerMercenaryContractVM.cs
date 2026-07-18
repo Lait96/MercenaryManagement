@@ -18,11 +18,13 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     private PlayerMercenaryOfferItemVM? _selectedOffer;
     private PlayerServiceKingdomItemVM? _selectedServiceKingdom;
     private bool _isOfferingServices;
+    private bool _isShowingHistory;
 
     public PlayerMercenaryContractVM()
     {
         AvailableOffers = new MBBindingList<PlayerMercenaryOfferItemVM>();
         ServiceKingdoms = new MBBindingList<PlayerServiceKingdomItemVM>();
+        ContractHistory = new MBBindingList<MercenaryContractHistoryItemVM>();
     }
 
     [DataSourceProperty] public MBBindingList<PlayerMercenaryOfferItemVM> AvailableOffers { get; }
@@ -74,6 +76,20 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         }
     }
     [DataSourceProperty] public bool HasSelectedServiceKingdom => SelectedServiceKingdom is not null;
+    [DataSourceProperty] public MBBindingList<MercenaryContractHistoryItemVM> ContractHistory { get; }
+    [DataSourceProperty] public bool HasContractHistory => ContractHistory.Count > 0;
+    [DataSourceProperty] public bool HasNoContractHistory => ContractHistory.Count == 0;
+    [DataSourceProperty]
+    public bool IsShowingHistory
+    {
+        get => _isShowingHistory;
+        private set
+        {
+            if (_isShowingHistory == value) return;
+            _isShowingHistory = value;
+            OnPropertyChangedWithValue(value);
+        }
+    }
 
     [DataSourceProperty]
     public bool IsUnavailable => !string.IsNullOrEmpty(_unavailableReason);
@@ -184,6 +200,16 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
     [DataSourceProperty] public string PerformanceText => Localize("MercenaryManagement_Performance", "Performance");
     [DataSourceProperty] public string CurrentActivityText => Localize("MercenaryManagement_CurrentActivity", "Current activity");
     [DataSourceProperty] public string RecentEarningsText => Localize("MercenaryManagement_RecentEarnings", "Earnings in the last 7 days");
+    [DataSourceProperty] public string HistoryText => Localize("MercenaryManagement_ContractHistory", "Contract history");
+    [DataSourceProperty] public string NoHistoryText => Localize("MercenaryManagement_NoContractHistory", "No completed contracts have been recorded.");
+    [DataSourceProperty] public string HistoryEmployerText => Localize("MercenaryManagement_HistoryEmployer", "Employer");
+    [DataSourceProperty] public string HistoryPeriodText => Localize("MercenaryManagement_HistoryPeriod", "Service period");
+    [DataSourceProperty] public string HistoryReasonText => Localize("MercenaryManagement_HistoryReason", "Completion reason");
+    [DataSourceProperty] public string HistoryResultsText => Localize("MercenaryManagement_HistoryResults", "Contribution / reputation");
+    [DataSourceProperty] public string HistoryRelationsText => Localize("MercenaryManagement_HistoryRelations", "Clan / employer satisfaction; relation");
+
+    [DataSourceMethod]
+    public void ExecuteShowHistory() => IsShowingHistory = !IsShowingHistory;
 
     [DataSourceMethod]
     public void ExecuteAcceptOffer()
@@ -336,7 +362,8 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         if (contract?.Clan != Clan.PlayerClan) return;
         if (contract.EndTime != CampaignTime.Zero && !contract.EndTime.IsPast)
             contract.AdjustEvaluation(-10f, -8f);
-        MercenaryDismissalService.EndService(Clan.PlayerClan);
+        MercenaryDismissalService.EndService(Clan.PlayerClan,
+            MercenaryContractEndReason.MercenaryLeft);
         bool ended = !Clan.PlayerClan.IsUnderMercenaryService || Clan.PlayerClan.Kingdom is null;
         Display(ended
             ? Localize("MercenaryManagement_PlayerContractEnded", "Your mercenary contract has ended.")
@@ -356,12 +383,19 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         _unavailableReason = GetUnavailableReason(clan);
         ClearOffers();
         ClearServiceKingdoms();
+        ContractHistory.Clear();
         IsOfferingServices = false;
+
+        MercenaryContractBehavior? behavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        if (clan is not null)
+            foreach (MercenaryContractHistoryEntry entry in
+                     (behavior?.GetHistory(clan) ?? Array.Empty<MercenaryContractHistoryEntry>())
+                     .OrderByDescending(entry => entry.ServiceEndTime.ToDays))
+                ContractHistory.Add(new MercenaryContractHistoryItemVM(entry));
 
         if (string.IsNullOrEmpty(_unavailableReason) && clan is not null)
         {
-            MercenaryContractBehavior? behavior = Campaign.Current?
-                .GetCampaignBehavior<MercenaryContractBehavior>();
             if (behavior?.GetOrCreateContract(clan, out MercenaryContract contract) == true)
             {
                 _contract = contract;
@@ -430,6 +464,8 @@ internal sealed class PlayerMercenaryContractVM : ViewModel
         OnPropertyChangedWithValue(Performance, nameof(Performance));
         OnPropertyChangedWithValue(CurrentActivity, nameof(CurrentActivity));
         OnPropertyChangedWithValue(RecentEarnings, nameof(RecentEarnings));
+        OnPropertyChangedWithValue(HasContractHistory, nameof(HasContractHistory));
+        OnPropertyChangedWithValue(HasNoContractHistory, nameof(HasNoContractHistory));
     }
 
     public override void OnFinalize()

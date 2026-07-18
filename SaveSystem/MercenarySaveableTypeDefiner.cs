@@ -18,6 +18,7 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
     {
         AddClassDefinition(typeof(MercenaryContract), 1);
         AddClassDefinition(typeof(MercenaryOffer), 4);
+        AddClassDefinition(typeof(MercenaryContractHistoryEntry), 6);
     }
 
     protected override void DefineEnumTypes()
@@ -25,6 +26,7 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
         AddEnumDefinition(typeof(MercenaryContractState), 2);
         AddEnumDefinition(typeof(MercenaryStrategicPriority), 3);
         AddEnumDefinition(typeof(MercenaryContractDuration), 5);
+        AddEnumDefinition(typeof(MercenaryContractEndReason), 7);
     }
 
     protected override void DefineContainerDefinitions()
@@ -32,5 +34,7 @@ public sealed class MercenarySaveableTypeDefiner : SaveableTypeDefiner
         ConstructContainerDefinition(typeof(Dictionary<string, MercenaryContract>));
         ConstructContainerDefinition(typeof(Dictionary<string, CampaignTime>));
         ConstructContainerDefinition(typeof(Dictionary<string, MercenaryOffer>));
+        ConstructContainerDefinition(typeof(List<MercenaryContractHistoryEntry>));
+        ConstructContainerDefinition(typeof(Dictionary<string, List<MercenaryContractHistoryEntry>>));
     }
 }

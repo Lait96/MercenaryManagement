@@ -301,7 +301,7 @@ internal static class MercenaryHiringService
         int rateBonus = (offeredRate - baseRate) * 50 / baseRate;
         MercenaryContractBehavior? behavior = Campaign.Current?
             .GetCampaignBehavior<MercenaryContractBehavior>();
-        int reliabilityBonus = (int)System.Math.Round(((behavior?.GetReliability(clan) ?? 50f) - 50f) * 0.3f);
+        int reliabilityBonus = (int)System.Math.Round(((behavior?.GetReputation(clan, kingdom) ?? 50f) - 50f) * 0.3f);
         return System.Math.Max(5, System.Math.Min(95, 55 + relation + rateBonus + reliabilityBonus));
     }
 

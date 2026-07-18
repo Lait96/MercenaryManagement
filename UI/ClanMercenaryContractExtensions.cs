@@ -205,8 +205,42 @@ internal sealed class ClanMercenaryContractPanelExtension : PrefabExtensionInser
                       </Children>
                     </ScrollablePanel>
                     <Standard.VerticalScrollbar Id="ContractScrollbar" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" IsVisible="@HasActiveContract" />
+                    <BrushListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@IsShowingHistory">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="54" HorizontalAlignment="Center" Brush="Kingdom.TitleMedium.Text" Brush.FontSize="27" Text="@HistoryText" />
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="22" Text="@NoHistoryText" IsVisible="@HasNoContractHistory" />
+                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginLeft="12" MarginRight="28" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasContractHistory"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Text="@HistoryEmployerText" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.55" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="270" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Text="@HistoryPeriodText" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.55" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Text="@HistoryReasonText" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.55" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Text="@HistoryResultsText" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.55" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Text="@HistoryRelationsText" /></Children></ListPanel>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginLeft="12" MarginRight="28" Sprite="GradientDivider_9" AlphaFactor="0.7" IsVisible="@HasContractHistory" />
+                        <Widget Id="HistoryScrollContainer" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@HasContractHistory"><Children><ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="20" AutoHideScrollBars="true" MouseScrollAxis="Vertical" ClipRect="HistoryClipRect" InnerPanel="HistoryClipRect\HistoryList" VerticalScrollbar="..\HistoryScrollbar\Scrollbar"><Children><Widget Id="HistoryClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true"><Children><ListPanel Id="HistoryList" DataSource="{ContractHistory}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom"><ItemTemplate><BrushListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="124" MarginLeft="8" MarginRight="8" MarginBottom="7" Brush="Clan.Item.Tuple" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="ArmyManagement.Army.Tuple.Name" Brush.FontSize="17" Text="@EmployerSummary" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.45" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="270" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="16" Text="@ServicePeriod" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.45" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="16" Text="@EndReason" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.45" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="16" Text="@ResultsSummary" /><Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" Sprite="GradientDivider_9" AlphaFactor="0.45" /><TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Kingdom.ParagraphSmall.Text" Brush.FontSize="16" Text="@RelationsSummary" /></Children></BrushListPanel></ItemTemplate></ListPanel></Children></Widget></Children></ScrollablePanel><Standard.VerticalScrollbar Id="HistoryScrollbar" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginTop="4" MarginBottom="4" /></Children></Widget>
+                      </Children>
+                    </BrushListPanel>
                   </Children>
                 </Widget>
+                <ButtonWidget Id="ContractHistoryButton"
+                              DataSource="{MercenaryContract}"
+                              DoNotPassEventsToChildren="true"
+                              UpdateChildrenStates="true"
+                              WidthSizePolicy="Fixed"
+                              HeightSizePolicy="Fixed"
+                              SuggestedWidth="300"
+                              SuggestedHeight="48"
+                              MarginRight="10"
+                              MarginTop="45"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              Brush="ButtonBrush2"
+                              Command.Click="ExecuteShowHistory">
+                  <Children>
+                    <TextWidget DoNotAcceptEvents="true"
+                                WidthSizePolicy="StretchToParent"
+                                HeightSizePolicy="StretchToParent"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Brush="Kingdom.GeneralButtons.Text"
+                                Brush.FontSize="18"
+                                Text="@HistoryText" />
+                  </Children>
+                </ButtonWidget>
               </Children>
             </Widget>
             """);

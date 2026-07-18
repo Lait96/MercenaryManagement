@@ -125,7 +125,7 @@ internal sealed class MercenaryOfferBehavior : CampaignBehaviorBase
         float need = MercenaryHiringService.CalculateMilitaryNeed(kingdom);
         MercenaryContractBehavior? contracts = Campaign.Current?
             .GetCampaignBehavior<MercenaryContractBehavior>();
-        float reliability = contracts?.GetReliability(clan) ?? 50f;
+        float reliability = contracts?.GetReputation(clan, kingdom) ?? 50f;
         OfferTermsResult terms = MercenaryOfferModel.CalculateTerms(basePrice,
             MercenaryPaymentService.CalculateMinimumInfluencePrice(clan),
             MercenaryPaymentService.CalculateMaximumInfluencePrice(clan),

@@ -21,6 +21,7 @@ internal static class Program
         TestRiskInputRobustnessAndMonotonicity();
         TestOfferInputRobustness();
         TestPersistentValueRobustness();
+        TestContractReputation();
         Console.WriteLine($"PASS: {_passed} deterministic business assertions.");
     }
 
@@ -384,6 +385,29 @@ internal static class Program
                == int.MaxValue
                && MercenaryValuePolicy.AccumulateNonNegative(int.MinValue, int.MinValue) == 0,
             "contribution and earnings accumulation cannot wrap around integer limits");
+    }
+
+    private static void TestContractReputation()
+    {
+        float successful = MercenaryReputationModel.Calculate(
+            new ContractReputationInputs(90f, 85f, 100, 20, 60f));
+        float failed = MercenaryReputationModel.Calculate(
+            new ContractReputationInputs(20f, 15f, 0, -20, 60f));
+        float shortService = MercenaryReputationModel.Calculate(
+            new ContractReputationInputs(90f, 85f, 100, 20, 2f));
+        Assert(successful > 75f && failed < 30f,
+            "completed contract results produce meaningful reputation");
+        Assert(shortService > 50f && shortService < successful,
+            "very short service has limited reputation weight");
+        Assert(MercenaryReputationModel.Combine(40f, 90f, true)
+               > MercenaryReputationModel.Combine(40f, 90f, false),
+            "previous service with the same employer affects later negotiations more strongly");
+
+        float malformed = MercenaryReputationModel.Calculate(
+            new ContractReputationInputs(float.NaN, float.PositiveInfinity,
+                int.MinValue, int.MaxValue, float.NaN));
+        Assert(IsPercentage(malformed),
+            "malformed saved history cannot poison reputation");
     }
 
     private static bool IsPercentage(float value)

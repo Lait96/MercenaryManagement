@@ -171,7 +171,8 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
             if (contract.EmployerSatisfaction < 10f
                 || MBRandom.RandomFloat < dailyTerminationChance)
             {
-                MercenaryDismissalService.EndService(clan);
+                MercenaryDismissalService.EndService(clan,
+                    MercenaryContractEndReason.EmployerDismissed);
                 continue;
             }
 

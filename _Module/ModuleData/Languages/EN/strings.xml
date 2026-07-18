@@ -201,5 +201,23 @@
     <string id="MercenaryManagement_RevisionCooldown" text="Your employer will not consider another revision until one day after the previous request." />
     <string id="MercenaryManagement_ActivityClearedBandits" text="Recently defeated bandits" />
     <string id="MercenaryManagement_ActivityClearedHideout" text="Recently cleared a bandit hideout" />
+    <string id="MercenaryManagement_ContractHistory" text="Contract history" />
+    <string id="MercenaryManagement_NoContractHistory" text="No completed contracts have been recorded." />
+    <string id="MercenaryManagement_HistoryEmployer" text="Employer" />
+    <string id="MercenaryManagement_HistoryPeriod" text="Service period" />
+    <string id="MercenaryManagement_HistoryReason" text="Completion reason" />
+    <string id="MercenaryManagement_HistoryResults" text="Contribution / reputation" />
+    <string id="MercenaryManagement_HistoryRelations" text="Clan / employer satisfaction; relation" />
+    <string id="MercenaryManagement_HistoryEmployerValue" text="{EMPLOYER}&#10;Ruler: {RULER}" />
+    <string id="MercenaryManagement_HistoryPeriodValue" text="Start: {START}&#10;End: {END}" />
+    <string id="MercenaryManagement_HistoryResultsValue" text="Contribution: {CONTRIBUTION}&#10;Reputation: {REPUTATION}" />
+    <string id="MercenaryManagement_HistoryRelationsValue" text="Clan: {CLAN}&#10;Employer: {EMPLOYER}&#10;Relation: {RELATION}" />
+    <string id="MercenaryManagement_HistoryReasonExpired" text="Term completed" />
+    <string id="MercenaryManagement_HistoryReasonWarEnded" text="War ended" />
+    <string id="MercenaryManagement_HistoryReasonDismissed" text="Dismissed by employer" />
+    <string id="MercenaryManagement_HistoryReasonLeft" text="Mercenary clan left" />
+    <string id="MercenaryManagement_HistoryReasonUnavailable" text="A party became unavailable" />
+    <string id="MercenaryManagement_HistoryReasonChangedKingdom" text="Employer changed" />
+    <string id="MercenaryManagement_HistoryReasonUnknown" text="Reason not recorded" />
   </strings>
 </base>

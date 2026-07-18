@@ -20,9 +20,43 @@ Assert-True ($prefabMatches.Count -eq 2) 'expected embedded Clan prefab document
 foreach ($match in $prefabMatches) { [xml]$match.Groups[1].Value | Out-Null }
 Assert-True $true 'embedded UIExtenderEx prefab XML parses'
 
+[xml]$clanPanelDocument = $prefabMatches[1].Groups[1].Value
+$historyButton = $clanPanelDocument.SelectSingleNode("/Widget/Children/ButtonWidget[@Id='ContractHistoryButton']")
+Assert-True ($null -ne $historyButton) 'contract history button is a top-level panel child'
+Assert-True ($historyButton.DataSource -eq '{MercenaryContract}') 'contract history button has an explicit nested ViewModel data source'
+Assert-True ($historyButton.'Command.Click' -eq 'ExecuteShowHistory') 'contract history button binds its click command'
+Assert-True ($historyButton.DoNotPassEventsToChildren -eq 'true' -and
+    $historyButton.UpdateChildrenStates -eq 'true') 'contract history button uses the working project button event pattern'
+Assert-True ($historyButton.HorizontalAlignment -eq 'Right' -and
+    $historyButton.VerticalAlignment -eq 'Top' -and
+    [int]$historyButton.MarginTop -le 60 -and
+    [int]$historyButton.MarginRight -le 15) 'contract history button is aligned with the panel top and right finance column'
+$contentHistoryButton = $clanPanelDocument.SelectSingleNode("/Widget/Children/Widget[@DataSource='{MercenaryContract}']//ButtonWidget[@Id='ContractHistoryButton']")
+Assert-True ($null -eq $contentHistoryButton) 'contract history button is outside scrollable and state-specific content'
+$rootChildren = @($clanPanelDocument.Widget.Children.ChildNodes | Where-Object NodeType -eq Element)
+Assert-True ($rootChildren[-1].Id -eq 'ContractHistoryButton') 'contract history button is layered after full-size content for hit testing'
+$playerContractVm = Get-Content -Raw (Join-Path $root 'UI/PlayerMercenaryContractVM.cs')
+Assert-True ($playerContractVm.Contains('public void ExecuteShowHistory()')) 'contract history ViewModel exposes the open command'
+Assert-True ($playerContractVm.Contains('IsShowingHistory = !IsShowingHistory')) 'contract history button toggles the history panel on repeated clicks'
+$historyScrollContainer = $clanPanelDocument.SelectSingleNode("//Widget[@Id='HistoryScrollContainer']")
+Assert-True ($null -ne $historyScrollContainer) 'contract history owns a shared scroll container'
+Assert-True ($null -ne $historyScrollContainer.SelectSingleNode("Children/ScrollablePanel") -and
+    $null -ne $historyScrollContainer.SelectSingleNode("Children/Standard.VerticalScrollbar[@Id='HistoryScrollbar']")) 'contract history content and scrollbar share one overlay parent'
+Assert-True ($historyScrollContainer.SelectSingleNode("Children/ScrollablePanel").MarginRight -eq '20') 'contract history content reserves width for its overlaid scrollbar'
+$historyItemTemplate = $historyScrollContainer.SelectSingleNode(".//ListPanel[@Id='HistoryList']/ItemTemplate/BrushListPanel")
+Assert-True ($historyItemTemplate.SuggestedHeight -ge 120) 'contract history rows reserve height for wrapped labeled values'
+Assert-True (@($historyItemTemplate.SelectNodes("Children/Widget[@Sprite='GradientDivider_9']")).Count -eq 4) 'contract history rows visually separate all five columns'
+$historyItemVm = Get-Content -Raw (Join-Path $root 'UI/MercenaryContractHistoryItemVM.cs')
+foreach ($summary in @('EmployerSummary', 'ResultsSummary', 'RelationsSummary')) {
+    Assert-True ($historyItemVm.Contains($summary)) "contract history item exposes wrapped $summary text"
+}
+
 $contractSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContract.cs')
 $offerSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryOffer.cs')
-foreach ($entry in @(@('MercenaryContract', $contractSource, 27), @('MercenaryOffer', $offerSource, 9))) {
+$historySource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContractHistoryEntry.cs')
+foreach ($entry in @(@('MercenaryContract', $contractSource, 27),
+        @('MercenaryOffer', $offerSource, 9),
+        @('MercenaryContractHistoryEntry', $historySource, 13))) {
     $ids = [regex]::Matches($entry[1], 'SaveableProperty\((\d+)\)') | ForEach-Object { [int]$_.Groups[1].Value }
     Assert-True (($ids | Group-Object | Where-Object Count -gt 1).Count -eq 0) "$($entry[0]) saveable property IDs are unique"
     Assert-True (($ids | Measure-Object -Maximum).Maximum -eq $entry[2]) "$($entry[0]) expected save schema is registered"
@@ -30,9 +64,11 @@ foreach ($entry in @(@('MercenaryContract', $contractSource, 27), @('MercenaryOf
 
 $definer = Get-Content -Raw (Join-Path $root 'SaveSystem/MercenarySaveableTypeDefiner.cs')
 foreach ($required in @('MercenaryContract', 'MercenaryOffer', 'MercenaryContractState',
+        'MercenaryContractHistoryEntry', 'MercenaryContractEndReason',
         'MercenaryStrategicPriority', 'MercenaryContractDuration',
         'Dictionary<string, MercenaryContract>', 'Dictionary<string, MercenaryOffer>',
-        'Dictionary<string, CampaignTime>')) {
+        'Dictionary<string, CampaignTime>',
+        'Dictionary<string, List<MercenaryContractHistoryEntry>>')) {
     Assert-True ($definer.Contains($required)) "save definer contains $required"
 }
 
@@ -96,12 +132,29 @@ Assert-True ($runtimeTests.Contains('RunDiagnosticNullArmyCallbacks')) 'runtime 
 Assert-True ($runtimeTests.Contains('Harmony.GetAllPatchedMethods')) 'runtime test inspects applied Harmony patches'
 Assert-True ($runtimeTests.Contains('RunDiagnosticDailyEvaluation')) 'runtime test executes contract-only daily evaluation'
 
+$historyCommands = Get-Content -Raw (Join-Path $root 'Commands/MercenaryHistoryTestCommands.cs')
+foreach ($command in @('mm_contract_history', 'mm_contract_reputation', 'mm_history_test')) {
+    Assert-True ($historyCommands.Contains($command)) "contract history command $command is registered"
+}
+foreach ($token in @('MercenaryDismissalService.EndService', 'MercenaryContractEndReason.MercenaryLeft',
+        'CompleteContract(clan', 'OnClanChangedKingdom event', 'GetReputation(clan, employer)',
+        'entry.FinalRelation', 'entry.ServiceEndTime')) {
+    Assert-True ($historyCommands.Contains($token)) "contract history runtime scenario contains $token"
+}
+
 $requiredLocalization = @('MercenaryManagement_OfferServices',
     'MercenaryManagement_OfferServicesTitle', 'MercenaryManagement_OfferServicesHint',
     'MercenaryManagement_SubmitServiceRequest', 'MercenaryManagement_BackToOffers',
     'MercenaryManagement_ServiceRequestUnavailable',
     'MercenaryManagement_ServiceRequestDeclined',
-    'MercenaryManagement_ServiceRequestCounteroffer')
+    'MercenaryManagement_ServiceRequestCounteroffer',
+    'MercenaryManagement_ContractHistory',
+    'MercenaryManagement_HistoryEmployerValue',
+    'MercenaryManagement_HistoryPeriodValue',
+    'MercenaryManagement_HistoryResultsValue',
+    'MercenaryManagement_HistoryRelationsValue',
+    'MercenaryManagement_HistoryReasonExpired',
+    'MercenaryManagement_HistoryReasonDismissed')
 foreach ($language in @('EN', 'RU')) {
     [xml]$document = Get-Content -Raw (Join-Path $root "_Module/ModuleData/Languages/$language/strings.xml")
     $ids = @($document.base.strings.string | ForEach-Object { $_.id })

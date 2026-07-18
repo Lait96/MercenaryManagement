@@ -201,5 +201,23 @@
     <string id="MercenaryManagement_RevisionCooldown" text="Наниматель рассмотрит новый запрос не раньше чем через один день после предыдущего." />
     <string id="MercenaryManagement_ActivityClearedBandits" text="Недавно разгромил бандитов" />
     <string id="MercenaryManagement_ActivityClearedHideout" text="Недавно зачистил убежище бандитов" />
+    <string id="MercenaryManagement_ContractHistory" text="История контрактов" />
+    <string id="MercenaryManagement_NoContractHistory" text="Завершённые контракты пока не зарегистрированы." />
+    <string id="MercenaryManagement_HistoryEmployer" text="Работодатель" />
+    <string id="MercenaryManagement_HistoryPeriod" text="Срок службы" />
+    <string id="MercenaryManagement_HistoryReason" text="Причина завершения" />
+    <string id="MercenaryManagement_HistoryResults" text="Вклад / репутация" />
+    <string id="MercenaryManagement_HistoryRelations" text="Удовлетворённость клана / нанимателя; отношения" />
+    <string id="MercenaryManagement_HistoryEmployerValue" text="{EMPLOYER}&#10;Правитель: {RULER}" />
+    <string id="MercenaryManagement_HistoryPeriodValue" text="Начало: {START}&#10;Окончание: {END}" />
+    <string id="MercenaryManagement_HistoryResultsValue" text="Вклад: {CONTRIBUTION}&#10;Репутация: {REPUTATION}" />
+    <string id="MercenaryManagement_HistoryRelationsValue" text="Клан: {CLAN}&#10;Наниматель: {EMPLOYER}&#10;Отношения: {RELATION}" />
+    <string id="MercenaryManagement_HistoryReasonExpired" text="Срок завершён" />
+    <string id="MercenaryManagement_HistoryReasonWarEnded" text="Война завершена" />
+    <string id="MercenaryManagement_HistoryReasonDismissed" text="Уволен работодателем" />
+    <string id="MercenaryManagement_HistoryReasonLeft" text="Клан наёмников ушёл" />
+    <string id="MercenaryManagement_HistoryReasonUnavailable" text="Одна из сторон недоступна" />
+    <string id="MercenaryManagement_HistoryReasonChangedKingdom" text="Работодатель изменён" />
+    <string id="MercenaryManagement_HistoryReasonUnknown" text="Причина не зарегистрирована" />
   </strings>
 </base>

@@ -1,4 +1,5 @@
 using MercenaryManagement.Behaviors;
+using MercenaryManagement.Contracts;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
@@ -82,18 +83,19 @@ internal static class MercenaryDismissalService
             true,
             true);
 
-        EndService(clan);
+        EndService(clan, MercenaryContractEndReason.EmployerDismissed);
     }
 
-    public static void EndService(Clan clan)
+    public static void EndService(Clan clan,
+        MercenaryContractEndReason reason = MercenaryContractEndReason.MercenaryLeft)
     {
-        ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(clan, true);
-
         MercenaryContractBehavior? contractBehavior = Campaign.Current?
             .GetCampaignBehavior<MercenaryContractBehavior>();
+        contractBehavior?.SetPendingEndReason(clan, reason);
+        ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(clan, true);
         if (!clan.IsUnderMercenaryService || clan.Kingdom is null)
-        {
-            contractBehavior?.CompleteContract(clan);
-        }
+            contractBehavior?.CompleteContract(clan, reason);
+        else
+            contractBehavior?.ClearPendingEndReason(clan);
     }
 }

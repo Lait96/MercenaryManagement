@@ -32,6 +32,8 @@ public static class MercenaryReleaseTestCommands
             + "mm_ai_evaluate <departure|dismissal|renewal> <preview|apply> <clan>\n"
             + "mm_ai_hire <preview|apply> <kingdom>\nmm_party_state <clan>\n"
             + "mm_contribution_probe <clan>\nmm_harmony_status\n"
+            + "mm_contract_history <clan>\nmm_contract_reputation <clan> [| <kingdom>]\n"
+            + "mm_history_test <active mercenary clan> confirm\n"
             + "mm_runtime_test <free|vassal|mercenary|ruler> confirm";
     }
 
