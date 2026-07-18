@@ -40,6 +40,8 @@
     <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="От клана ожидаются набеги на вражеские деревни и нападения на караваны и отряды крестьян." />
     <string id="MercenaryManagement_PriorityTerritorialDefense" text="Защита территории" />
     <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="От клана ожидается защита земель королевства и реакция на местные угрозы." />
+    <string id="MercenaryManagement_PriorityRecovery" text="Восстановление" />
+    <string id="MercenaryManagement_PriorityRecoveryDescription" text="Временный приоритет: партии набирают и тренируют войска, пополняют припасы и избегают лишних боёв до восстановления или истечения 14 дней. Затем возвращается предыдущий приоритет." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="База: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Информация о клане" />
     <string id="MercenaryManagement_ContractSettings" text="Настройки контракта" />
@@ -198,6 +200,7 @@
     <string id="MercenaryManagement_PartyActivityEscort" text="Сопровождает другой отряд" />
     <string id="MercenaryManagement_PartyActivityIndependent" text="Действует самостоятельно" />
     <string id="MercenaryManagement_PlayerPriorityChanged" text="Наниматель изменил стратегический приоритет клана: {PRIORITY}." />
+    <string id="MercenaryManagement_PlayerRecoveryCompleted" text="Восстановление завершено. Возвращён предыдущий стратегический приоритет." />
     <string id="MercenaryManagement_RevisionCooldown" text="Наниматель рассмотрит новый запрос не раньше чем через один день после предыдущего." />
     <string id="MercenaryManagement_ActivityClearedBandits" text="Недавно разгромил бандитов" />
     <string id="MercenaryManagement_ActivityClearedHideout" text="Недавно зачистил убежище бандитов" />

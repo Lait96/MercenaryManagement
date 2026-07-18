@@ -40,6 +40,8 @@
     <string id="MercenaryManagement_PriorityEconomicWarfareDescription" text="The clan is expected to raid enemy villages and attack caravans and villager parties." />
     <string id="MercenaryManagement_PriorityTerritorialDefense" text="Territorial defense" />
     <string id="MercenaryManagement_PriorityTerritorialDefenseDescription" text="The clan is expected to defend friendly lands and respond to local threats." />
+    <string id="MercenaryManagement_PriorityRecovery" text="Recovery" />
+    <string id="MercenaryManagement_PriorityRecoveryDescription" text="Temporary priority: parties recruit and train troops, replenish supplies, and avoid unnecessary combat until they recover or 14 days pass. The previous priority is then restored." />
     <string id="MercenaryManagement_BaseInfluencePrice" text="Base: {PRICE}" />
     <string id="MercenaryManagement_ClanInformation" text="Clan information" />
     <string id="MercenaryManagement_ContractSettings" text="Contract settings" />
@@ -198,6 +200,7 @@
     <string id="MercenaryManagement_PartyActivityEscort" text="Escorting another party" />
     <string id="MercenaryManagement_PartyActivityIndependent" text="Operating independently" />
     <string id="MercenaryManagement_PlayerPriorityChanged" text="Your employer changed the clan's strategic priority to {PRIORITY}." />
+    <string id="MercenaryManagement_PlayerRecoveryCompleted" text="Recovery is complete. The previous strategic priority has been restored." />
     <string id="MercenaryManagement_RevisionCooldown" text="Your employer will not consider another revision until one day after the previous request." />
     <string id="MercenaryManagement_ActivityClearedBandits" text="Recently defeated bandits" />
     <string id="MercenaryManagement_ActivityClearedHideout" text="Recently cleared a bandit hideout" />

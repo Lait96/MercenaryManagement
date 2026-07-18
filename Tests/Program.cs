@@ -22,7 +22,50 @@ internal static class Program
         TestOfferInputRobustness();
         TestPersistentValueRobustness();
         TestContractReputation();
+        TestRecoveryPriority();
         Console.WriteLine($"PASS: {_passed} deterministic business assertions.");
+    }
+
+    private static void TestRecoveryPriority()
+    {
+        Assert(MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.VisitSettlement) >= 2f
+               && MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.RecruitTroops) >= 2f
+               && MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.TrainTroops) > 1.5f,
+            "recovery significantly favors recruitment, settlement visits, and training");
+        Assert(MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.JoinArmy) < 0.5f
+               && MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.OffensiveCombat) < 0.5f
+               && MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.DefendSelf) == 1f,
+            "recovery avoids optional combat without weakening self-defense");
+        Assert(!MercenaryRecoveryPolicy.ShouldComplete(10d, 20d,
+                new[] { 0.95f, 0.89f }, 0.9f)
+               && MercenaryRecoveryPolicy.ShouldComplete(10d, 20d,
+                   new[] { 0.95f, 0.9f }, 0.9f),
+            "recovery completes only when every active party reaches its target");
+        Assert(MercenaryRecoveryPolicy.ShouldComplete(20d, 20d,
+                Array.Empty<float>(), 0.9f)
+               && !MercenaryRecoveryPolicy.ShouldComplete(19.99d, 20d,
+                   Array.Empty<float>(), 0.9f),
+            "recovery deadline completes independently and an empty clan does not fake its goal");
+        Assert(MercenaryRecoveryPolicy.NormalizeDurationDays(float.NaN)
+                   == MercenaryRecoveryPolicy.DefaultDurationDays
+               && MercenaryRecoveryPolicy.NormalizeDurationDays(-500f)
+                   == MercenaryRecoveryPolicy.MinimumDurationDays
+               && MercenaryRecoveryPolicy.NormalizeDurationDays(float.PositiveInfinity)
+                   == MercenaryRecoveryPolicy.DefaultDurationDays,
+            "nonstandard recovery durations are normalized safely");
+        Assert(MercenaryRecoveryPolicy.NormalizeTargetPartySizeRatio(float.NaN)
+                   == MercenaryRecoveryPolicy.DefaultTargetPartySizeRatio
+               && MercenaryRecoveryPolicy.NormalizeTargetPartySizeRatio(-4f)
+                   == MercenaryRecoveryPolicy.MinimumTargetPartySizeRatio
+               && MercenaryRecoveryPolicy.NormalizeTargetPartySizeRatio(4f) == 1f,
+            "nonstandard recovery targets are normalized safely");
+        Assert(MercenaryRecoveryPolicy.GetRestoredPriority(
+                   MercenaryStrategicPriority.TerritorialDefense)
+                   == MercenaryStrategicPriority.TerritorialDefense
+               && MercenaryRecoveryPolicy.GetRestoredPriority(
+                   MercenaryStrategicPriority.Recovery)
+                   == MercenaryStrategicPriority.IndependentOperations,
+            "temporary recovery restores a valid previous priority and rejects recursive recovery");
     }
 
     private static void TestContributionPolicy()

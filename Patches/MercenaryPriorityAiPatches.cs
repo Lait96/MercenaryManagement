@@ -140,6 +140,7 @@ internal static class MercenaryPriorityBehaviorScorePatch
         yield return AccessTools.Method(typeof(AiEngagePartyBehavior), "AiHourlyTick");
         yield return AccessTools.Method(typeof(AiMilitaryBehavior), "AiHourlyTick");
         yield return AccessTools.Method(typeof(AiPatrollingBehavior), "AiHourlyTick");
+        yield return AccessTools.Method(typeof(AiVisitSettlementBehavior), "AiHourlyTick");
     }
 
     private static void Prefix(PartyThinkParams p, out int __state)
@@ -179,6 +180,27 @@ internal static class MercenaryPriorityBehaviorScorePatch
             return MercenaryAiBehaviorSource.Patrolling;
         }
 
+        if (behaviorType == typeof(AiVisitSettlementBehavior))
+        {
+            return MercenaryAiBehaviorSource.VisitSettlement;
+        }
+
         return MercenaryAiBehaviorSource.Military;
+    }
+}
+
+[HarmonyPatch(typeof(DefaultPartyTrainingModel), nameof(DefaultPartyTrainingModel.GetEffectiveDailyExperience))]
+internal static class MercenaryRecoveryTrainingPatch
+{
+    private static void Postfix(MobileParty mobileParty, ref ExplainedNumber __result)
+    {
+        float factor = MercenaryPriorityService.GetTrainingFactor(mobileParty);
+        if (factor > 1f)
+        {
+            __result.AddFactor(
+                factor - 1f,
+                new TaleWorlds.Localization.TextObject(
+                    "{=MercenaryManagement_PriorityRecovery}Recovery"));
+        }
     }
 }

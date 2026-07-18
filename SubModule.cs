@@ -22,7 +22,8 @@ public sealed class SubModule : MBSubModuleBase
         typeof(MercenaryPaymentPatch),
         typeof(MercenaryPriorityArmyCallDistancePatch),
         typeof(MercenaryPriorityArmyCandidateWeightPatch),
-        typeof(MercenaryPriorityBehaviorScorePatch)
+        typeof(MercenaryPriorityBehaviorScorePatch),
+        typeof(MercenaryRecoveryTrainingPatch)
     };
 
     private UIExtender? _uiExtender;

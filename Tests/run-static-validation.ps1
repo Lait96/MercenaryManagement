@@ -54,7 +54,7 @@ foreach ($summary in @('EmployerSummary', 'ResultsSummary', 'RelationsSummary'))
 $contractSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContract.cs')
 $offerSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryOffer.cs')
 $historySource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContractHistoryEntry.cs')
-foreach ($entry in @(@('MercenaryContract', $contractSource, 27),
+foreach ($entry in @(@('MercenaryContract', $contractSource, 30),
         @('MercenaryOffer', $offerSource, 9),
         @('MercenaryContractHistoryEntry', $historySource, 13))) {
     $ids = [regex]::Matches($entry[1], 'SaveableProperty\((\d+)\)') | ForEach-Object { [int]$_.Groups[1].Value }
@@ -78,11 +78,12 @@ $patchSource = (Get-Content -Raw (Join-Path $root 'Patches/MercenaryPaymentPatch
     (Get-Content -Raw (Join-Path $root 'Patches/ClanManagementSelectionPatch.cs'))
 foreach ($patch in @('ClanManagementSelectionPatch', 'MercenaryPaymentPatch',
         'MercenaryPriorityArmyCallDistancePatch', 'MercenaryPriorityArmyCandidateWeightPatch',
-        'MercenaryPriorityBehaviorScorePatch')) {
+        'MercenaryPriorityBehaviorScorePatch', 'MercenaryRecoveryTrainingPatch')) {
     Assert-True ($subModule.Contains("typeof($patch)")) "$patch is registered by SubModule"
     Assert-True ($patchSource.Contains("class $patch")) "$patch implementation exists"
 }
-foreach ($target in @('AddMercenaryIncome', 'CanLordCreateArmy', 'AiHourlyTick', 'SetSelectedCategory')) {
+foreach ($target in @('AddMercenaryIncome', 'CanLordCreateArmy', 'AiHourlyTick',
+        'GetEffectiveDailyExperience', 'SetSelectedCategory')) {
     Assert-True ($patchSource.Contains($target)) "Harmony target reference $target exists"
 }
 
@@ -122,6 +123,12 @@ $contractSource = Get-Content -Raw (Join-Path $root 'Contracts/MercenaryContract
 Assert-True ($contractSource.Contains('MercenaryValuePolicy.NormalizePercentage')) 'saveable evaluation values use finite percentage normalization'
 Assert-True ($contractSource.Contains('MercenaryValuePolicy.AdjustPercentage')) 'saveable evaluation deltas reject non-finite values'
 Assert-True ($contractSource.Contains('MercenaryValuePolicy.AccumulateNonNegative')) 'persistent counters use overflow-safe accumulation'
+
+$recoveryCommand = Get-Content -Raw (Join-Path $root 'Commands/MercenaryRecoveryTestCommands.cs')
+foreach ($token in @('mm_recovery_priority_test', 'TrySetRecoveryPriority',
+        'WarPartyComponents', 'PartySizeRatio', 'RunDiagnosticRecoveryCheck', 'SUMMARY')) {
+    Assert-True ($recoveryCommand.Contains($token)) "recovery runtime scenario contains $token"
+}
 
 $runtimeTests = Get-Content -Raw (Join-Path $root 'Commands/MercenaryRuntimeTestCommands.cs')
 Assert-True ($runtimeTests.Contains('CommandLineArgumentFunction("mm_runtime_test", "campaign")')) 'runtime test command is registered'

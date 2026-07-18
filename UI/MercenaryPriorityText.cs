@@ -15,6 +15,8 @@ internal static class MercenaryPriorityText
                 return new TextObject("{=MercenaryManagement_PriorityEconomicWarfare}Economic warfare");
             case MercenaryStrategicPriority.TerritorialDefense:
                 return new TextObject("{=MercenaryManagement_PriorityTerritorialDefense}Territorial defense");
+            case MercenaryStrategicPriority.Recovery:
+                return new TextObject("{=MercenaryManagement_PriorityRecovery}Recovery");
             default:
                 return new TextObject("{=MercenaryManagement_PriorityIndependentOperations}Independent operations");
         }
@@ -30,6 +32,8 @@ internal static class MercenaryPriorityText
                 return new TextObject("{=MercenaryManagement_PriorityEconomicWarfareDescription}The clan is expected to raid enemy villages and attack caravans and villager parties.");
             case MercenaryStrategicPriority.TerritorialDefense:
                 return new TextObject("{=MercenaryManagement_PriorityTerritorialDefenseDescription}The clan is expected to defend friendly lands and respond to local threats.");
+            case MercenaryStrategicPriority.Recovery:
+                return new TextObject("{=MercenaryManagement_PriorityRecoveryDescription}Temporary priority: parties recruit and train troops, replenish supplies, and avoid unnecessary combat until they recover or 14 days pass. The previous priority is then restored.");
             default:
                 return new TextObject("{=MercenaryManagement_PriorityIndependentOperationsDescription}The clan chooses its own actions according to the current situation.");
         }

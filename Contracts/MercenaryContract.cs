@@ -85,8 +85,13 @@ internal sealed class MercenaryContract
     [SaveableProperty(25)] public int ContributionPointsAtLastSuccessfulRevision { get; private set; }
     [SaveableProperty(26)] public CampaignTime LastPriorityChangeTime { get; private set; }
     [SaveableProperty(27)] public CampaignTime LastDailyContributionTime { get; private set; }
+    [SaveableProperty(28)] public MercenaryStrategicPriority PreviousStrategicPriority { get; private set; }
+    [SaveableProperty(29)] public CampaignTime TemporaryPriorityEndTime { get; private set; }
+    [SaveableProperty(30)] public float RecoveryTargetPartySizeRatio { get; private set; }
 
     public bool IsActive => State == MercenaryContractState.Active;
+    public bool HasTemporaryPriority => StrategicPriority == MercenaryStrategicPriority.Recovery
+                                        && TemporaryPriorityEndTime != CampaignTime.Zero;
 
     public bool Matches(string clanId, string kingdomId)
     {
@@ -134,6 +139,32 @@ internal sealed class MercenaryContract
         }
         StrategicPriority = strategicPriority;
         LastPriorityChangeTime = CampaignTime.Now;
+        ClearTemporaryPriority();
+    }
+
+    public void SetRecoveryPriority(float durationDays, float targetPartySizeRatio)
+    {
+        if (StrategicPriority != MercenaryStrategicPriority.Recovery)
+            PreviousStrategicPriority = StrategicPriority;
+        PreviousStrategicPriority = MercenaryRecoveryPolicy.GetRestoredPriority(
+            PreviousStrategicPriority);
+        StrategicPriority = MercenaryStrategicPriority.Recovery;
+        TemporaryPriorityEndTime = CampaignTime.DaysFromNow(
+            MercenaryRecoveryPolicy.NormalizeDurationDays(durationDays));
+        RecoveryTargetPartySizeRatio = MercenaryRecoveryPolicy
+            .NormalizeTargetPartySizeRatio(targetPartySizeRatio);
+        LastPriorityChangeTime = CampaignTime.Now;
+    }
+
+    public bool RestorePreviousPriority()
+    {
+        if (StrategicPriority != MercenaryStrategicPriority.Recovery)
+            return false;
+        StrategicPriority = MercenaryRecoveryPolicy.GetRestoredPriority(
+            PreviousStrategicPriority);
+        LastPriorityChangeTime = CampaignTime.Now;
+        ClearTemporaryPriority();
+        return true;
     }
 
     public void SetEvaluation(float satisfaction, float reliability, CampaignTime evaluationTime)
@@ -261,11 +292,40 @@ internal sealed class MercenaryContract
             case MercenaryStrategicPriority.JoinArmies:
             case MercenaryStrategicPriority.EconomicWarfare:
             case MercenaryStrategicPriority.TerritorialDefense:
+            case MercenaryStrategicPriority.Recovery:
+                EnsureTemporaryPriority();
                 return;
             default:
                 StrategicPriority = MercenaryStrategicPriority.IndependentOperations;
+                ClearTemporaryPriority();
                 return;
         }
+    }
+
+    private void EnsureTemporaryPriority()
+    {
+        if (StrategicPriority != MercenaryStrategicPriority.Recovery)
+        {
+            ClearTemporaryPriority();
+            return;
+        }
+
+        PreviousStrategicPriority = MercenaryRecoveryPolicy.GetRestoredPriority(
+            PreviousStrategicPriority);
+        RecoveryTargetPartySizeRatio = MercenaryRecoveryPolicy
+            .NormalizeTargetPartySizeRatio(RecoveryTargetPartySizeRatio);
+        if (TemporaryPriorityEndTime == CampaignTime.Zero)
+        {
+            TemporaryPriorityEndTime = CampaignTime.DaysFromNow(
+                MercenaryRecoveryPolicy.DefaultDurationDays);
+        }
+    }
+
+    private void ClearTemporaryPriority()
+    {
+        PreviousStrategicPriority = MercenaryStrategicPriority.IndependentOperations;
+        TemporaryPriorityEndTime = CampaignTime.Zero;
+        RecoveryTargetPartySizeRatio = 0f;
     }
 
     public void Complete(CampaignTime completionTime)

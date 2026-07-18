@@ -15,7 +15,8 @@ internal enum MercenaryAiDecision
     FriendlyTerritoryAction,
     PursueBandits,
     PursueSmallEnemyParty,
-    DeepEnemyRaid
+    DeepEnemyRaid,
+    VisitSettlement
 }
 
 internal enum MercenaryAiBehaviorSource
@@ -23,5 +24,6 @@ internal enum MercenaryAiBehaviorSource
     ArmyMember,
     EngageParty,
     Military,
-    Patrolling
+    Patrolling,
+    VisitSettlement
 }

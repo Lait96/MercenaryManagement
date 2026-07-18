@@ -461,7 +461,8 @@ internal sealed class MercenaryClanItemVM : ViewModel
             GetStrategicPriorityName(MercenaryStrategicPriority.IndependentOperations),
             GetStrategicPriorityName(MercenaryStrategicPriority.JoinArmies),
             GetStrategicPriorityName(MercenaryStrategicPriority.EconomicWarfare),
-            GetStrategicPriorityName(MercenaryStrategicPriority.TerritorialDefense)
+            GetStrategicPriorityName(MercenaryStrategicPriority.TerritorialDefense),
+            GetStrategicPriorityName(MercenaryStrategicPriority.Recovery)
         };
     }
 
@@ -481,6 +482,8 @@ internal sealed class MercenaryClanItemVM : ViewModel
                 return MercenaryStrategicPriority.EconomicWarfare;
             case (int)MercenaryStrategicPriority.TerritorialDefense:
                 return MercenaryStrategicPriority.TerritorialDefense;
+            case (int)MercenaryStrategicPriority.Recovery:
+                return MercenaryStrategicPriority.Recovery;
             default:
                 return MercenaryStrategicPriority.IndependentOperations;
         }

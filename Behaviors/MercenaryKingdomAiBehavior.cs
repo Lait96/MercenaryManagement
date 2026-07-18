@@ -133,6 +133,7 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
         foreach (Clan clan in kingdom.Clans.Where(clan => clan.IsUnderMercenaryService))
         {
             if (behavior.GetOrCreateContract(clan, out MercenaryContract contract)
+                && contract.StrategicPriority != MercenaryStrategicPriority.Recovery
                 && (requiredCurrentPriority is null
                     || contract.StrategicPriority == requiredCurrentPriority.Value))
             {
@@ -187,9 +188,10 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
                 || (desiredPriority == MercenaryStrategicPriority.JoinArmies
                     && hasActiveArmy
                     && contract.StrategicPriority != MercenaryStrategicPriority.JoinArmies);
-            if (armyAvailabilityException
+            if (contract.StrategicPriority != MercenaryStrategicPriority.Recovery
+                && (armyAvailabilityException
                 || contract.LastPriorityChangeTime == CampaignTime.Zero
-                || contract.LastPriorityChangeTime.ElapsedDaysUntilNow >= MinimumPriorityDurationDays)
+                || contract.LastPriorityChangeTime.ElapsedDaysUntilNow >= MinimumPriorityDurationDays))
             {
                 behavior.SetStrategicPriority(
                     clan,

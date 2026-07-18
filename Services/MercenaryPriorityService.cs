@@ -31,6 +31,25 @@ internal static class MercenaryPriorityService
         return contractBehavior?.SetStrategicPriority(clan, strategicPriority) == true;
     }
 
+    public static bool TrySetRecoveryPriority(
+        Clan clan,
+        Kingdom kingdom,
+        float durationDays,
+        float targetPartySizeRatio)
+    {
+        if (!MercenaryHiringService.IsPlayerRuler(kingdom)
+            || !clan.IsUnderMercenaryService
+            || clan.Kingdom != kingdom)
+            return false;
+
+        MercenaryContractBehavior? contractBehavior = Campaign.Current?
+            .GetCampaignBehavior<MercenaryContractBehavior>();
+        return contractBehavior?.SetRecoveryPriority(
+            clan,
+            durationDays,
+            targetPartySizeRatio) == true;
+    }
+
     public static bool TryGetStrategicPriority(
         Clan? clan,
         out MercenaryStrategicPriority priority)
@@ -183,6 +202,15 @@ internal static class MercenaryPriorityService
                 adjustedWeight);
         }
 
+        if (priority == MercenaryStrategicPriority.Recovery
+            && behaviorSource == MercenaryAiBehaviorSource.VisitSettlement)
+        {
+            adjustedWeight = GetDecisionWeight(
+                priority,
+                MercenaryAiDecision.VisitSettlement,
+                adjustedWeight);
+        }
+
         switch (behaviorData.AiBehavior)
         {
             case AiBehavior.RaidSettlement:
@@ -203,6 +231,13 @@ internal static class MercenaryPriorityService
                     }
                 }
 
+                break;
+            case AiBehavior.EngageParty
+                when priority == MercenaryStrategicPriority.Recovery:
+                adjustedWeight = GetDecisionWeight(
+                    priority,
+                    MercenaryAiDecision.PursueSmallEnemyParty,
+                    adjustedWeight);
                 break;
             case AiBehavior.EngageParty
                 when behaviorSource == MercenaryAiBehaviorSource.EngageParty:
@@ -414,6 +449,28 @@ internal static class MercenaryPriorityService
                     default:
                         return 1f;
                 }
+            case MercenaryStrategicPriority.Recovery:
+                switch (decision)
+                {
+                    case MercenaryAiDecision.ArmyCandidateRank:
+                        return 2.5f;
+                    case MercenaryAiDecision.ArmyCallDistance:
+                    case MercenaryAiDecision.FollowArmy:
+                        return MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.JoinArmy);
+                    case MercenaryAiDecision.VisitSettlement:
+                        return MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.VisitSettlement);
+                    case MercenaryAiDecision.PassiveDefense:
+                        return MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.DefendSelf);
+                    case MercenaryAiDecision.RaidVillage:
+                    case MercenaryAiDecision.AttackCaravan:
+                    case MercenaryAiDecision.AttackVillagers:
+                    case MercenaryAiDecision.PursueBandits:
+                    case MercenaryAiDecision.PursueSmallEnemyParty:
+                    case MercenaryAiDecision.DeepEnemyRaid:
+                        return MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.OffensiveCombat);
+                    default:
+                        return 1f;
+                }
             default:
                 return 1f;
         }
@@ -523,10 +580,19 @@ internal static class MercenaryPriorityService
             case MercenaryStrategicPriority.JoinArmies:
             case MercenaryStrategicPriority.EconomicWarfare:
             case MercenaryStrategicPriority.TerritorialDefense:
+            case MercenaryStrategicPriority.Recovery:
                 return true;
             default:
                 return false;
         }
+    }
+
+    public static float GetTrainingFactor(MobileParty mobileParty)
+    {
+        return TryGetStrategicPriority(mobileParty, out MercenaryStrategicPriority priority)
+               && priority == MercenaryStrategicPriority.Recovery
+            ? MercenaryRecoveryPolicy.GetMultiplier(RecoveryDecision.TrainTroops)
+            : 1f;
     }
 
     private static float ApplyContractCompliance(MobileParty party, float nativeWeight, float priorityWeight)

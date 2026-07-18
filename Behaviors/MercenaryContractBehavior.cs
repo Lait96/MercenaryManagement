@@ -11,7 +11,7 @@ namespace MercenaryManagement.Behaviors;
 
 internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 {
-    private const int CurrentDataVersion = 5;
+    private const int CurrentDataVersion = 6;
 
     private Dictionary<string, MercenaryContract> _contracts =
         new Dictionary<string, MercenaryContract>();
@@ -235,12 +235,41 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
         }
 
         MercenaryStrategicPriority previousPriority = contract.StrategicPriority;
-        contract.SetStrategicPriority(strategicPriority);
+        if (strategicPriority == MercenaryStrategicPriority.Recovery)
+        {
+            contract.SetRecoveryPriority(
+                MercenaryRecoveryPolicy.DefaultDurationDays,
+                MercenaryRecoveryPolicy.DefaultTargetPartySizeRatio);
+        }
+        else
+        {
+            contract.SetStrategicPriority(strategicPriority);
+        }
         if (clan == Clan.PlayerClan && previousPriority != strategicPriority)
         {
             TextObject message = new TextObject(
                 "{=MercenaryManagement_PlayerPriorityChanged}Your employer changed the clan's strategic priority to {PRIORITY}.");
             message.SetTextVariable("PRIORITY", GetPriorityName(strategicPriority));
+            InformationManager.DisplayMessage(new InformationMessage(message.ToString()));
+        }
+        return true;
+    }
+
+    public bool SetRecoveryPriority(
+        Clan clan,
+        float durationDays,
+        float targetPartySizeRatio)
+    {
+        if (!GetOrCreateContract(clan, out MercenaryContract contract))
+            return false;
+
+        MercenaryStrategicPriority previousPriority = contract.StrategicPriority;
+        contract.SetRecoveryPriority(durationDays, targetPartySizeRatio);
+        if (clan == Clan.PlayerClan && previousPriority != MercenaryStrategicPriority.Recovery)
+        {
+            TextObject message = new TextObject(
+                "{=MercenaryManagement_PlayerPriorityChanged}Your employer changed the clan's strategic priority to {PRIORITY}.");
+            message.SetTextVariable("PRIORITY", GetPriorityName(MercenaryStrategicPriority.Recovery));
             InformationManager.DisplayMessage(new InformationMessage(message.ToString()));
         }
         return true;
@@ -256,6 +285,8 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
                 return new TextObject("{=MercenaryManagement_PriorityEconomicWarfare}Economic warfare");
             case MercenaryStrategicPriority.TerritorialDefense:
                 return new TextObject("{=MercenaryManagement_PriorityTerritorialDefense}Territorial defense");
+            case MercenaryStrategicPriority.Recovery:
+                return new TextObject("{=MercenaryManagement_PriorityRecovery}Recovery");
             default:
                 return new TextObject("{=MercenaryManagement_PriorityIndependentOperations}Independent operations");
         }
@@ -407,6 +438,7 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             case MercenaryStrategicPriority.JoinArmies:
             case MercenaryStrategicPriority.EconomicWarfare:
             case MercenaryStrategicPriority.TerritorialDefense:
+            case MercenaryStrategicPriority.Recovery:
                 return true;
             default:
                 return false;
@@ -474,8 +506,54 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
             return;
         }
 
+        if (TryCompleteRecoveryPriority(clan, contract))
+        {
+            if (clan == Clan.PlayerClan)
+            {
+                TextObject message = new TextObject(
+                    "{=MercenaryManagement_PlayerRecoveryCompleted}Recovery is complete. The previous strategic priority has been restored.");
+                InformationManager.DisplayMessage(new InformationMessage(message.ToString()));
+            }
+        }
+
         MercenaryEvaluationService.EvaluateDaily(contract);
         TryVoluntaryDeparture(clan, contract);
+    }
+
+    internal bool RunDiagnosticRecoveryCheck(
+        Clan clan,
+        IReadOnlyList<float>? partySizeRatios = null,
+        bool forceExpired = false)
+    {
+        return TryGetContract(clan, out MercenaryContract contract)
+               && TryCompleteRecoveryPriority(clan, contract, partySizeRatios, forceExpired);
+    }
+
+    private static bool TryCompleteRecoveryPriority(
+        Clan clan,
+        MercenaryContract contract,
+        IReadOnlyList<float>? diagnosticRatios = null,
+        bool forceExpired = false)
+    {
+        if (!contract.HasTemporaryPriority)
+            return false;
+
+        var ratios = diagnosticRatios is null ? new List<float>() : null;
+        if (ratios is not null)
+        {
+            foreach (var component in clan.WarPartyComponents)
+            {
+                if (component.MobileParty.IsActive && !component.MobileParty.IsDisbanding)
+                    ratios.Add(component.MobileParty.PartySizeRatio);
+            }
+        }
+
+        IReadOnlyList<float> activeRatios = diagnosticRatios ?? ratios!;
+        bool expired = forceExpired || contract.TemporaryPriorityEndTime.IsPast;
+        bool goalComplete = MercenaryRecoveryPolicy.IsGoalComplete(
+            activeRatios,
+            contract.RecoveryTargetPartySizeRatio);
+        return (expired || goalComplete) && contract.RestorePreviousPriority();
     }
 
     private static void TryVoluntaryDeparture(Clan clan, MercenaryContract contract)
