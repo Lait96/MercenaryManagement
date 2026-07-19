@@ -210,7 +210,8 @@ internal sealed class MercenaryKingdomAiBehavior : CampaignBehaviorBase
         if (need < 0.35f || MBRandom.RandomFloat > 0.12f * need) return;
 
         Clan? candidate = Clan.All
-            .Where(clan => MercenaryHiringService.CanAiKingdomHire(clan, kingdom))
+            .Where(clan => clan != Clan.PlayerClan
+                           && MercenaryHiringService.CanAiKingdomHire(clan, kingdom))
             .OrderByDescending(clan => clan.CurrentTotalStrength
                 + (clan.Leader?.GetRelation(kingdom.Leader) ?? 0) * 5f)
             .FirstOrDefault();

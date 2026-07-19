@@ -92,7 +92,7 @@
     <string id="MercenaryManagement_PoachFailedEmployerChanged" text="The clan's current employer has changed. Select the clan again to make a new offer." />
     <string id="MercenaryManagement_PoachFailedKingdomsAtWar" text="The clan cannot switch sides while its current kingdom is at war with your kingdom." />
     <string id="MercenaryManagement_PoachFailedConstantWar" text="The clan cannot enter your kingdom's service because the factions are permanent enemies." />
-    <string id="MercenaryManagement_PoachFailedCommitment" text="The clan must fulfill its current service commitment before it can switch kingdoms." />
+    <string id="MercenaryManagement_PoachFailedCommitment" text="The clan will consider changing employers after its first {DAYS} days of service." />
     <string id="MercenaryManagement_PoachFailedInBattle" text="The clan cannot switch kingdoms while one of its parties is participating in a battle." />
     <string id="MercenaryManagement_PoachFailedUnknown" text="The clan could not switch to your kingdom's service." />
     <string id="MercenaryManagement_Dismiss" text="Dismiss clan" />

@@ -14,6 +14,8 @@
     <Compile Include="..\Services\MercenaryRiskModel.cs" Link="Production\MercenaryRiskModel.cs" />
     <Compile Include="..\Services\MercenaryOfferModel.cs" Link="Production\MercenaryOfferModel.cs" />
     <Compile Include="..\Services\MercenaryArmyLifecyclePolicy.cs" Link="Production\MercenaryArmyLifecyclePolicy.cs" />
+    <Compile Include="..\Services\MercenaryAiControlPolicy.cs" Link="Production\MercenaryAiControlPolicy.cs" />
+    <Compile Include="..\Services\MercenaryPlayerRecruitmentPolicy.cs" Link="Production\MercenaryPlayerRecruitmentPolicy.cs" />
     <Compile Include="..\Services\MercenaryValuePolicy.cs" Link="Production\MercenaryValuePolicy.cs" />
     <Compile Include="..\Services\MercenaryReputationModel.cs" Link="Production\MercenaryReputationModel.cs" />
     <Compile Include="..\Services\MercenaryRecoveryPolicy.cs" Link="Production\MercenaryRecoveryPolicy.cs" />

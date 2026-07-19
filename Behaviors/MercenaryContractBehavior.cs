@@ -558,7 +558,9 @@ internal sealed class MercenaryContractBehavior : CampaignBehaviorBase
 
     private static void TryVoluntaryDeparture(Clan clan, MercenaryContract contract)
     {
-        if (contract.ServiceStartTime.ElapsedDaysUntilNow < 30f || HasPartyInMapEvent(clan)) return;
+        if (!MercenaryAiControlPolicy.CanMakeAutonomousContractDecision(clan == Clan.PlayerClan)
+            || contract.ServiceStartTime.ElapsedDaysUntilNow < 30f
+            || HasPartyInMapEvent(clan)) return;
         float risk = MercenaryEvaluationService.CalculateDepartureRisk(contract);
         if (risk <= 70f) return;
         float dailyChance = (risk - 70f) / 3000f;

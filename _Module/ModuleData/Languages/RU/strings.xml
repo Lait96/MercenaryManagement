@@ -92,7 +92,7 @@
     <string id="MercenaryManagement_PoachFailedEmployerChanged" text="Текущий наниматель клана изменился. Выберите клан снова, чтобы сделать новое предложение." />
     <string id="MercenaryManagement_PoachFailedKingdomsAtWar" text="Клан не может сменить сторону, пока его текущее королевство воюет с вашим королевством." />
     <string id="MercenaryManagement_PoachFailedConstantWar" text="Клан не может поступить на службу вашему королевству, потому что эти фракции являются непримиримыми врагами." />
-    <string id="MercenaryManagement_PoachFailedCommitment" text="Клан должен выполнить текущие обязательства по службе, прежде чем сможет сменить королевство." />
+    <string id="MercenaryManagement_PoachFailedCommitment" text="Клан рассмотрит смену работодателя после первых {DAYS} дней службы." />
     <string id="MercenaryManagement_PoachFailedInBattle" text="Клан не может сменить королевство, пока один из его отрядов участвует в сражении." />
     <string id="MercenaryManagement_PoachFailedUnknown" text="Клан не смог перейти на службу вашему королевству." />
     <string id="MercenaryManagement_Dismiss" text="Исключить" />

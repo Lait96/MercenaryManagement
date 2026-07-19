@@ -15,6 +15,8 @@ internal static class Program
         TestRiskBoundariesAndBusinessScenarios();
         TestOfferTerms();
         TestArmyLifecycleScenarios();
+        TestAiControlBoundaries();
+        TestPlayerRecruitmentAdvantage();
         TestArmyPartyLifecycleSafety();
         TestUnexpectedContributionInputs();
         TestEvaluationInputRobustness();
@@ -24,6 +26,29 @@ internal static class Program
         TestContractReputation();
         TestRecoveryPriority();
         Console.WriteLine($"PASS: {_passed} deterministic business assertions.");
+    }
+
+    private static void TestPlayerRecruitmentAdvantage()
+    {
+        Assert(MercenaryPlayerRecruitmentPolicy.ApplyPlayerRulerAcceptanceAdvantage(5) == 75
+               && MercenaryPlayerRecruitmentPolicy.ApplyPlayerRulerAcceptanceAdvantage(60) == 80
+               && MercenaryPlayerRecruitmentPolicy.ApplyPlayerRulerAcceptanceAdvantage(90) == 95,
+            "player ruler recruitment has a meaningful floor, bonus, and bounded maximum");
+        Assert(!MercenaryPlayerRecruitmentPolicy.HasCompletedProtectedService(6.99f)
+               && MercenaryPlayerRecruitmentPolicy.HasCompletedProtectedService(7f)
+               && MercenaryPlayerRecruitmentPolicy.HasCompletedProtectedService(120f),
+            "player poaching replaces the full contract lock with a seven-day loyalty window");
+        Assert(!MercenaryPlayerRecruitmentPolicy.HasCompletedProtectedService(float.NaN)
+               && !MercenaryPlayerRecruitmentPolicy.HasCompletedProtectedService(float.PositiveInfinity),
+            "invalid service time cannot bypass the poaching loyalty window");
+    }
+
+    private static void TestAiControlBoundaries()
+    {
+        Assert(!MercenaryAiControlPolicy.CanMakeAutonomousContractDecision(isPlayerClan: true),
+            "AI cannot make autonomous hiring or departure decisions for the player clan");
+        Assert(MercenaryAiControlPolicy.CanMakeAutonomousContractDecision(isPlayerClan: false),
+            "AI can still make autonomous contract decisions for non-player clans");
     }
 
     private static void TestRecoveryPriority()

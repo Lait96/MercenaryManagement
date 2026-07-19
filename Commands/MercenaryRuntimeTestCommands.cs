@@ -154,6 +154,20 @@ public static class MercenaryRuntimeTestCommands
             }
             return $"validated={activeContracts}";
         });
+
+        report.Check("player clan AI hiring boundary", () =>
+        {
+            if (MercenaryAiControlPolicy.CanMakeAutonomousContractDecision(isPlayerClan: true))
+                throw new InvalidOperationException("player clan admitted to autonomous contract decisions");
+            Kingdom[] eligibleKingdoms = Kingdom.All
+                .Where(kingdom => !kingdom.IsEliminated)
+                .Where(kingdom => MercenaryHiringService.CanAiKingdomHire(playerClan, kingdom))
+                .ToArray();
+            if (eligibleKingdoms.Length > 0)
+                throw new InvalidOperationException(
+                    $"AI hiring admitted player clan for: {string.Join(",", eligibleKingdoms.Select(item => item.StringId))}");
+            return $"denied across {Kingdom.All.Count(kingdom => !kingdom.IsEliminated)} active kingdoms";
+        });
     }
 
     private static void RunFreeChecks(RuntimeTestReport report, Clan playerClan)
@@ -166,19 +180,27 @@ public static class MercenaryRuntimeTestCommands
             return "independent clan is eligible to offer services";
         });
 
-        report.Check("Offer Services full transition", () =>
+        report.Check("player offer full transition", () =>
         {
             MercenaryOfferBehavior offers = RequireBehavior<MercenaryOfferBehavior>();
-            Kingdom? kingdom = offers.GetServiceRequestKingdoms(playerClan).FirstOrDefault();
-            if (kingdom is null)
-                throw new InvalidOperationException("no eligible kingdom; prepare the save with at least one available kingdom");
+            MercenaryOffer? offer = offers.GetOffersFor(playerClan).FirstOrDefault();
+            bool usedExistingOffer = offer is not null;
+            Kingdom? kingdom = offer?.Kingdom;
+            if (offer is null)
+            {
+                kingdom = offers.GetServiceRequestKingdoms(playerClan).FirstOrDefault();
+                if (kingdom is null)
+                    throw new InvalidOperationException(
+                        "no valid saved offer or kingdom eligible for an Offer Services request");
+                offer = offers.RequestOffer(playerClan, kingdom);
+                if (offer is null)
+                    throw new InvalidOperationException("eligible kingdom refused RequestOffer");
+                if (!offers.GetSavedOffers().Any(item => ReferenceEquals(item, offer)))
+                    throw new InvalidOperationException("created offer was not persisted by the behavior");
+            }
             bool joined = false;
             try
             {
-                MercenaryOffer? offer = offers.RequestOffer(playerClan, kingdom);
-                if (offer is null) throw new InvalidOperationException("eligible kingdom refused RequestOffer");
-                if (!offers.GetSavedOffers().Any(item => ReferenceEquals(item, offer)))
-                    throw new InvalidOperationException("created offer was not persisted by the behavior");
                 bool accepted = offers.TryAccept(offer);
                 joined = playerClan.IsUnderMercenaryService;
                 if (!accepted)
@@ -193,7 +215,8 @@ public static class MercenaryRuntimeTestCommands
                 joined = playerClan.IsUnderMercenaryService;
                 if (joined || playerClan.Kingdom is not null)
                     throw new InvalidOperationException("cleanup did not restore the free-clan role");
-                return $"requested, accepted and completed service with {kingdom.StringId}";
+                string source = usedExistingOffer ? "existing" : "requested";
+                return $"accepted {source} offer and completed service with {kingdom.StringId}";
             }
             finally
             {
@@ -282,6 +305,13 @@ public static class MercenaryRuntimeTestCommands
             bool joined = false;
             try
             {
+                int acceptanceChance = MercenaryHiringService.CalculateAcceptanceChance(
+                    candidate,
+                    kingdom,
+                    MercenaryHiringService.CalculateHirePrice(candidate, kingdom));
+                if (acceptanceChance < MercenaryPlayerRecruitmentPolicy.MinimumAcceptanceChance)
+                    throw new InvalidOperationException(
+                        $"player ruler acceptance advantage missing; chance={acceptanceChance}");
                 MercenaryHiringService.Hire(candidate, kingdom);
                 joined = candidate.IsUnderMercenaryService;
                 if (!joined || candidate.Kingdom != kingdom)
@@ -298,7 +328,7 @@ public static class MercenaryRuntimeTestCommands
                 joined = candidate.IsUnderMercenaryService;
                 if (joined || candidate.Kingdom is not null)
                     throw new InvalidOperationException("dismissed test clan did not return to free state");
-                return $"hired, evaluated and dismissed clan={candidate.StringId}";
+                return $"hired, evaluated and dismissed clan={candidate.StringId}; acceptance={acceptanceChance}%";
             }
             finally
             {

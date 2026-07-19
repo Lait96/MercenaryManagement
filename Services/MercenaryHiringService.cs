@@ -267,7 +267,8 @@ internal static class MercenaryHiringService
 
     public static bool CanAiKingdomHire(Clan clan, Kingdom kingdom)
     {
-        if (kingdom.IsEliminated
+        if (!MercenaryAiControlPolicy.CanMakeAutonomousContractDecision(clan == Clan.PlayerClan)
+            || kingdom.IsEliminated
             || kingdom.Leader is null
             || !kingdom.Leader.IsAlive
             || TryGetInherentFailureReason(clan, kingdom, out _))
@@ -302,7 +303,11 @@ internal static class MercenaryHiringService
         MercenaryContractBehavior? behavior = Campaign.Current?
             .GetCampaignBehavior<MercenaryContractBehavior>();
         int reliabilityBonus = (int)System.Math.Round(((behavior?.GetReputation(clan, kingdom) ?? 50f) - 50f) * 0.3f);
-        return System.Math.Max(5, System.Math.Min(95, 55 + relation + rateBonus + reliabilityBonus));
+        int baseChance = System.Math.Max(5,
+            System.Math.Min(95, 55 + relation + rateBonus + reliabilityBonus));
+        return IsPlayerRuler(kingdom)
+            ? MercenaryPlayerRecruitmentPolicy.ApplyPlayerRulerAcceptanceAdvantage(baseChance)
+            : baseChance;
     }
 
     public static void Hire(Clan clan, Kingdom kingdom)
