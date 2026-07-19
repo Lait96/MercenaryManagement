@@ -1,6 +1,6 @@
+using System.ComponentModel;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.ViewModels;
-using MercenaryManagement.Patches;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement;
 using TaleWorlds.Library;
@@ -17,7 +17,7 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
     public ClanManagementVMMixin(ClanManagementVM viewModel)
         : base(viewModel)
     {
-        ClanManagementSelectionPatch.SelectedCategoryChanged += OnSelectedCategoryChanged;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
         RefreshValues();
     }
 
@@ -100,19 +100,27 @@ internal sealed class ClanManagementVMMixin : BaseViewModelMixin<ClanManagementV
 
     public override void OnFinalize()
     {
-        ClanManagementSelectionPatch.SelectedCategoryChanged -= OnSelectedCategoryChanged;
+        if (ViewModel is not null)
+        {
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+
         MercenaryContract.OnFinalize();
         base.OnFinalize();
     }
 
-    private void OnSelectedCategoryChanged(ClanManagementVM viewModel, int index)
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (viewModel != ViewModel) return;
-        if (index == 4)
-        {
-            ExecuteShowMercenaryContract();
-        }
-        else
+        if (IsMercenaryContractSelected
+            && args.PropertyName is nameof(ClanManagementVM.IsMembersSelected)
+                or nameof(ClanManagementVM.IsPartiesSelected)
+                or nameof(ClanManagementVM.IsFiefsSelected)
+                or nameof(ClanManagementVM.IsIncomeSelected)
+            && ViewModel is { } viewModel
+            && (viewModel.IsMembersSelected
+                || viewModel.IsPartiesSelected
+                || viewModel.IsFiefsSelected
+                || viewModel.IsIncomeSelected))
         {
             IsMercenaryContractSelected = false;
         }

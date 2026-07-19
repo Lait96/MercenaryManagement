@@ -4,7 +4,9 @@ using Bannerlord.UIExtenderEx.Prefabs2;
 
 namespace MercenaryManagement.UI;
 
-[PrefabExtension("ClanScreen", "descendant::ButtonWidget[@CommandParameter.Click='3']")]
+[PrefabExtension(
+    "ClanScreen",
+    "descendant::ListPanel[Children/ButtonWidget[@Command.Click='SetSelectedCategory' and @CommandParameter.Click='0'] and Children/ButtonWidget[@CommandParameter.Click='3']]/Children")]
 internal sealed class ClanMercenaryContractTabExtension : PrefabExtensionInsertPatch
 {
     private readonly XmlDocument _document = new XmlDocument();
@@ -15,25 +17,23 @@ internal sealed class ClanMercenaryContractTabExtension : PrefabExtensionInsertP
             """
             <ButtonWidget Id="MercenaryContractTabButton"
                           DoNotPassEventsToChildren="true"
-                          WidthSizePolicy="Fixed"
+                          WidthSizePolicy="CoverChildren"
                           HeightSizePolicy="Fixed"
-                          SuggestedWidth="!Header.Tab.Center.Width.Scaled"
                           SuggestedHeight="!Header.Tab.Center.Height.Scaled"
                           PositionYOffset="6"
                           Brush="Header.Tab.Center"
-                          Command.Click="SetSelectedCategory"
-                          CommandParameter.Click="4"
+                          Command.Click="ExecuteShowMercenaryContract"
                           IsSelected="@IsMercenaryContractSelected"
                           IsVisible="@IsMercenaryContractTabVisible"
                           UpdateChildrenStates="true">
               <Children>
-                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Clan.TabControl.Text" Text="@MercenaryContractText" />
+                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="24" MarginRight="24" Brush="Clan.TabControl.Text" Text="@MercenaryContractText" />
               </Children>
             </ButtonWidget>
             """);
     }
 
-    public override InsertType Type => InsertType.Prepend;
+    public override InsertType Type => InsertType.Child;
 
     [PrefabExtensionXmlNode(false)]
     public XmlNode GetPrefabExtension() => _document;

@@ -6,7 +6,7 @@ namespace MercenaryManagement.UI;
 
 [PrefabExtension(
     "KingdomManagement",
-    "descendant::KingdomTabControlListPanel/Children/ButtonWidget[@Id='DiplomacyTabButton']")]
+    "descendant::KingdomTabControlListPanel/Children")]
 internal sealed class KingdomMercenariesTabExtension : PrefabExtensionInsertPatch
 {
     private readonly XmlDocument _document = new XmlDocument();
@@ -17,9 +17,8 @@ internal sealed class KingdomMercenariesTabExtension : PrefabExtensionInsertPatc
             """
             <ButtonWidget Id="MercenariesTabButton"
                           DoNotPassEventsToChildren="true"
-                          WidthSizePolicy="Fixed"
+                          WidthSizePolicy="CoverChildren"
                           HeightSizePolicy="Fixed"
-                          SuggestedWidth="!Header.Tab.Center.Width.Scaled"
                           SuggestedHeight="!Header.Tab.Center.Height.Scaled"
                           VerticalAlignment="Center"
                           PositionYOffset="2"
@@ -30,6 +29,8 @@ internal sealed class KingdomMercenariesTabExtension : PrefabExtensionInsertPatc
               <Children>
                 <TextWidget WidthSizePolicy="CoverChildren"
                             HeightSizePolicy="CoverChildren"
+                            MarginLeft="24"
+                            MarginRight="24"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Brush="Clan.TabControl.Text"
@@ -39,7 +40,7 @@ internal sealed class KingdomMercenariesTabExtension : PrefabExtensionInsertPatc
             """);
     }
 
-    public override InsertType Type => InsertType.Prepend;
+    public override InsertType Type => InsertType.Child;
 
     [PrefabExtensionXmlNode(false)]
     public XmlNode GetPrefabExtension() => _document;

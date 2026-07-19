@@ -18,7 +18,6 @@ public sealed class SubModule : MBSubModuleBase
 
     private static readonly Type[] HarmonyPatchTypes =
     {
-        typeof(ClanManagementSelectionPatch),
         typeof(MercenaryPaymentPatch),
         typeof(MercenaryPriorityArmyCallDistancePatch),
         typeof(MercenaryPriorityArmyCandidateWeightPatch),

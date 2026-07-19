@@ -74,16 +74,15 @@ foreach ($required in @('MercenaryContract', 'MercenaryOffer', 'MercenaryContrac
 
 $subModule = Get-Content -Raw (Join-Path $root 'SubModule.cs')
 $patchSource = (Get-Content -Raw (Join-Path $root 'Patches/MercenaryPaymentPatch.cs')) +
-    (Get-Content -Raw (Join-Path $root 'Patches/MercenaryPriorityAiPatches.cs')) +
-    (Get-Content -Raw (Join-Path $root 'Patches/ClanManagementSelectionPatch.cs'))
-foreach ($patch in @('ClanManagementSelectionPatch', 'MercenaryPaymentPatch',
+    (Get-Content -Raw (Join-Path $root 'Patches/MercenaryPriorityAiPatches.cs'))
+foreach ($patch in @('MercenaryPaymentPatch',
         'MercenaryPriorityArmyCallDistancePatch', 'MercenaryPriorityArmyCandidateWeightPatch',
         'MercenaryPriorityBehaviorScorePatch', 'MercenaryRecoveryTrainingPatch')) {
     Assert-True ($subModule.Contains("typeof($patch)")) "$patch is registered by SubModule"
     Assert-True ($patchSource.Contains("class $patch")) "$patch implementation exists"
 }
 foreach ($target in @('AddMercenaryIncome', 'CanLordCreateArmy', 'AiHourlyTick',
-        'GetEffectiveDailyExperience', 'SetSelectedCategory')) {
+        'GetEffectiveDailyExperience')) {
     Assert-True ($patchSource.Contains($target)) "Harmony target reference $target exists"
 }
 
@@ -103,10 +102,16 @@ foreach ($token in @('ExecuteShowOfferServices', 'ExecuteSubmitServiceRequest', 
 foreach ($token in @('MouseScrollAxis="Vertical"', 'ServiceKingdomClipRect', 'ServiceKingdomScrollbar')) {
     Assert-True ($offerPrefab.Contains($token)) "Offer Services scrolling contains $token"
 }
-$clanTabWidths = Get-Content -Raw (Join-Path $root 'UI/ClanManagementTabWidthExtensions.cs')
-foreach ($constant in @('Header.Tab.Left.Width.Scaled', 'Header.Tab.Center.Width.Scaled', 'Header.Tab.Right.Width.Scaled')) {
-    Assert-True ($clanTabWidths.Contains($constant)) "Clan tab width adjusts $constant"
-}
+$clanMixin = Get-Content -Raw (Join-Path $root 'UI/ClanManagementVMMixin.cs')
+$kingdomTab = Get-Content -Raw (Join-Path $root 'UI/KingdomMercenariesTabExtension.cs')
+Assert-True (-not $clanMixin.Contains('SetSelectedCategory(4)')) 'Clan mixin does not reserve a native category index'
+Assert-True (-not $prefabSource.Contains('CommandParameter.Click="4"')) 'Clan tab does not bind a hard-coded category ID'
+Assert-True ($prefabSource.Contains('Command.Click="ExecuteShowMercenaryContract"')) 'Clan tab invokes its dedicated mixin command'
+Assert-True ($prefabSource.Contains('InsertType.Child')) 'Clan tab composes into its tab container'
+Assert-True ($kingdomTab.Contains('descendant::KingdomTabControlListPanel/Children')) 'Kingdom tab targets the shared tab container'
+Assert-True ($kingdomTab.Contains('InsertType.Child')) 'Kingdom tab composes into its tab container'
+Assert-True (-not (Test-Path (Join-Path $root 'UI/ClanManagementTabWidthExtensions.cs'))) 'Clan shared tab widths are not overridden'
+Assert-True (-not (Test-Path (Join-Path $root 'UI/KingdomManagementTabWidthExtensions.cs'))) 'Kingdom shared tab widths are not overridden'
 
 $kingdomAiBehavior = Get-Content -Raw (Join-Path $root 'Behaviors/MercenaryKingdomAiBehavior.cs')
 $priorityBehavior = Get-Content -Raw (Join-Path $root 'Behaviors/MercenaryPriorityBehavior.cs')
