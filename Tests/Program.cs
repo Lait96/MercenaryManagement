@@ -25,7 +25,37 @@ internal static class Program
         TestPersistentValueRobustness();
         TestContractReputation();
         TestRecoveryPriority();
+        TestHiringLimit();
         Console.WriteLine($"PASS: {_passed} deterministic business assertions.");
+    }
+
+    private static void TestHiringLimit()
+    {
+        Assert(MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans == 3
+               && MercenaryHiringLimitPolicy.CanHireAnother(2, 3)
+               && !MercenaryHiringLimitPolicy.CanHireAnother(3, 3)
+               && MercenaryHiringLimitPolicy.CanHireAnother(3, 4)
+               && !MercenaryHiringLimitPolicy.CanHireAnother(4, 4),
+            "the hiring limit defaults to three and blocks only at the configured maximum");
+        Assert(MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(
+                   "<MercenaryManagementSettings><MaximumHiredMercenaryClans value=\"5\" /></MercenaryManagementSettings>") == 5
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(
+                   "<MercenaryManagementSettings><MaximumHiredMercenaryClans>4</MaximumHiredMercenaryClans></MercenaryManagementSettings>") == 4
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(
+                   "<MercenaryManagementSettings><MaximumHiredMercenaryClans value=\"0\" /></MercenaryManagementSettings>") == 1
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(
+                   "<MercenaryManagementSettings><MaximumHiredMercenaryClans value=\"99\" /></MercenaryManagementSettings>") == 20,
+            "the hiring limit is read from the settings file and clamped to 1..20");
+        Assert(MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(null) == 3
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans("") == 3
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans("not xml") == 3
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans(
+                   "<MercenaryManagementSettings><MaximumHiredMercenaryClans value=\"many\" /></MercenaryManagementSettings>") == 3
+               && MercenaryHiringLimitPolicy.ParseMaximumHiredMercenaryClans("<MercenaryManagementSettings />") == 3,
+            "a missing or unreadable hiring limit keeps the default of three");
+        MercenaryHiringLimitPolicy.Load("/no/such/module/directory");
+        Assert(MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans == 3,
+            "without a settings file the hiring limit stays at three");
     }
 
     private static void TestPlayerRecruitmentAdvantage()

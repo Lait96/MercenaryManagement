@@ -76,7 +76,7 @@
     <string id="MercenaryManagement_HireFailedNoLeader" text="У этого клана нет доступного лидера, который мог бы поступить на службу." />
     <string id="MercenaryManagement_HireFailedLeaderPrisoner" text="Лидер клана находится в плену и не может поступить на службу." />
     <string id="MercenaryManagement_HireFailedAtWar" text="Клан нельзя нанять, пока он воюет с вашим королевством." />
-    <string id="MercenaryManagement_HireFailedLimit" text="Ваше королевство уже наняло максимально допустимые три наёмных клана." />
+    <string id="MercenaryManagement_HireFailedLimit" text="Ваше королевство уже наняло максимально допустимое число наёмных кланов: {MAXIMUM}." />
     <string id="MercenaryManagement_HireFailedRelation" text="Отношение лидера клана к правителю слишком плохое, чтобы принять предложение." />
     <string id="MercenaryManagement_HireFailedGold" text="У правителя недостаточно динаров, чтобы гарантировать клану первые выплаты." />
     <string id="MercenaryManagement_HireFailedDebt" text="У клана правителя слишком большой невыплаченный долг перед королевством." />

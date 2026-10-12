@@ -25,6 +25,7 @@ internal sealed class MercenaryClanItemVM : ViewModel
     private int _expectedPayment;
     private bool _isSelected;
     private bool _isRefreshingPrioritySelector;
+    private bool _isSettingInfluencePrice;
 
     public MercenaryClanItemVM(Clan clan, Kingdom kingdom, Action<MercenaryClanItemVM> onSelect)
     {
@@ -133,24 +134,39 @@ internal sealed class MercenaryClanItemVM : ViewModel
         get => _influencePrice;
         set
         {
-            if (_influencePrice == value)
+            // The slider and the text input clamp the value to MinimumInfluencePrice..
+            // MaximumInfluencePrice and push the clamped value back here. When the value
+            // is refused (a free clan shows its hire price, which lies outside that range,
+            // and TrySetInfluencePrice refuses any rate for a clan not in service), the old
+            // value is announced again, the widget clamps it again, and so on until the
+            // stack overflows. A set that arrives while this one is still running is that
+            // echo: it is ignored.
+            if (_influencePrice == value || _isSettingInfluencePrice)
             {
                 return;
             }
 
-            if (!MercenaryPaymentService.TrySetInfluencePrice(_clan, _kingdom, value))
+            _isSettingInfluencePrice = true;
+            try
             {
-                OnPropertyChangedWithValue(_influencePrice);
-                return;
+                if (!MercenaryPaymentService.TrySetInfluencePrice(_clan, _kingdom, value))
+                {
+                    OnPropertyChangedWithValue(_influencePrice);
+                    return;
+                }
+
+                _influencePrice = value;
+                OnPropertyChangedWithValue(value);
+                OnPropertyChangedWithValue(
+                    InfluencePricePercentageText,
+                    nameof(InfluencePricePercentageText));
+
+                ExpectedPayment = MercenaryPaymentService.CalculateExpectedPayment(_clan);
             }
-
-            _influencePrice = value;
-            OnPropertyChangedWithValue(value);
-            OnPropertyChangedWithValue(
-                InfluencePricePercentageText,
-                nameof(InfluencePricePercentageText));
-
-            ExpectedPayment = MercenaryPaymentService.CalculateExpectedPayment(_clan);
+            finally
+            {
+                _isSettingInfluencePrice = false;
+            }
         }
     }
 

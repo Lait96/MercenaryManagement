@@ -9,7 +9,6 @@ namespace MercenaryManagement.Services;
 
 internal static class MercenaryHiringService
 {
-    private const int MaximumHiredMercenaryClans = 3;
     private const int MaximumKingdomDebt = 1000;
     private const int RequiredGoldInDailyWages = 20;
 
@@ -64,10 +63,11 @@ internal static class MercenaryHiringService
             }
         }
 
-        if (hiredMercenaryClans >= MaximumHiredMercenaryClans)
+        if (!MercenaryHiringLimitPolicy.CanHireAnother(hiredMercenaryClans, MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans))
         {
             reason = new TextObject(
-                "{=MercenaryManagement_HireFailedLimit}Your kingdom already employs the maximum of three mercenary clans.");
+                "{=MercenaryManagement_HireFailedLimit}Your kingdom already employs the maximum of {MAXIMUM} mercenary clans.");
+            reason.SetTextVariable("MAXIMUM", MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans);
             return true;
         }
 
@@ -195,9 +195,10 @@ internal static class MercenaryHiringService
         }
 
         int hiredMercenaryClans = kingdom.Clans.Count(kingdomClan => kingdomClan.IsUnderMercenaryService);
-        if (hiredMercenaryClans >= MaximumHiredMercenaryClans)
+        if (!MercenaryHiringLimitPolicy.CanHireAnother(hiredMercenaryClans, MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans))
         {
-            reason = new TextObject("{=MercenaryManagement_HireFailedLimit}The kingdom already employs the maximum of three mercenary clans.");
+            reason = new TextObject("{=MercenaryManagement_HireFailedLimit}The kingdom already employs the maximum of {MAXIMUM} mercenary clans.");
+            reason.SetTextVariable("MAXIMUM", MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans);
             return true;
         }
 
@@ -278,7 +279,7 @@ internal static class MercenaryHiringService
 
         int hiredCount = kingdom.Clans.Count(candidate => candidate.IsUnderMercenaryService);
         int price = CalculateHirePrice(clan, kingdom);
-        return hiredCount < MaximumHiredMercenaryClans
+        return MercenaryHiringLimitPolicy.CanHireAnother(hiredCount, MercenaryHiringLimitPolicy.MaximumHiredMercenaryClans)
                && clan.Leader!.GetRelation(kingdom.Leader) > -10
                && kingdom.Leader.Gold >= price * RequiredGoldInDailyWages
                && (kingdom.RulingClan is null || kingdom.RulingClan.DebtToKingdom <= MaximumKingdomDebt);

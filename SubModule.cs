@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using Bannerlord.UIExtenderEx;
 using HarmonyLib;
@@ -31,6 +32,8 @@ public sealed class SubModule : MBSubModuleBase
     protected override void OnSubModuleLoad()
     {
         base.OnSubModuleLoad();
+
+        MercenaryHiringLimitPolicy.Load(GetModuleDirectory());
 
         _uiExtender = UIExtender.Create(nameof(MercenaryManagement));
         _uiExtender.Register(Assembly.GetExecutingAssembly());
@@ -75,6 +78,22 @@ public sealed class SubModule : MBSubModuleBase
                     }
                 }
             }
+        }
+    }
+
+    // bin/Win64_Shipping_Client/MercenaryManagement.dll -> the module's root folder.
+    private static string? GetModuleDirectory()
+    {
+        try
+        {
+            string? binDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            return string.IsNullOrEmpty(binDirectory)
+                ? null
+                : Path.GetFullPath(Path.Combine(binDirectory, "..", ".."));
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 

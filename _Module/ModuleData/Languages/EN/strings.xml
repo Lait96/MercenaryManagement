@@ -76,7 +76,7 @@
     <string id="MercenaryManagement_HireFailedNoLeader" text="This clan has no available leader who can enter into service." />
     <string id="MercenaryManagement_HireFailedLeaderPrisoner" text="The clan leader is a prisoner and cannot enter into service." />
     <string id="MercenaryManagement_HireFailedAtWar" text="The clan cannot be hired while it is at war with your kingdom." />
-    <string id="MercenaryManagement_HireFailedLimit" text="Your kingdom already employs the maximum of three mercenary clans." />
+    <string id="MercenaryManagement_HireFailedLimit" text="Your kingdom already employs the maximum of {MAXIMUM} mercenary clans." />
     <string id="MercenaryManagement_HireFailedRelation" text="The clan leader's relation with the ruler is too poor to accept service." />
     <string id="MercenaryManagement_HireFailedGold" text="The ruler does not have enough dinars to guarantee the clan's initial wages." />
     <string id="MercenaryManagement_HireFailedDebt" text="The ruler's clan has too much unpaid debt to the kingdom." />
