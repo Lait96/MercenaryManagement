@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MercenaryManagementSettings>
+  <!-- How many mercenary clans one kingdom may employ at once (1 to 20). Default: 3.
+       Read when the game starts. -->
+  <MaximumHiredMercenaryClans value="3" />
+</MercenaryManagementSettings>

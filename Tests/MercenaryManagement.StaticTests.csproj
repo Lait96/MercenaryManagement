@@ -19,5 +19,6 @@
     <Compile Include="..\Services\MercenaryValuePolicy.cs" Link="Production\MercenaryValuePolicy.cs" />
     <Compile Include="..\Services\MercenaryReputationModel.cs" Link="Production\MercenaryReputationModel.cs" />
     <Compile Include="..\Services\MercenaryRecoveryPolicy.cs" Link="Production\MercenaryRecoveryPolicy.cs" />
+    <Compile Include="..\Services\MercenaryHiringLimitPolicy.cs" Link="Production\MercenaryHiringLimitPolicy.cs" />
   </ItemGroup>
 </Project>
